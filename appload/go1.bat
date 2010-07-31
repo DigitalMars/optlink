@@ -1,0 +1,3 @@
+NMAKE APPLOAD.MAK %1=
+
+

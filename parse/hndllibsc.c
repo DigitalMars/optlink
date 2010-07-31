@@ -1,0 +1,287 @@
+// HNDLLIBS - Copyright (c) SLR Systems 1994
+
+#include "all.h"
+
+void _do_search_library(NFN_STRUCT* EAX);
+void _store_libpath(NFN_STRUCT* EAX);
+void _do_objs_1(NFN_STRUCT* EAX, FILE_LISTS *ECX);
+void _not_ambiguous(NFN_STRUCT* EAX, FILE_LISTS *ECX);
+
+void _handle_libs(NFN_STRUCT* EAX)
+{
+    if (EAX->NFN_FLAGS & (NFN_PRIM_SPECIFIED | NFN_EXT_SPECIFIED))
+    {
+	_do_search_library(EAX);
+	return;
+    }
+    // Remove base file name and extension from NFN_TEXT
+    EAX->NFN_TOTAL_LENGTH -= EAX->NFN_PRIMLEN + EAX->NFN_EXTLEN;
+    EAX->NFN_PRIMLEN = 0;
+    EAX->NFN_EXTLEN = 0;
+    *(int*)&EAX->NFN_TEXT[EAX->NFN_TOTAL_LENGTH] = 0;
+    _store_libpath(EAX);
+}
+
+
+void _do_srcnam(NFN_STRUCT* EAX)
+{
+    _move_nfn(&SRCNAM, EAX);
+}
+
+
+void _do_library(NFN_STRUCT* EAX)
+{
+    _do_search_library(EAX);
+}
+
+void _do_search_library(NFN_STRUCT* EAX)
+{
+    EAX->NFN_TYPE = NFN_LIB_TTYPE;
+    _do_objs_1(EAX, &LIB_LIST);
+}
+
+
+void _do_objs(NFN_STRUCT* EAX)
+{
+    // IF NOT NUL, ADD NEW TO LIST...
+    _do_objs_1(EAX, &OBJ_LIST);
+}
+
+void _do_objs_1(NFN_STRUCT* EAX, FILE_LISTS *ECX)
+{
+    // ECX IS FILE_LIST TO PUT IT IN
+
+    if (!(EAX->NFN_FLAGS & NFN_AMBIGUOUS))
+    {
+	// CURRENTLY UNAMBIGUOUS
+	THIS_AMBIGUOUS = 0;
+	_not_ambiguous(EAX, ECX);
+	return;
+    }
+
+    // OK, NAME IN SI IS AMBIGUOUS...
+
+    // NOPE, GOT WHOLE FILENAME
+
+    // OOPS...
+    THIS_AMBIGUOUS = -1;
+    // EAX IS NFN_STRUCT
+    if (!_do_findfirst(EAX))
+	goto L11;	// ALL DONE, NOT FOUND...
+L1:
+    _not_ambiguous(EAX, ECX);
+    if (_do_findnext(EAX))
+	goto L1;
+    _close_findnext();
+L11:
+    ;
+}
+
+#if 0
+
+void _copy_first_obj(FILE_LISTS *EDI)
+{
+	if (EDI == &OBJ_LIST)
+	{   _do_srcnam(EAX);
+	    EAX = ESI;
+	}
+	COPY_FIRST_OBJ_RET(EAX);
+}
+
+void _not_ambiguous(NFN_STRUCT* EAX, FILE_LISTS *ECX)
+{
+	EDX = SRCNAM.NFN_PRIMLEN;
+	EDI = ECX;
+	ESI = EAX;
+	if (!EDX && EDI == &OBJ_LIST)
+	{   _do_srcnam(EAX);
+	    EAX = ESI;
+	}
+	COPY_FIRST_OBJ_RET(EAX);
+}
+
+COPY_FIRST_OBJ_RET(NFN_STRUCT *EAX)
+{
+	// RETURNS ECX AS SYMBOL ADDRESS
+	FILE_LIST_STRUCT *ECX;
+	EAX = FILENAME_INSTALL(EAX, &ECX);
+	// EAX IS GINDEX
+
+	EDX = EAX;
+
+	// ADD TO LIST IF NOT ALREADY THERE...
+
+	// DS:BX IS SYMBOL, DX IS LOGICAL ADDR
+
+		PUSH	EBX
+	AL = ECX.FILE_LIST_FLAGS;
+	if (DOING_NODEF)
+	{
+	    ECX.FILE_LIST_FLAGS |= MASK MOD_IGNORE;
+	    return;
+	}
+	// MODEFAULT, IGNORE
+	if (EAX & MOD_IGNORE)
+		return;
+	if (EAX & MOD_ADD)
+	// ALREADY IN ADD LIST...
+	{
+	    ASSUME	EDI:PTR FILE_LISTS
+
+	    // ALREADY THERE, WAS IT UNAMBIGUOUS?
+	    if (EAX & MASK MOD_UNAMBIG)
+		    return;	// YES, IGNORE.
+
+	    // WAS AMBIGUOUS, WHAT ABOUT NOW?
+	    if (THIS_AMBIGUOUS)
+		    return;	// STILL AMBIGUOUS
+
+	    // NOW UNAMBIGUOUS, MOVE IT TO END OF LINKED LIST...
+	    ECX.FILE_LIST_FLAGS = AL |MASK MOD_UNAMBIG;
+
+	    // FIRST, IF .FILE_LAST_ITEM MATCHES, SKIP SEARCH, JUST FLAG IT..
+	    if (EDI->FILE_LAST_GINDEX == EDX)
+		    return;
+
+	    // SEARCH LIST FOR IT (DX:BX)
+		    PUSH	EDI
+	    EAX = EDI->FILE_FIRST_GINDEX;
+	    do
+	    {
+		CONVERT	EDI,EAX,FILE_LIST_GARRAY
+		ASSUME	EDI:PTR FILE_LIST_STRUCT
+		EAX = EDI->FILE_LIST_NEXT_GINDEX;
+	    } while (EAX != EDX);
+
+	    // MAKE [DI:CX] POINT TO [DS:SI]
+	    EAX = 0;
+	    EBX = ECX->FILE_LIST_NEXT_GINDEX;
+	    ECX->FILE_LIST_NEXT_GINDEX = 0;
+	    EDI->FILE_LIST_NEXT_GINDEX = EBX;
+		    POP	EDI
+
+	    // NOW, MAKE .LAST PT TO THIS...
+	}
+	else
+	{
+	    AL |= MOD_ADD;
+	    if (THIS_AMBIGUOUS == 0)
+	    {
+		version(any_overlays)
+		{
+		    if (EAX & MASK MOD_UNAMBIG && ECX.FILE_LIST_SECTION_GINDEX)
+		    {
+			ERR_INBUF_ABORT(DUP_SECTION_ERR);
+		    }
+		}
+		AL |= MOD_UNAMBIG;
+	    }
+	    ECX->FILE_LIST_FLAGS = AL;
+	}
+
+    // PUT_IN_ADD_LIST
+
+    // ESI IS NFN_STRUCT
+    // EDI IS LISTTYPE
+    // EDX IS CURN FILE_LIST_GINDEX
+    // ECX IS CURN FILE_LIST_ADDRESS
+
+    ASSUME	EDI:PTR FILE_LISTS
+    version(any_overlays)
+    {
+	ECX.FILE_LIST_SECTION = CURN_SECTION;
+	ECX.FILE_LIST_PLTYPE = CURN_PLTYPE;
+    }
+    EAX = EDI.FILE_LAST_GINDEX;
+    ECX.FILE_LIST_PLINK_FLAGS |= DEBUG_TYPES_SELECTED;
+    EDI.FILE_LAST_GINDEX = EDX;
+
+    CONVERT	EAX,EAX,FILE_LIST_GARRAY
+    ASSUME	EAX:PTR FILE_LIST_STRUCT
+    // CAUSE THIS IS NOT THREAD
+    EAX.FILE_LIST_NEXT_GINDEX = EDX;    // ORDER, THIS IS LOGICAL ORDER
+
+    version(fgh_inthreads)
+    {
+	if (HOST_THREADED & OBJS_DONE)
+	{
+	    EAX = EDX;
+	    OBJ_LIST.FILE_LAST_GINDEX = EAX;
+	    LINK_TO_THREAD();
+	}
+    }
+}
+
+
+
+void STORE_LIBPATH(NFN_STRUCT* EAX)
+{
+	DL = 2;
+	ECX = OFF LIBPATH_LIST;
+	LNI_PATHS(EAX, EDX, ECX);
+}
+
+LNI_PATHS(NFN_STRUCT* EAX, EDX, ECX)
+{
+	// DONT ADD NUL PATH
+	DH = 0;
+	if (EAX.NFN_PATHLEN == 0)
+	{
+	    LNI_FILES(EAX, EDX, ECX);
+	}
+}
+
+LNI_FILES(EAX, EDX, ECX)
+{
+	EAX.NFN_TYPE = DH;
+	*FILE_HASH_MOD = DL;
+	DO_OBJS_1();
+	EAX = 0;
+	FILE_HASH_MOD = 0;
+}
+
+HANDLE_OBJPATHS(NFN_STRUCT* EAX)
+{
+	DL = 3;
+	LNI_PATHS(EAX, EDX, &OBJPATH_LIST);
+}
+
+
+HANDLE_STUBPATHS(NFN_STRUCT* EAX)
+{
+	// PARSING PATH= VARIABLE
+
+	DL = 4;
+	LNI_PATHS(EAX, EDX, &STUBPATH_LIST);
+}
+
+HANDLE_STUB(NFN_STRUCT* EAX)
+{
+	EDX = 5+256*NFN_STUB_TTYPE;
+	LNI_FILES(EAX, EDX, &STUB_LIST);
+}
+
+HANDLE_OLD(NFN_STRUCT* EAX)
+{
+	EDX = 6+256*NFN_OLD_TTYPE;
+	LNI_FILES(EAX, EDX, &OLD_LIST);
+}
+
+HANDLE_RCS(NFN_STRUCT* EAX)
+{
+	ECX = *cast(int*)&EAX.NFN_TEXT[EAX.NFN_PATHLEN + EAX.NFN_PRIMLEN];
+	if (ECX != 'SER.' && ECX != 'ser.')
+	    WARN_ASCIZ_RET(IMPROBABLE_RES_ERR, EAX.NFN_TEXT);
+
+	EDX = 7+NFN_RES_TTYPE*256;
+	LNI_FILES(EAX, EDX, &RC_LIST);
+}
+
+
+HANDLE_LOD(NFN_STRUCT* EAX)
+{
+	EDX = 8+NFN_LOD_TTYPE*256;
+	LNI_FILES(EAX, EDX, &LOD_LIST);
+}
+
+#endif

@@ -1,0 +1,385 @@
+
+typedef unsigned char ubyte;
+typedef unsigned short ushort;
+
+#define CH_SPC		0
+#define CH_SEP		4
+#define CH_AT		8
+#define CH_SEMI	 	12
+#define CH_NL		16
+#define CH_ESC		20
+#define CH_NEXT		24
+
+typedef struct NFN_STRUCT
+{
+    ubyte NFN_FLAGS;
+    ubyte NFN_TYPE;
+    ushort reserved1;
+    ushort NFN_TIME;
+    ushort NFN_DATE;
+    int NFN_FILE_LENGTH;
+    int NFN_PATHLEN;
+    int NFN_PRIMLEN;
+    int NFN_EXTLEN;	// length of .ext, including '.'
+    int NFN_TOTAL_LENGTH;
+    ubyte NFN_TEXT[NFN_TEXT_SIZE];
+} NFN_STRUCT;
+
+enum NFN_RECORD
+{
+	NFN_AMBIGUOUS = 0x20,
+	NFN_PATH_SPECIFIED = 0x10,
+	NFN_EXT_SPECIFIED = 8,
+	NFN_PRIM_SPECIFIED = 4,
+	NFN_NUL = 2,
+	NFN_TIME_VALID = 1,
+};
+
+#define NFN_OBJ_TTYPE	0
+#define NFN_LIB_TTYPE	1
+#define NFN_OLD_TTYPE	2
+#define NFN_STUB_TTYPE	3
+#define NFN_RES_TTYPE	4
+#define NFN_DEF_TTYPE	5
+#define NFN_LOD_TTYPE	6
+
+enum FNTBL_RECORD
+{
+	IS_NUMERIC		= 0x40,
+	IS_ALPHA		= 0x20,
+	FNTBL_ILLEGAL		= 0x10,
+	FNTBL_PATH_SEPARATOR	= 8,
+	FNTBL_AMBIGUOUS		= 4,
+	FNTBL_DOT		= 2,
+	SYMTBL_ILLEGAL		= 1,
+};
+
+extern unsigned char FNTBL[256];
+
+typedef struct FILE_LISTS
+{
+
+    int FILE_LAST_GINDEX;	// THESE ARE GINDEXES
+    struct FILE_LIST_STRUCT *FILE_FIRST_GINDEX;
+} FILE_LISTS;
+
+typedef struct FILE_LIST_STRUCT
+{
+    struct FILE_LIST_STRUCT *FILE_LIST_NEXT_GINDEX;	// NEXT LOGICALLY
+    int FILE_LIST_HASH_NEXT_GINDEX;			// NEXT THIS HASH
+    struct FILE_LIST_STRUCT *FILE_LIST_PATH_GINDEX;	// SEARCH PATH USED TO FIND THIS FILE
+#if any_overlays
+	int FILE_LIST_SECTION_GINDEX;
+#endif
+    ubyte FILE_LIST_PLTYPE;		// SECTION_ASSIGNED, LEVEL_0_
+    ubyte FILE_LIST_PLINK_FLAGS;	// LIB_ALLOCATE, ETC
+    ubyte FILE_LIST_FLAGS ;		// MOD_ADD, MOD_IGNORE, ETC
+    ubyte FILE_LIST_TYPE;		// MOD_TYPE, OBJ, LIB, ETC
+
+#if fgh_inthreads
+	struct FILE_LIST_STRUCT *FILE_LIST_MY_NEXT_GINDEX;	// NEXT THIS THREAD (OS/2)
+	int FILE_LIST_THREAD;		// THREAD OWNER
+#endif
+    int FILE_LIST_HASH;			// HASH VALUE
+
+    struct NFN_STRUCT FILE_LIST_NFN;
+
+} FILE_LIST_STRUCT;
+
+#define FILE_LIST_PREV	FILE_LIST_MY_NEXT
+
+	// NO_VECTOR WAS IN HERE...
+
+
+typedef struct PLINK_FLAGS
+{
+	int LIB_ALLOCATE:1,
+	FL_DEBUG_TYPES:1,
+	FL_DEBUG_PUBLICS:1,
+	FL_DEBUG_LOCALS:1,
+	FL_DEBUG_LINNUMS:1,
+	FL_DEBUG_COVERAGES:1,
+	FL_DEBUG_BROWSERDEFS:1,
+	FL_DEBUG_BROWSERREFS:1;
+} PLINK_FLAGS;
+
+enum
+{
+    FLF_RANDOM = 0x40,
+};
+
+/*typedef struct FL_FLAGS
+{
+	int FLF_RANDOM:1,
+	MOD_DELETE:1,
+	MOD_EXTRACT:1,
+	MOD_TBR:1,
+	MOD_UNAMBIG:1,
+	MOD_ADD:1,
+	MOD_IGNORE:1;
+
+	// 0	OBJ FILE
+	// 1	LIBRARY
+	// 2	OLD
+	// 3	STUB
+	// 4	RESOURCE
+} FL_FLAGS;*/
+
+typedef struct MYO_STRUCT
+{   // ********** MUST MATCH MYI ********
+    int MYO_COUNT;
+    void *MYO_HANDLE;
+    unsigned char *MYO_PTR ;
+    unsigned char *MYO_BLOCK;	// BASE ADDRESS
+    int MYO_FILE_LENGTH;
+    int MYO_BYTE_OFFSET ;
+    int MYO_PHYS_ADDR;
+    struct MYO_STRUCT *(*MYO_FLUSHBUF)(struct MYO_STRUCT *);
+    void *MYO_FILE_LIST_GINDEX;
+    int MYO_BUSY;
+    ushort MYO_TIME;
+    // *********************************
+    ushort MYO_DATE;
+
+    int MYO_BYTES;
+    int MYO_DESPOT;	// DESIRED FILE POSITION
+    ubyte MYO_SPEC_FLAGS;
+    ubyte MYO_TYPE_FLAGS;
+    ushort reserved;
+
+#if fgh_outhreads
+	int MYO_BYTE_OFFSET2;
+#endif
+    // ushort MYO_CURN_BUFFER;
+    // ushort MYO_STACK_SEGMENT;
+} MYO_STRUCT;
+
+#if fgh_inthreads
+
+typedef struct OPEN_STRUCT
+{
+    void *OPENFILE_HANDLE ;	// HANDLE OF OPEN FILE
+    int OPENFILE_FLAGS;		// NZ ON OPEN IF LIBRARY FILE
+
+    NFN_STRUCT *OPENFILE_NAME;	// IN MYI2_NAMS
+
+    int OPENFILE_ADDR;		// CURRENT PHYSICAL ADDRESS
+
+    ubyte OPENFILE_HEADER[16];	// LIBRARY FILE HEADER
+
+    // ushort OPENFILE_TIME;	// TIME STAMP ON FILE
+    // ushort OPENFILE_DATE;	// DATE STAMP ON FILE
+
+    struct FILE_LIST_STRUCT *OPENFILE_PATH_GINDEX;	// IF FOUND BY SEARCHING A PATH...
+} OPEN_STRUCT;
+
+
+typedef struct INPUT_STRUCT
+{
+    void *INS_BLOCK;	// BLOCK ADDRESS
+    int INS_BYTES;	// # OF BYTES READ
+
+    struct OPEN_STRUCT *INS_OPENFILE;	// PTR BACK TO OPENFILE ENTRY
+} INPUT_STRUCT;
+
+
+typedef struct OUTPUT_STRUCT
+{
+    GLOBALSEM_STRUCT OUT_FULL_SEM;
+    GLOBALSEM_STRUCT OUT_AVAIL_SEM;
+
+    int OUT_ADDR;
+    int OUT_BUFFER;
+    int OUT_PTR;
+    int OUT_BYTES;
+
+    ubyte OUT_FLAGS;
+    ubyte reserved1;	// EVEN
+    ushort reserved2;
+} OUTPUT_STRUCT;
+
+
+typedef struct MYO2_STRUCT
+{
+    int MYO2_NEXT_FULL_BUFFER;
+    int MYO2_NEXT_AVAIL_BUFFER;
+
+    int MYO2_THREAD_ID;
+    int MYO2_NUM_HANDLES ;
+
+    int MYO2_RESULT;
+    int MYO2_WRITE_FLAGS;
+
+    GLOBALSEM_STRUCT MYO2_TERM_SEM;
+
+    ubyte MYO2_TND_BUF[16];
+
+    OUTPUT_STRUCT MYO2_OUT_STRUC[4];
+    ubyte MYO2_NFN[sizeof(NFN_STRUCT)];
+    ubyte MYO2_ASCIZ[NFN_TEXT_SIZE + 4];
+} MYO2_STRUCT;
+
+#endif
+
+enum // F_FLAGS
+{
+    F_SEEK_FIRST  = 0x20,
+    F_TRUNC_FILE  = 0x10,
+    F_CLOSE_FILE  = 0x08,
+    F_CLEAR_BLOCK = 0x04,
+    F_RELEASE_BLOCK = 0x02,
+    F_SET_TIME = 0x01,
+};
+
+
+typedef struct MYI_STRUCT
+{
+	// ************ MUST MATCH MYO ****************
+
+    int MYI_COUNT;		// BYTES LEFT IN BUFFER
+    void *MYI_HANDLE;
+    void *MYI_PTRA ;		// READ/WRITE POINTER
+    void *MYI_BLOCK;		// BASE ADDRESS OF CURRENT BUFFER
+    int MYI_FILE_LENGTH;
+    int MYI_BYTE_OFFSET;	// ADDR AT BEGINNING OF BLOCK
+    int MYI_PHYS_ADDR;		// CURRENT FILE POSITION (ADDR AT END OF BLK)
+    void *MYI_FILLBUF;		// FUNCTION TO FILL BUFFER
+    struct FILE_LIST_STRUCT *MYI_FILE_LIST_GINDEX;	// POINTS TO FN_STRUCT (MYI_NAM)
+    int MYI_BUSY;
+    ushort MYI_TIME;
+	// *********************************
+    ushort MYI_DATE;
+
+	// ********************************************
+
+    ushort MYI_CURRENT_TYPE;	// NON-ZERO IS LIBRARY
+    ubyte MYI_BUFCNT;
+    ubyte reserved;
+
+#if fgh_inthreads
+    struct MYI2_STRUCT *MYI_LOCALS;
+#endif
+} MYI_STRUCT;
+
+
+#if fgh_inthreads
+
+typedef struct MYI2_STRUCT
+{
+    // THIS STUFF IN SEPARATE SEGMENT PER THREAD
+
+    int MYI2_NEXT_OPEN_STRUC;	// 0-3, NEXT OPENFILE STRUCTURE TO USE BY ME
+    int MYI2_NEXT_OPEN_FILE;	// NEXT FILE TO BE 'OPENED' BY THREAD 1
+
+    int MYI2_NEXT_16K_BLOCK;	// NEXT BLOCK TO BE READ BY THREAD 1
+    int MYI2_OPREAD_THREAD_ID;
+    int MYI2_OPREAD_THREAD_HANDLE;
+
+    struct OPEN_STRUCT *MYI2_LAST_OPENFILE;
+    int MYI2_NUM_HANDLES ;	// NUMBER OF HANDLES WHEN I STARTED THIS OPEN
+
+    struct FILE_LIST_STRUCT *MYI2_LAST_FILENAME_OPENED_GINDEX;
+
+    FILE_LISTS MYI2_OBJ_LIST;	// FILES LINKED TO ME
+
+    GLOBALSEM_STRUCT MYI2_FILENAME_LIST_SEM;	// CLEARED WHEN MY FILE LIST HAS BEEN MODIFIED...
+
+    #define FIRST_MYI2_SEMAPHORE	MYI2_FILENAME_LIST_SEM
+
+    GLOBALSEM_STRUCT OPENFILE_AVAIL_SEM;	// IN-USE SEMAPHORE
+    GLOBALSEM_STRUCT OPENFILE_OPEN_SEM;		// FILE OPEN SEMAPHORE
+    GLOBALSEM_STRUCT OPENFILE_HEADER_SEM;	// HEADER-IS-VALID SEMAPHORE
+
+    GLOBALSEM_STRUCT INS_FULL_SEM;	// BLOCK HAS BEEN READ FLAG
+    GLOBALSEM_STRUCT INS_AVAIL_SEM;	// THIS ENTRY AVAILABLE FLAG
+
+    #define N_MYI2_SEMAPHORES = 6;
+
+    int MYI2_RESULT;
+    int MYI2_NEXT_FILE_BUFFER;
+    int MYI2_OPEN_FLAGS;
+
+    ubyte MYI2_TYPE;		// NON-ZERO IS
+    ubyte MYI2_THREAD_NUM;	// 0-3
+    ushort MYI2_LAST_OPEN_ERROR;
+
+    ubyte MYI2_TEMP_RECORD[0x40];
+
+    INPUT_STRUCT MYI2_INPUT_STRUC[4];
+
+    OPEN_STRUCT MYI2_OPEN_STRUC[4];
+
+    // ubyte[NFN_TEXT_SIZE+4] MYI2_ASCIZ;
+    // ubyte[64] MYI2_QFH_BUFFER;
+
+    NFN_STRUCT MYI2_NAMS[4];
+} MYI2_STRUCT;
+
+
+typedef struct MYL2_STRUCT
+{
+    // THIS STUFF IN SEPARATE SEGMENT PER THREAD
+
+    // GLOBALSEM_STRUCT MYL2_TERM_SEM;
+
+    GLOBALSEM_STRUCT MYL2_LIB_BLOCK_SEM;	// LIBREAD WAITS ON THIS FOR A NEW BLOCK TO BE READ
+    GLOBALSEM_STRUCT MYL2_BLOCK_READ_SEM;	// THREAD 1 WAITS ON THIS FOR A BLOCK TO BE READ
+
+    unsigned long MYL2_LIBREAD_THREAD_ID;
+    void* MYL2_LIBREAD_THREAD_HANDLE;
+    int MYL2_OPEN_FLAGS;
+
+    int MYL2_DESIRED_BYTES;
+    void *MYL2_BUFFER_ADDRESS;
+
+    struct LIBRARY_STRUCT *MYL2_FIRST_REQUEST_LIB_GINDEX;
+    struct LIBRARY_STRUCT *MYL2_LAST_REQUEST_LIB_GINDEX;
+
+    struct LIBRARY_STRUCT *MYL2_CURRENT_LIB_GINDEX;	// FOR ERROR MESSAGES...
+
+    ubyte MYL2_ASCIZ[NFN_TEXT_SIZE+4];
+
+    ubyte MYL2_NAM[sizeof(NFN_STRUCT)];
+} MYL2_STRUCT;
+
+#endif
+
+typedef struct OUTFILE_STRUCT
+{
+
+    FILE_LIST_STRUCT *_OF_FILE_LIST_GINDEX;	// PTR TO FILE_LIST ENTRY
+    int _OF_NEXT_HASH_GINDEX;	// NEXT ITEM HASH ORDER
+
+    int _OF_FINAL_HIGH_WATER;
+    int _OF_PHYS_ADDR;		// CURRENT PHYSICAL POINTER
+
+    int _OF_NEXT_OUTFILE_ORDER;	// NEXT OUTFILE IN INDEX ORDER
+    int _OF_OUTFILE_NUMBER;	// FOR OVERLAYS, OUTPUT FILE #
+
+    int _OF_SECTIONS;		// # OF SECTIONS USING THIS FILE
+
+    ubyte _OF_FLAGS;		// FILE CREATED,
+    ubyte reserved1;
+    ushort reserved2;
+
+    void *_OF_HANDLE;		// FILE HANDLE IF OPEN
+} OUTFILE_STRUCT;
+
+typedef struct OF_RECORD
+{
+	int OF_CREATED:1,
+	OF_CLOSED:1,
+	OF_TRUNCATED:1,
+	OF_ROOT:1;
+} OF_RECORD;
+
+NFN_STRUCT *_move_nfn(NFN_STRUCT* EAX, NFN_STRUCT* ECX);
+void _check_nul(NFN_STRUCT* EAX);
+int _check_nul1(NFN_STRUCT* EAX);
+
+
+/********************* myisc.c *******************/
+
+void _release_myi_ptr(MYI_STRUCT *EAX);
+void _close_myi_handle(MYI_STRUCT *EAX);
+

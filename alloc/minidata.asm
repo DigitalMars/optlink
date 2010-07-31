@@ -1,0 +1,91 @@
+		TITLE	MINIDATA - Copyright (c) SLR Systems 1994
+
+		INCLUDE MACROS
+
+;		PUBLIC	_release_minidata
+;		PUBLIC	RELEASE_MINIDATA
+
+
+		.CODE	ROOT_TEXT
+
+		EXTERNDEF	_release_block:proc
+		EXTERNDEF	_release_minidata:proc
+
+;_release_minidata	proc
+;		mov	EAX,4[ESP]
+;_release_minidata	endp
+
+RELEASE_MINIDATA	PROC
+		push	EAX
+		call	_release_minidata
+		add	ESP,4
+		ret
+
+		;
+		;EAX POINT TO ALLOCS STRUCTURE
+		;
+		PUSH	EDI
+		ASSUME	EAX:PTR ALLOCS_STRUCT
+		MOV	ECX,[EAX].ALLO_BLK_CNT
+
+		PUSH	ESI
+		TEST	ECX,ECX
+
+		PUSH	EBX
+		MOV	EBX,EAX
+		ASSUME	EAX:NOTHING,EBX:PTR ALLOCS_STRUCT
+
+		JZ	L9$
+L1$:
+		LEA	EDI,[EBX].ALLO_BLK_LIST
+		MOV	ECX,8
+L2$:
+		MOV	EAX,[EDI]
+		ADD	EDI,4
+
+		TEST	EAX,EAX
+		JZ	L3$
+
+		push	ECX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	ECX
+
+		DEC	ECX
+		JNZ	L2$
+L3$:
+		;
+		;ANY MORE LISTS OF BLOCKS?
+		;
+		MOV	ESI,[EBX].ALLO_LAST_LIST
+
+		TEST	ESI,ESI
+		JZ	L6$
+
+		MOV	EAX,[ESI]
+		ADD	ESI,4
+
+		MOV	[EBX].ALLO_LAST_LIST,EAX
+		LEA	EDI,[EBX].ALLO_BLK_LIST
+
+		MOV	ECX,8
+
+		REP	MOVSD
+		JMP	L1$
+
+L6$:
+		LEA	EDI,[EBX]
+		MOV	ECX,SIZE ALLOCS_STRUCT/4
+		XOR	EAX,EAX
+		REP	STOSD
+L9$:
+		POPM	EBX,ESI,EDI
+
+		RET
+
+RELEASE_MINIDATA	ENDP
+
+
+		END
+

@@ -1,0 +1,3 @@
+NMAKE EXE.MAK %1=
+
+

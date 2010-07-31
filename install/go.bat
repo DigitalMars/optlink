@@ -1,0 +1,2 @@
+NMAKE INSTALL.MAK %1=
+

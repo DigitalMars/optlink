@@ -1,0 +1,202 @@
+		TITLE	FIXDS - Copyright (c) SLR Systems 1994
+
+		INCLUDE	MACROS
+
+if	fg_prot
+
+		PUBLIC	FIXDS_ROUTINE
+
+
+		.DATA
+
+		EXTERNDEF	FORREF_TEMP_RECORD:BYTE
+
+		EXTERNDEF	EXETABLE:DWORD
+
+		EXTERNDEF	MAJOR_MOVE_ROUTINE:DWORD
+
+
+		.CODE	PASS2_TEXT
+
+		EXTERNDEF	CONVERT_SUBBX_TO_EAX:PROC,FORREF_COPY:PROC,MOVE_LDATA_3:PROC,FIXDS_MOVER:PROC
+
+
+FIXDS_ROUTINE	PROC
+		;
+		;EAX IS # OF BYTES TO CHECK...
+		;
+
+;---------------------------------------------------------------------------
+; Find and patch all FAR function prologs.  These begin with either:
+;
+; 0x1E	 push  ds
+; 0x58	 pop   ax
+;
+; or:
+;
+; 0x8C	 mov   ax, ds
+; 0xD8	  "
+;
+; or:
+;
+; 0x90	 nop
+; 0x90	 nop
+;
+; followed by:
+;
+; 0x90	 nop
+; 0x45	 inc   bp
+; 0x55	 push  bp
+; 0x8B	 mov   bp, sp
+; 0xEC	  "
+; 0x1E	 push  ds
+; 0x8E	 mov   ds, ax
+; 0xD8	  "
+;
+; Change the first two bytes of each FAR function to:
+;
+; 0x8C	 mov   ax, ss
+; 0xD0	 ...
+;---------------------------------------------------------------------------
+
+		PUSHM	EBP,EDI,ESI,EBX
+		;
+		;OK, SCAN FROM BYTE 3 TILL END-7 FOR INC BP (0X45)
+		;
+		MOV	EBX,OFF EXETABLE
+		LEA	ESI,[EAX-10]
+
+		TEST	ESI,ESI
+		JS	L9$
+		;
+		;OK, SCAN FOR SMALLER OF SI AND PAGE_SIZE-DI
+		;
+		MOV	EDI,3
+L1$:
+		MOV	EDX,PAGE_SIZE
+		CALL	CONVERT_SUBBX_TO_EAX
+
+		MOV	EBP,EAX
+		SUB	EDX,EDI
+
+		CMP	EDX,ESI
+		JB	L2$
+
+		MOV	EDX,ESI
+L2$:
+		MOV	ECX,EDX
+L21$:
+		ADD	EDI,EBP
+		MOV	AL,45H		;INC	BP
+
+		REPNE	SCASB
+
+		JNZ	L7$
+		;
+		;ITS 0X45, CHECK FOR BOUNDS TOO CLOSE TO BLOCK EDGE
+		;
+		SUB	EDI,EBP
+
+		CMP	EDI,4
+		JB	L3$		;NOPE, COPY
+
+		CMP	EDI,PAGE_SIZE-6
+		JA	L3$		;NOPE, COPY
+
+		ADD	EDI,EBP
+		CALL	FIXDS_TRY
+
+		SUB	EDI,EBP
+L6$:
+		TEST	ECX,ECX
+		JNZ	L21$
+L7$:
+		;
+		;NO MATCH, ANY MORE BLOCKS LEFT?
+		;
+		ADD	EBX,4
+		XOR	EDI,EDI
+
+		SUB	ESI,EDX
+		JNZ	L1$
+L9$:
+		POPM	EBX,ESI,EDI,EBP
+
+		RET
+
+L3$:
+		;
+		;SAVE VALUES, COPY STUFF TO TEMP AREA, HAVE ES:DI POINT TO IT
+		;
+		PUSHM	EDI,ESI,EDX,ECX,EBX
+		;
+		;BX:SI MUST BE SOURCE ADDRESS
+		;DI MUST BE TARGET ADDRESS
+		;MAJOR_MOVE_ROUTINE MUST BE FORREF_COPY
+		;CX:AX IS # OF BYTES TO COPY
+		;
+		SUB	EBX,OFF EXETABLE
+
+		SHL	EBX,PAGE_BITS-2		;ADDER FOR BLOCK #
+		MOV	EAX,10
+
+		MOV	MAJOR_MOVE_ROUTINE,OFF FORREF_COPY
+
+		LEA	ECX,[EBX+EDI-4]
+		MOV	EDX,OFF FORREF_TEMP_RECORD
+
+		PUSH	ECX
+		CALL	FIXDS_MOVER		;EAX IS # OF BYTES, ECX IS SRC ADDRESS, EDX IS DESTINATION
+
+		MOV	EDI,OFF FORREF_TEMP_RECORD+4
+		CALL	FIXDS_TRY
+
+		POP	EDX
+		JNZ	L4$
+		;
+		;COPY 2 BYTES BACK PLEASE
+		;
+		MOV	EAX,OFF FORREF_TEMP_RECORD
+		MOV	ECX,2
+
+		CALL	MOVE_LDATA_3		;EAX IS SRC, ECX IS # OF BYTES, EDX IS DEST ADDRESS
+
+L4$:
+		POPM	EBX,ECX,EDX,ESI,EDI
+		JMP	L6$
+
+FIXDS_ROUTINE	ENDP
+
+
+FIXDS_TRY	PROC	NEAR
+		;
+		;Z IS TRUE IF CHANGED SOMETHING
+		;
+		CMP	DPTR [EDI],1EEC8B55H
+		JNZ	L9$
+
+		CMP	BPTR [EDI-2],90H
+		JNZ	L9$
+
+		CMP	WPTR [EDI+4],0D88EH
+		JNZ	L9$
+
+		CMP	WPTR [EDI-4],0D88CH
+		JZ	L1$
+
+		CMP	WPTR [EDI-4],581EH
+		JNZ	L9$
+L1$:
+		;
+		;GOT A MATCH, CHANGE TO 0D08CH
+		;
+		MOV	WPTR [EDI-4],0D08CH
+L9$:
+		RET
+
+FIXDS_TRY	ENDP
+
+endif
+
+		END
+
