@@ -1,0 +1,1539 @@
+		TITLE	ERRORS - Copyright (C) SLR Systems 1994
+
+		INCLUDE MACROS
+		INCLUDE	SYMBOLS
+		INCLUDE	SEGMENTS
+		INCLUDE	MODULES
+		INCLUDE	GROUPS
+		INCLUDE	IO_STRUC
+		INCLUDE	RESSTRUC
+		INCLUDE	SYMCMACS
+
+
+		public	_err_ret
+		PUBLIC	OBJ_PHASE,BAD_RECORD,ERR_SYMBOL_TEXT_ABORT,ERR_TABLE,ERR_INBUF_RET,WARN_SYMBOL_TEXT_RET,ERR_HEX_ABORT
+		PUBLIC	FIXUPP_ERROR,ERR_NFN_ABORT,ERROR_ADR,WARN_ASCIZ_RET,ERR_ASCIZ_RET,ERR_ASCIZ_ABORT,ERR_HEX_RET
+		PUBLIC	ERR_SYMBOL_TEXT_RET,ERR_RET,INDEX_RANGE
+		PUBLIC	WARN_RET,WARN_NFN_RET
+		PUBLIC	ERROR_UNDEFINED,ERR_INBUF_ABORT
+
+
+		.DATA
+
+		EXTERNDEF	EOUTBUF:BYTE,HEXTBL:BYTE,MODULE_NAME:BYTE,INBUF:BYTE,SYMBOL_TEXT:BYTE,RECORD_TYPE:BYTE
+		EXTERNDEF	IMPEXP_NAM:BYTE,IMPEXP_MOD:BYTE,TEMP_RECORD:BYTE,FIX2_FTYPE:BYTE,ERROR_ASCIZ:BYTE
+
+		EXTERNDEF	SYMBOL_LENGTH:DWORD,OBJ_DEVICE:DWORD,END_OF_RECORD:DWORD,INPTR1:DWORD,_ERR_COUNT:DWORD
+		EXTERNDEF	WARN_COUNT:DWORD,BUFFER_OFFSET:DWORD,EDI_SAVE:DWORD,RESOURCE_NAME:DWORD,RESOURCE_TYPE:DWORD
+		EXTERNDEF	LDATA_SEGMOD_GINDEX:DWORD,CURNMOD_GINDEX:DWORD,FIX2_TINDEX:DWORD,FIX2_FINDEX:DWORD,FIX2_TT:DWORD
+		EXTERNDEF	FIX2_FF:DWORD,FIX2_OFFSET:DWORD,FIX2_LOC:DWORD,FIX2_SM_BASE_SEG_GINDEX:DWORD
+		EXTERNDEF	CURN_FILE_LIST_GINDEX:DWORD,DOSCALL_EAX:DWORD,LAST_FILNAM:DWORD,CURN_FILENAME:DWORD
+		EXTERNDEF	FIX2_LDATA_LOC:DWORD,FIX2_SM_START:DWORD,RESOURCE_FILE_ADDR:DWORD,FIX2_TOFFSET:DWORD
+		EXTERNDEF	FIX2_FFRAME:DWORD,DEFFILE:DWORD,ERR_NUMBER:DWORD
+
+		EXTERNDEF	OTHERS_SAVE:DWORD,ERROR_SEM:QWORD,SYMBOL_GARRAY:STD_PTR_S,SEGMENT_GARRAY:STD_PTR_S
+		EXTERNDEF	SEGMOD_GARRAY:STD_PTR_S,GROUP_GARRAY:STD_PTR_S,MODULE_GARRAY:STD_PTR_S
+		EXTERNDEF	TOOL_MESSAGE:TOOL_MESSAGE_STRUCT
+		EXTERNDEF 	GINPUT_LINE_NUMBER:DWORD
+
+		EXTERNDEF	LOUTALL:DWORD
+
+
+		.CODE	MIDDLE_TEXT
+
+		EXTERNDEF	_capture_eax:proc
+		EXTERNDEF	_release_eax:proc
+		EXTERNDEF	_release_eax_bump:proc
+		EXTERNDEF	_err_abort:proc,_abort:proc,OUT5:PROC,MOVE_ASCIZ_ESI_EDI:PROC
+		EXTERNDEF	_move_file_list_gindex_path_prim_ext:proc,CBTA16:PROC,LOUTALL_CON:PROC,HEXWOUT:PROC
+		EXTERNDEF	DO_DOSSEMREQUEST_AX:PROC,_move_path_prim_ext:proc,DO_DOSSEMCLEAR_AX:PROC,FORCE_SIGNON:PROC
+		EXTERNDEF	CAPTURE_EAX:PROC,RELEASE_EAX:PROC,_FLUSH_DISABLE_MAPOUT:PROC,REPORT_MESSAGE:PROC,UNMANGLE:PROC
+
+
+		public	_err_inbuf_abort
+_err_inbuf_abort	PROC
+		mov	EAX,4[ESP]
+_err_inbuf_abort	ENDP
+
+ERR_INBUF_ABORT	PROC
+
+		SETT	ABORTING
+
+ERR_INBUF_ABORT	ENDP
+
+ERR_INBUF_RET	PROC
+		;
+		;INPTR1 IS POSITION...
+		;
+		CALL	ERR_INBUF_RET_START
+
+		MOV	EAX,0A0DH
+		STOSW
+		MOV	ESI,OFF INBUF+4
+		MOV	ECX,INPTR1
+		BITT	USING_TEMP_RECORD
+		JZ	L3$
+		MOV	ESI,OFF TEMP_RECORD+4
+L3$:
+		SUB	ECX,ESI
+		JZ	L2$
+		MOV	AL,' '
+		CMP	ECX,512
+		JA	L2$
+L31$:
+		MOV	AL,[ESI]
+		INC	ESI
+		CMP	AL,9
+		JZ	L32$
+		MOV	AL,' '
+L32$:
+		MOV	[EDI],AL
+		INC	EDI
+		DEC	ECX
+		JNZ	L31$
+L2$:
+		MOV	AL,'^'
+		STOSB
+		JMP	ERROR_PHASE3
+
+ERR_INBUF_RET	ENDP
+
+
+ERR_INBUF_RET_START	PROC	NEAR
+		;
+		;
+		;
+		CALL	ERROR_START
+
+		MOV	EAX,0A0DH
+		MOV	ESI,OFF INBUF+4
+		STOSW
+		BITT	USING_TEMP_RECORD
+		JZ	L2$
+		MOV	ESI,OFF TEMP_RECORD+4
+L2$:
+		CMP	BPTR [ESI],1AH		;SPECIAL EOF HANDLING
+		JZ	L3$
+		MOV	ECX,[ESI-4]
+		REP	MOVSB
+		RET
+
+L3$:
+		MOV	ESI,OFF EOF_TXT
+		MOV	ECX,SIZEOF EOF_TXT
+		REP	MOVSB
+		RET
+
+ERR_INBUF_RET_START	ENDP
+
+		public	_error_undefined
+_error_undefined	proc
+		mov	ECX,4[ESP]
+_error_undefined	endp
+
+ERROR_UNDEFINED	PROC
+		;
+		;ECX IS PHYS, EAX IS GINDEX
+		;
+		ASSUME	ECX:PTR SYMBOL_STRUCT
+
+		XOR	EAX,EAX
+		PUSH	ECX
+		XCHG	EAX,[ECX]._S_REF_MOD_GINDEX
+		MOV	CURNMOD_GINDEX,EAX
+		CMP	[ECX]._S_LIB_GINDEX,0
+		MOV	AL,LIBRARY_ERR
+		JNZ	EU_0
+		MOV	AL,UNDEFINED_ERR
+EU_0:
+		CALL	ERROR_START
+		POP	ECX
+
+		CMP	BPTR [ECX]._S_NAME_TEXT,'?'
+		JNZ	EU_1
+
+		LEA	EAX,[ECX]._S_NAME_TEXT
+		CALL	UNMANGLE
+
+		MOV	ESI,EAX
+		JMP	EU_2
+
+EU_1:
+		LEA	ESI,[ECX]._S_NAME_TEXT
+EU_2:
+		CALL	MOVE_ASCIZ_ESI_EDI
+		JMP	ERROR_PHASE3
+
+ERROR_UNDEFINED	ENDP
+
+		public	_warn_nfn_ret
+_warn_nfn_ret	PROC
+		mov	ECX,8[ESP]
+		mov	AL,4[ESP]
+		call	WARN_NFN_RET
+		ret
+_warn_nfn_ret	ENDP
+
+WARN_NFN_RET	PROC
+		;
+		;
+		;
+		PUSH	ECX
+		CALL	WARN_START
+L1$:
+		POP	ECX
+		MOV	EAX,EDI
+
+		push	ECX
+		push	EAX
+		call	_move_path_prim_ext
+		add	ESP,8
+
+		MOV	EDI,EAX
+		JMP	ERROR_PHASE3
+
+ERR_NFN_ABORT::
+		PUSH	ECX
+		CALL	ERROR_ABORT_START
+		JMP	L1$
+
+WARN_NFN_RET	ENDP
+
+		public	_err_nfn_abort
+_err_nfn_abort	PROC
+		mov	ECX,8[ESP]
+		mov	AL,4[ESP]
+		call	ERR_NFN_ABORT
+		ret
+_err_nfn_abort	ENDP
+
+
+WARN_ASCIZ_RET	PROC
+		;
+		;
+		;
+		PUSH	ECX
+		CALL	WARN_START
+		JMP	L1$
+
+ERR_ASCIZ_ABORT	LABEL	PROC
+
+		SETT	ABORTING
+
+ERR_ASCIZ_RET	LABEL	PROC
+
+		PUSH	ECX
+		CALL	ERROR_START
+L1$:
+		POP	ESI
+L2$:
+		MOV	AX,' :'
+		STOSW
+
+		MOV	EAX,ESI
+		CALL	UNMANGLE
+
+		MOV	ESI,EAX
+		CALL	MOVE_ASCIZ_ESI_EDI
+		JMP	ERROR_PHASE3		;PRINT OUTBUF
+
+		public	_warn_symbol_text_ret
+_warn_symbol_text_ret	LABEL	PROC
+		mov	EAX,4[ESP]
+
+WARN_SYMBOL_TEXT_RET	LABEL	PROC
+
+		CALL	WARN_START
+		JMP	L3$
+
+ERR_SYMBOL_TEXT_ABORT	LABEL	PROC
+
+		SETT	ABORTING
+
+ERR_SYMBOL_TEXT_RET	LABEL	PROC
+
+		CALL	ERROR_START
+L3$:
+		MOV	ESI,OFF SYMBOL_TEXT
+		JMP	L2$
+
+WARN_ASCIZ_RET	ENDP
+
+
+ERR_HEX_ABORT	PROC
+
+		PUSH	ECX
+		CALL	ERROR_ABORT_START
+
+		POP	EAX
+		CALL	HEXWOUT
+
+		JMP	ERROR_PHASE3
+
+ERR_HEX_ABORT	ENDP
+
+
+ERR_HEX_RET	PROC
+
+		PUSH	ECX
+		CALL	ERROR_START
+
+		POP	EAX
+		CALL	HEXWOUT
+
+		JMP	ERROR_PHASE3
+
+ERR_HEX_RET	ENDP
+
+_err_ret	PROC
+		jmp	near ptr ERR_RET
+_err_ret	ENDP
+
+ERR_RET		PROC
+
+		CALL	ERROR_START
+		JMP	ERROR_PHASE3
+
+ERR_RET		ENDP
+
+_warn_ret	proc
+		mov	EAX,4[ESP]
+_warn_ret	endp
+WARN_RET	PROC
+		;
+		;
+		;
+		CALL	WARN_START
+		JMP	ERROR_PHASE3		;PRINT OUTBUF
+
+WARN_RET	ENDP
+
+
+FIXUPP_ERROR	PROC
+		;
+		;
+		;
+		BITT	MODEL_CONFLICT
+		JZ	L1$
+
+		SETT	ABORTING		;ONLY ONE FIXUPP ERROR IF MEMORY MODEL CONFLICT...
+L1$:
+		CALL	ERROR_START
+		CALL	FIXUPP_PHASE25
+		JMP	ERROR_PHASE3
+
+FIXUPP_ERROR	ENDP
+
+
+ERROR_PHASE3	PROC
+		;
+		;
+		;
+		CALL	FORCE_SIGNON		;SIGNON BEFORE SPEWING AN ERROR MESSAGE
+
+if	fgh_win32dll
+
+		MOV	EAX,OFF TOOL_MESSAGE
+		ASSUME	EAX:PTR TOOL_MESSAGE_STRUCT
+
+		MOV	ECX,ERR_NUMBER
+		MOV	BPTR [EDI],0
+
+		MOV	[EAX]._TMSG_LINENUMBER,K_NOLINENUMBER
+
+		MOV	[EAX]._TMSG_COLNUMBER,K_NOCOLNUMBER
+
+		MOV	[EAX]._TMSG_MSGNUMBER,CX
+
+                BITT	DEF_IN_PROGRESS
+                JZ      L1$
+
+		MOV	ECX,OFF INBUF+4
+		BITT	USING_TEMP_RECORD
+		JZ	L3$
+		MOV	ECX,OFF TEMP_RECORD+4
+L3$:
+		NEG	ECX
+		ADD	ECX,INPTR1
+		MOV	[EAX]._TMSG_COLNUMBER,CX
+
+		MOV	ECX,GINPUT_LINE_NUMBER
+		MOV	[EAX]._TMSG_LINENUMBER,ECX
+L1$:
+		CALL	REPORT_MESSAGE
+		ASSUME	EAX:NOTHING
+endif
+		MOV	AX,0A0DH
+		STOSW
+		MOV	ECX,EDI
+		MOV	EAX,OFF EOUTBUF
+		SUB	ECX,EAX
+		PUSHM	EAX,ECX
+		CALL	LOUTALL_CON		;OUTPUT THIS...
+		POPM	ECX,EAX
+		CALL	LOUTALL
+
+		;NOW, RESTORE REGISTERS...
+
+		MOV	EDI,OFF OTHERS_SAVE
+		MOV	EAX,[EDI]
+		MOV	EBX,[EDI+4]
+		MOV	ECX,[EDI+8]
+		MOV	EDX,[EDI+12]
+		MOV	ESI,[EDI+16]
+
+		MOV	EDI,EDI_SAVE
+		BITT	ABORTING
+if	fgh_anythreads
+
+		PUSHFD
+
+		RELEASE	ERROR_SEM
+
+		POPFD
+endif
+		JNZ	L9$
+
+		YIELD
+
+		RET
+L9$:
+		JMP	_abort
+
+ERROR_PHASE3	ENDP
+
+
+
+		PUBLIC	LIBRARY_ERROR
+
+LIBRARY_ERROR:
+		LEA	ECX,[EAX].SYMBOL_STRUCT._S_NAME_TEXT
+		MOV	AL,LIB1_ERR
+
+		CALL	ERR_ASCIZ_RET
+
+		JMP	_abort
+
+
+
+OBJ_PHASE	PROC
+		;
+		;
+		;
+		MOV	AL,OBJ_PHASE_ERR
+		MOV	BUFFER_OFFSET,ESI
+		CALL	ERR_RET
+		RET
+
+OBJ_PHASE	ENDP
+
+
+BAD_RECORD	PROC
+		;
+		;
+		;
+		DEC	ESI
+		DEC	ESI
+		MOV	AL,BAD_RECORD_ERR
+		MOV	BUFFER_OFFSET,ESI
+		JMP	ERR_RET
+
+BAD_RECORD	ENDP
+
+
+INDEX_RANGE	PROC
+		;
+		;
+		;
+		MOV	AL,INDEX_RANGE_ERR
+		MOV	BUFFER_OFFSET,ESI
+		push	EAX
+		call	_err_abort
+
+INDEX_RANGE	ENDP
+
+
+ERROR_PHASE1	PROC	NEAR
+		;
+		;
+		;
+		CAPTURE	ERROR_SEM		;ERRORS ARE NON-REENTRANT
+		;
+		;FIRST, PRESERVE REGISTERS...
+		;
+		CLD
+		MOV	EDI_SAVE,EDI
+		MOV	EDI,OFF OTHERS_SAVE
+		MOV	BPTR ERR_NUMBER,AL
+		MOV	[EDI],EAX
+		MOV	[EDI+4],EBX
+		MOV	[EDI+8],ECX
+		MOV	[EDI+12],EDX
+		MOV	[EDI+16],ESI
+
+if	fgh_win32dll
+		XOR	EAX,EAX
+		MOV	TOOL_MESSAGE._TMSG_FILENAME,EAX
+endif
+
+		MOV	EAX,CURNMOD_GINDEX
+		MOV	EDI,OFF EOUTBUF
+
+		TEST	EAX,EAX
+		JZ	P1_RET
+
+		CONVERT	EAX,EAX,MODULE_GARRAY
+		MOV	ESI,EAX
+		MOV	EAX,[EAX].MODULE_STRUCT._M_FILE_LIST_GINDEX
+
+		CALL	DO_FILE_LIST_GINDEX
+
+		MOV	BPTR [EDI],'('
+		INC	EDI
+		LEA	ESI,[ESI].MODULE_STRUCT._M_TEXT
+		CALL	MOVE_ASCIZ_ESI_EDI
+		MOV	AX,' )'
+		STOSW
+if	fgh_win32dll
+		CALL	UPDATE_TMSG_FILENAME_ASCIZ
+endif
+
+EP_4:
+		;
+		;IS FILE OFFSET VALID?
+		;
+		BITT	DURING_OBJ
+		JZ	L4$
+		;
+		;PRINT ' Offset xxxxx '
+		;
+		MOV	ESI,OFF OFFSET_ADR
+		MOV	ECX,SIZEOF OFFSET_ADR
+		MOV	EBX,OBJ_DEVICE
+		ASSUME	EBX:PTR MYI_STRUCT
+
+		REP	MOVSB
+		;
+		;FIND OFFSET TO END OF CURRENT RECORD
+		;
+		MOV	EAX,[EBX].MYI_PHYS_ADDR 	;END OF BUFFER
+		SUB	EAX,[EBX].MYI_COUNT		;MINUS # LEFT
+		ADD	EAX,BUFFER_OFFSET
+		SUB	EAX,END_OF_RECORD
+		DEC	EAX				;EOR POINTED TO CHKSUM BYTE
+		CALL	OUT5
+		JMP	L4$
+
+P1_RET:		JMP	P1_RET1
+
+L4$:
+		;
+		;NOW, IS RECORD TYPE VALID?
+		;
+		BITT	REC_TYPE_VALID
+		JZ	L5$
+		MOV	ECX,SIZEOF RECTYP_ADR
+		MOV	ESI,OFF RECTYP_ADR
+		REP	MOVSB
+		MOV	EAX,DPTR RECORD_TYPE
+		CALL	HEXWOUT
+		MOV	AL,' '
+		STOSB
+L5$:
+		MOV	AX,0A0DH
+		STOSW
+		RET
+
+P1_RET1:
+		;
+		;ONLY POSSIBILITY IS TEMP FILENAME
+		;
+		MOV	EAX,CURN_FILE_LIST_GINDEX
+
+		OR	EAX,EAX
+		JZ	P2_RET
+
+		CALL	DO_FILE_LIST_GINDEX
+		JMP	EP_4
+
+P2_RET:
+		BITT	DEF_IN_PROGRESS
+		JZ	P3_RET
+
+		MOV	ECX,DEFFILE
+		MOV	EAX,OFF EOUTBUF
+
+		push	ECX
+		push	EAX
+		call	_move_path_prim_ext
+		add	ESP,8
+
+		MOV	EDI,EAX
+
+if	fgh_win32dll
+		CALL	UPDATE_TMSG_FILENAME_ASCIZ
+
+endif
+
+                MOV	AL,'('
+                STOSB
+		MOV	EAX,GINPUT_LINE_NUMBER
+		MOV	ECX,EDI
+		MOV	ESI,EAX
+		CALL	CBTA16
+		MOV	EDI,EAX
+		MOV	AL,')'
+		STOSB
+
+		MOV	AX,': '
+		STOSW
+		RET
+
+P3_RET:
+		MOV	ESI,OFF OPTLINK_TEXT
+		MOV	ECX,SIZEOF OPTLINK_TEXT
+		REP	MOVSB
+		RET
+
+ERROR_PHASE1	ENDP
+
+
+DO_FILE_LIST_GINDEX	PROC	NEAR
+		;
+		;
+		;
+		TEST	EAX,EAX
+		JZ	L9$
+
+		MOV	ECX,EAX
+		MOV	EAX,OFF EOUTBUF
+
+		push	ECX
+		push	EAX
+		call	_move_file_list_gindex_path_prim_ext
+		add	ESP,8
+
+		MOV	EDI,EAX
+if	fgh_win32dll
+		CALL	UPDATE_TMSG_FILENAME_ASCIZ
+
+endif
+L9$:
+		RET
+
+DO_FILE_LIST_GINDEX	ENDP
+
+
+if	fgh_win32dll
+
+UPDATE_TMSG_FILENAME_ASCIZ	PROC	NEAR
+		;
+		;MOVE TO ASCIZ ALSO...
+		;
+		PUSHM	EDI,ESI
+
+		MOV	ECX,EDI
+		MOV	EDI,OFF ERROR_ASCIZ
+
+		MOV	ESI,OFF EOUTBUF
+		MOV	TOOL_MESSAGE._TMSG_FILENAME,EDI
+
+		SUB	ECX,ESI
+		MOV	EAX,020H
+
+		CMP	ECX,254
+		JA	L5$
+
+		REP	MOVSB
+L5$:
+		STOSW
+
+		POPM	ESI,EDI
+
+		RET
+
+UPDATE_TMSG_FILENAME_ASCIZ	ENDP
+
+endif
+
+
+WARN_START	PROC	NEAR
+		;
+		;
+		;
+		CALL	ERROR_PHASE1		;DO PRELIMINARY THINGS
+
+if	fgh_win32dll
+		MOV	TOOL_MESSAGE._TMSG_MSGTYPE,EMSG_WARNING
+endif
+		INC	WARN_COUNT
+		MOV	ESI,OFF WARN_ADR
+		MOV	ECX,SIZEOF WARN_ADR
+		JMP	ER_P2_1
+
+WARN_START	ENDP
+
+
+ERROR_ABORT_START::
+
+		SETT	ABORTING		;SO PHASE 3 KNOWS...
+
+ERROR_START	PROC	NEAR
+		;
+		;
+		;
+		CALL	ERROR_PHASE1		;DO PRELIMINARY THINGS
+
+ERROR_PHASE2	LABEL	NEAR
+		;
+
+if	fgh_win32dll
+		MOV	TOOL_MESSAGE._TMSG_MSGTYPE,EMSG_ERROR
+endif
+		INC	_ERR_COUNT
+		;
+		;NOW OUTPUT ERROR # IN DECIMAL
+		;
+		MOV	ESI,OFF ERROR_ADR
+		MOV	ECX,SIZEOF ERROR_ADR
+ER_P2_1::
+		REP	MOVSB
+		MOV	EAX,ERR_NUMBER
+		MOV	ECX,EDI
+		MOV	ESI,EAX
+		CALL	CBTA16
+		MOV	EDI,EAX
+		MOV	AX,' :'
+		STOSW
+		;
+		;NOW OUTPUT ERROR MESSAGE TEXT
+		;
+if	fgh_win32dll
+		MOV	TOOL_MESSAGE._TMSG_MSGTEXT,EDI
+endif
+		MOV	ESI,ERR_TABLE[ESI*4]
+		XOR	ECX,ECX
+		MOV	CL,[ESI]
+		INC	ESI
+		REP	MOVSB
+		MOV	AL,' '
+		STOSB
+if	fgh_dosx
+		CMP	ERR_NUMBER,_DOS_ERR
+		JNZ	L9$
+		MOV	EAX,DOSCALL_EAX
+		CALL	HEXWOUT
+		MOV	AL,' '
+		STOSB
+endif
+L9$:
+		RET
+
+ERROR_START	ENDP
+
+
+FIXUPP_PHASE25	PROC	NEAR
+		;
+		;GIVE WHAT INFO YOU CAN ABOUT FIXUPP PROBLEM....
+		;FIRST GIVE OFFSET FROM CURRENT SEGMOD...
+		;
+		BITT	FINAL_FIXUPPS
+		JZ	L9$
+
+		MOV	ECX,SIZEOF ATRELATIVE_ADR
+		MOV	ESI,OFF ATRELATIVE_ADR
+		REP	MOVSB
+		;
+		;PRINT RELATIVE OFFSET
+		;
+		MOV	EAX,FIX2_LDATA_LOC
+		SUB	EAX,FIX2_SM_START
+		ADD	EAX,FIX2_OFFSET
+		CALL	OUT5
+		MOV	ECX,SIZEOF FROMSEG_ADR
+		MOV	ESI,OFF FROMSEG_ADR
+		REP	MOVSB
+		MOV	EAX,FIX2_SM_BASE_SEG_GINDEX
+		CONVERT	EAX,EAX,SEGMENT_GARRAY
+		LEA	ESI,[EAX].SEGMENT_STRUCT._SEG_TEXT
+		CALL	MOVE_ASCIZ_ESI_EDI
+
+		MOV	AX,0A0DH
+		STOSW
+		;
+		;NOW OUTPUT FRAME
+		;
+		CALL	FRAME_OUTPUT
+		;
+		;AND TARGET
+		;
+		CALL	TARGET_OUTPUT
+		;
+		;AND FINALLY FIXUPP_TYPE
+		;
+		CALL	FIXUPP_TYPE_OUTPUT
+		;
+		;THANK-YOU
+L9$:
+		RET
+
+FIXUPP_PHASE25	ENDP
+
+
+FRAME_OUTPUT	PROC	NEAR
+		;
+		;
+		;
+		MOV	ESI,OFF FRAME_ADR
+		MOV	ECX,SIZEOF FRAME_ADR
+
+		MOV	EDX,FIX2_FF
+		MOV	EAX,FIX2_FINDEX
+
+		REP	MOVSB
+
+		CALL	F1TABLE[EDX*4]	;SYMBOL, SEGMENT, OR GROUP NAME
+		;
+		;NOW FRAME VALUE...
+		;
+		MOV	AL,' '
+		STOSB
+		MOV	EAX,FIX2_FFRAME		;THIS IS OS2 NUMBER IF PROT-MODE
+if	fg_prot
+		BITT	OUTPUT_SEGMENTED
+		JNZ	L1$
+endif
+		SHR	EAX,4
+		CALL	OUT5
+L2$:
+		MOV	AX,0A0DH
+		STOSW
+		RET
+
+if	fg_prot
+L1$:
+		CALL	HEXWOUT
+		JMP	L2$
+endif
+
+CASE_SEGMENT::
+		MOV	ESI,OFF SEGMENT_ADR
+		MOV	ECX,SIZEOF SEGMENT_ADR
+		REP	MOVSB
+SEGMENT_1:
+		CONVERT	EAX,EAX,SEGMENT_GARRAY
+		LEA	ESI,[EAX].SEGMENT_STRUCT._SEG_TEXT
+		CALL	MOVE_ASCIZ_ESI_EDI
+		RET
+
+CASE_SEGMOD::
+		;
+		;AX IS SEGMENT
+		;
+		MOV	ESI,OFF SEGMENT_ADR
+		MOV	ECX,SIZEOF SEGMENT_ADR
+		REP	MOVSB
+		CONVERT	EAX,EAX,SEGMOD_GARRAY
+		MOV	EAX,[EAX].SEGMOD_STRUCT._SM_BASE_SEG_GINDEX
+		JMP	SEGMENT_1
+
+CASE_ABSOLUTE::
+		RET
+
+CASE_GROUP::
+		MOV	ESI,OFF GROUP_ADR
+		MOV	ECX,SIZEOF GROUP_ADR
+		REP	MOVSB
+		CONVERT	EAX,EAX,GROUP_GARRAY
+		LEA	ESI,[EAX].GROUP_STRUCT._G_TEXT
+		CALL	MOVE_ASCIZ_ESI_EDI
+		RET
+
+CASE_EXTERNAL::
+		MOV	ESI,OFF EXTERNAL_ADR
+		MOV	ECX,SIZEOF EXTERNAL_ADR
+		REP	MOVSB
+		CONVERT	EAX,EAX,SYMBOL_GARRAY
+		LEA	EAX,[EAX].SYMBOL_STRUCT._S_NAME_TEXT
+		CALL	UNMANGLE
+
+		MOV	ESI,EAX
+		CALL	MOVE_ASCIZ_ESI_EDI
+		RET
+
+CASE_LOC::
+		MOV	ESI,OFF LOC_ADR
+		MOV	ECX,SIZEOF LOC_ADR
+		REP	MOVSB
+		RET
+
+CASE_TARG::
+		MOV	ESI,OFF TARG_ADR
+		MOV	ECX,SIZEOF TARG_ADR
+		REP	MOVSB
+		RET
+
+FRAME_OUTPUT	ENDP
+
+
+TARGET_OUTPUT	PROC	NEAR
+		;
+		;
+		;
+		MOV	ESI,OFF TARGET_ADR
+		MOV	EDX,FIX2_TT
+
+		MOV	ECX,SIZEOF TARGET_ADR
+		AND	EDX,03H
+
+		REP	MOVSB
+
+		MOV	EAX,FIX2_TINDEX
+		CALL	F2TABLE[EDX*4]	;SYMBOL, SEGMENT, OR GROUP NAME
+		;
+		;NOW TARGET VALUE...
+		;
+		MOV	AL,' '
+		STOSB
+		MOV	EAX,FIX2_TOFFSET
+		CALL	OUT5
+		MOV	AX,0A0DH
+		STOSW
+		RET
+
+TARGET_OUTPUT	ENDP
+
+
+FIXUPP_TYPE_OUTPUT	PROC	NEAR
+		;
+		;
+		;
+		MOV	ESI,OFF FIX_TYPE_ADR
+		MOV	ECX,SIZEOF FIX_TYPE_ADR
+		MOV	EBX,FIX2_LOC
+		REP	MOVSB
+		MOV	ESI,LOCTABLE[EBX*4]
+		XOR	ECX,ECX
+		LODSB
+		MOV	CL,AL
+		REP	MOVSB
+		RET
+
+FIXUPP_TYPE_OUTPUT	ENDP
+
+
+		.CONST
+
+		ALIGN	4
+
+F1TABLE 	LABEL	DWORD
+
+		DD	CASE_SEGMENT	;0
+		DD	CASE_GROUP	;1
+		DD	CASE_EXTERNAL	;2
+		DD	CASE_ABSOLUTE	;3
+		DD	CASE_LOC	;4
+		DD	CASE_TARG	;5
+
+F2TABLE 	LABEL	DWORD
+
+		DD	CASE_SEGMOD	;0
+		DD	CASE_GROUP	;1
+		DD	CASE_EXTERNAL	;2
+		DD	CASE_ABSOLUTE	;3
+
+LOCTABLE	LABEL	DWORD
+
+		DD	SHORT_JMP	;0
+		DD	NORMAL_JMP	;1
+		REPT	6
+		DD	UNDEF_JMP
+		ENDM
+		;32-BIT RELOCATABLES...
+		DD	UNDEF_JMP
+		DD	NORMAL_32_JMP	;9
+		REPT	6
+		DD	UNDEF_JMP
+		ENDM
+		;16-BIT SEGMENT-RELATIVES
+		DD	LOBYTE_ADR1
+		DD	OFFSET_ADR1
+		DD	BASE_ADR1
+		DD	PTR_ADR1
+		DD	HIBYTE_ADR1
+		DD	WOFFSET_ADR1
+		REPT	2
+		DD	UNDEF_JMP
+		ENDM
+		;32-BIT NORMALS
+		DD	UNDEF_JMP
+		DD	DWORD_ADR1
+		DD	UNDEF_JMP
+		DD	FWORD_PTR_ADR1
+		DD	UNDEF_JMP
+		DD	WDWORD_ADR1
+		DD	2 DUP(UNDEF_JMP)
+
+if	fg_japan
+
+		INCLUDE	JAPAN.INC
+
+else
+
+SHORT_JMP	DB	SIZEOF SHORT_JMP-1,'Short JMP'
+NORMAL_JMP	DB	SIZEOF NORMAL_JMP-1,'Near JMP or CALL'
+UNDEF_JMP	DB	SIZEOF UNDEF_JMP-1,'Unknown Type'
+NORMAL_32_JMP	DB	SIZEOF NORMAL_32_JMP-1,'32-bit Conditional JMP'
+LOBYTE_ADR1	DB	SIZEOF LOBYTE_ADR1-1,'LoByte (single byte)'
+OFFSET_ADR1	DB	SIZEOF OFFSET_ADR1-1,'16-bit Offset'
+WOFFSET_ADR1	DB	SIZEOF WOFFSET_ADR1-1,'16-bit Weird Offset'
+BASE_ADR1	DB	SIZEOF BASE_ADR1-1,'Segment Base'
+PTR_ADR1	DB	SIZEOF PTR_ADR1-1,'DWORD seg:offs'
+HIBYTE_ADR1	DB	SIZEOF HIBYTE_ADR1-1,'Hi Byte of 16-bit Offset'
+DWORD_ADR1	DB	SIZEOF DWORD_ADR1-1,'32-bit Offset'
+WDWORD_ADR1	DB	SIZEOF WDWORD_ADR1-1,'32-bit Weird Offset'
+FWORD_PTR_ADR1	DB	SIZEOF FWORD_PTR_ADR1-1,'FWORD seg:32-bit offs'
+
+TARG_ADR	DB	'TARGET'
+LOC_ADR 	DB	'Current Location'
+EXTERNAL_ADR	DB	'External Symbol '
+GROUP_ADR	DB	'Group '
+SEGMENT_ADR	DB	'Segment '
+FRAME_ADR	DB	' FRAME  = Frame of '
+TARGET_ADR	DB	' TARGET = '
+ATRELATIVE_ADR	DB	'at Relative '
+FROMSEG_ADR	DB	' from',0DH,0AH,' Segment '
+LINE_ADR	DB	' Near Line #'
+INFILE_ADR	DB	' in File '
+FIX_TYPE_ADR	DB	' FIXUPP Type = '
+
+
+.XALL
+ERR_CNT 	=	0
+DEFINE		MACRO	XX,YY
+T&XX		EQU	YY
+		ENDM
+
+MK		MACRO	XX,YY
+		LOCAL	L1,L2
+		PUBLIC	XX
+XX		EQU	ERR_CNT+0
+L1		DB	L2,YY
+L2		EQU	$-L1-1
+		DEFINE	%ERR_CNT,L1
+ERR_CNT 	=	ERR_CNT+1
+		ENDM
+
+BUILD		MACRO	XX
+		DD	T&XX
+		ENDM
+
+MK	OOPS_ERR,'Oops'
+
+;if	fg_demo
+;MK	DEMO_EXPIRED_ERR,'This DEMO has expired.'
+;endif
+
+;Print symbol name for these error msgs
+MK	PREV_DEF_ERR,'Previous Definition Different'            ;error
+
+;Print file name for these errors
+MK	FILE_NOT_FOUND_ERR,'File Not Found'                     ;fatal for objs and indirect, warn for libs
+;MK	SYM_LONG_ERR,'Symbol Name Too Long'                     ;fatal
+MK	CANT_CREATE_ERR,'Cannot Create File'                    ;fatal
+MK	REC_TOO_LONG_ERR,'OBJ Record Too Long'                  ;fatal
+MK	BAD_CHKSUM_ERR,'Bad Checksum'                           ;warning
+MK	LIBRARY_ERR,'Library Error'				;error
+;-----------------------------------
+if	fgh_win
+MK	OOM_ERR,'Swap File Full'				;fatal
+else
+MK	OOM_ERR,'Out of Memory'                                 ;fatal
+endif
+MK	FILENAME_ERR,'Illegal Filename'                         ;fatal
+MK	CMDLIN_ERR,"Unknown Option"                             ;fatal
+MK	DISK_FULL_ERR,'Disk Full Writing'                       ;fatal
+MK	MISSING_COLON_ERR,'Colon Expected'                      ;fatal
+MK	ILL_NUMBER_ERR,'Number Overflow'                        ;fatal
+MK	OBJ_PHASE_ERR,'Illegal Record Syntax'			;FATAL
+MK	BAD_RECORD_ERR,'Unrecognized Record'			;ERROR
+MK	BAD_OMF_EXTENT_ERR,'Bad OMF Extension'			;fatal
+MK	INDEX_RANGE_ERR,'Index Range'				;FATAL
+
+MK	GRP_TOO_BIG_ERR,'Group Size Exceeds 64k'		;ERROR
+MK	GRP_TYP_ERR,'GROUP Cannot Be Both Relocatable and Absolute';ERROR
+
+MK	SEG_TOO_BIG_ERR,'Segment Size Exceeds 64k'		;ERROR
+MK	SEG_4G_ERR,'Segment >= 4G'				;ERROR
+MK	BAD_SEG_SIZE_ERR,'Badly Formed Segment Size'		;ERROR
+;MK	NC_TOO_BIG_ERR,'Near Communal Size Exceeds 64k'		;FATAL
+MK	DUP_GROUP_ERR,'Segment Already in Different Group'	;WARNING
+
+MK	MISSING_STACK_ERR,'No Stack'				;WARNING
+MK	MULTIPLE_STACKS_ERR,'Stack Already Declared in Module'	;WARNING
+
+MK	MUST_HAVE_SEGMENT_ERR,'PUBDEF Must Have Segment Index'	;ERROR
+;MK	TOO_COMPLEX_ERR,'Too Many Groups, Segments or Externals in Module'
+
+MK	CMDLINE_ERR,'Cmdline too long'
+MK	BAD_THREAD_ERR,'Bad FIXUPP Thread'			;FATAL
+MK	BAD_LOC_ERR,'Bad LOC Frame in start address'		;FATAL
+
+MK	_DOS_ERR,'DOS Critical Error'				;FATAL
+
+MK	UNEXP_EOF_ERR,'Unexpected End of File'			;FATAL
+;MK	TOO_MANY_SYMBOLS_ERR,'Too Many Modules in LIB File'
+MK	MUL32_ERR,'Overflow 32-bit Multiply'			;ABORT
+;MK	NOT_IN_GROUP_ERR,'Segment Not in That Group'
+
+MK	DATA_OUTSIDE_SEGMOD_ERR,'Data Outside Segment Bounds'	;ERROR
+
+MK	UNRECOGNIZED_FIXUPP_FRAME_ERR,'Unknown FIXUPP Frame Type';FATAL
+
+MK	FIXUPP_OFFSET_ERR,'FIXUPP Points Past Data Record'	;error
+MK	CANT_REACH_ERR,'Cannot Reach TARGET from FRAME'		;error
+MK	LOC_FRAME_ERR,'LOCATION Not Within FRAME'		;error
+MK	SHORT_ERR,'Short JMP Out of Range'			;error
+MK	LOBYTE_ERR,'BYTE Out of Range'				;error
+MK	BASE_RELOC_ERR,'Relocatable Bases Not Allowed in Absolute Mode';error
+MK	TOO_MANY_BASES_ERR,'Limit of 65535 Base Fixupps Exceeded';fatal
+MK	UNREC_FIXUPP_ERR,'Unrecognized FIXUPP Type'		;error
+;MK	ASEG_RELOC_ERR,'Cannot Reach ASEG from RELOC or RELOC from ASEG'
+MK	UNDEFINED_ERR,'Symbol Undefined'			;error
+;MK	MULTI_CSEG_ERR,'Multiple CODE Segments in Single Module'
+MK	LIB_ERR,'Not a Valid Library File'			;fatal
+;MK	DICT_TOO_BIG_ERR,'LIB Dictionary Too Big'
+MK	MIC_NUM_ERR,'Unrecognized Communal Syntax'		;fatal
+MK	CV_TOO_MANY_ERR,'Too Much DEBUG Data for Old CodeView format';fatal
+MK	COM_PC_ERR,'Start Address Must Be 100H'			;error
+MK	COM_BELOW_100_ERR,'Below 100H Cannot Be Initialized'	;warning
+;MK	COM_ABOVE_100_ERR,'Nothing Above 100H'
+MK	FORREF_ERR,'Unrecognized B2 Record'			;fatal
+MK	CTRLC_ERR,'User ABORT'					;fatal
+
+MK	CANT_REOPEN_ERR,'Cannot Reopen output file'		;fatal
+
+if	fg_virt
+MK	EMS_ERR,'         EMS Error'				;fatal
+MK	EMS_CANT_ALLOC_ERR,'Cannot Allocate EMS Blocks'		;warning
+MK	XMS_ERR,'XMS Error'					;fatal
+endif
+;MK	CURN_MOD_ERR,'SEGDEF Curnmod Undefined'
+MK	DUP_MODEND_ERR,'Start Previously Specified in Module'	;warning
+;MK	CV_TOO_MANY_LINNUMS_ERR,'Too Many Linenumbers in a Module for Debug Info';fatal
+MK	SYNTAX_ERR,'.DEF Syntax Error'				;fatal
+if	fg_rom
+MK	ALREADY_ORGED_ERR,'Already ordered'
+MK	ASEG_ERR,'Illegal SEGMENT AT record'
+MK	SEG_OVERLAP_ERR,'Segment Overlaps Another'
+MK	CANNOT_PLACE_ERR,'Cannot find hole for segment'
+MK	SEG_WRAP_ERR,'Segment wraps 1 Mb Boundary'
+MK	LEFT_ERR,"'(' Expected"
+MK	RIGHT_ERR,"Comma or ')' Expected"
+MK	RANGE_WRAP_ERR,'Illegal Range-wrap'
+MK	MUST_SEGMENT_ERR,'Phase must be by SEGMENT'
+MK	ALREADY_PHASED_ERR,'Already PHASEd'
+MK	TOO_PHASE_ERR,'Too many PHASEd segments'
+MK	OUTTYPE_UNDEF_ERR,'Undefined Output type'
+endif
+MK	START_ERR,'Illegal Start Address'			;error
+MK	LIB1_ERR,'BINSER_MODULE cannot find module'
+if	debug
+MK	UNLOCK_ERR,'Attempt to unlock unlocked block'
+endif
+;MK	LIB2_ERR,'Requesting a Block with no Modules...'
+
+
+if	fgh_anythreads
+
+MK	THREAD_FAIL_ERR,'Cannot Create Thread'			;fatal
+MK	CREATESEM_ERR,'Cannot Create Semaphore'			;fatal
+MK	_TIMEOUT_ERR,'Semaphore Timeout'				;fatal
+;MK	PRIORITY_ERR,'Cannot Set Priority'			;fatal
+MK	QFH_FAILED_ERR,'QFH Error'				;fatal
+MK	CLOSE_ERR,'Close Error'					;fatal
+MK	DOS_READ_ERR,'Critical Read'				;fatal
+MK	DOS_POS_ERR,'Critical Position'				;fatal
+MK	DOS_WRITE_ERR,'Critical Write'				;fatal
+MK	DOS_NEWSIZE_ERR,'DOSNEWSIZE Error'			;fatal
+MK	DOS_SETFILEINFO_ERR,'DOSSETFILEINFO Error'		;fatal
+MK	UNEXP_XEOF_ERR,'Unexpected libreadt End of File'
+
+endif
+
+MK	SEG_ALREADY_RELEASED_ERR,'Selector Already Released'	;fatal
+MK	RELOC_CONFLICT_ERR,'Data Overlaps Relocations'		;error
+MK	CANNOT_PACK_ERR,'Too Many Relocs to EXEPACK'		;fatal
+MK	NOTHING_ERR,'No Segments Linked!'			;fatal
+MK	INCERR_ERR,'Incremental Compile Error'			;fatal
+MK	EXESTR_ERR,'Too much EXESTR data'			;fatal
+;MK	ALIAS_ERR,'Illegal ALIAS'				;error
+MK	CIRCULAR_ALIAS_ERR,'Circular ALIAS'			;fatal
+
+MK	SEG_COMMON_ERR,'COMMON Combine type overrides others'	;warning
+MK	SEG_STACK_ERR,'STACK Combine type overrides others'	;warning
+
+MK	LIN_NONCODE_ERR,'LINNUMs in Non-CODE segment'		;warning
+MK	LINSYM_BEFORE_COMDAT_ERR,'LINSYM before COMDAT'		;ERROR
+;MK	LINSYM_CONT_ERR,'LINSYM Continuation'			;ERROR
+
+if	fg_segm
+
+MK	CODEPACK_ERR,'Too many segments, trying PACKCODE'	;warning
+MK	DATAPACK_ERR,'Too many segments, trying PACKDATA'	;warning
+MK	TOO_MANY_SEGS_ERR,'Too many segments for segmented .EXE format'	;fatal
+MK	TOO_ENTRIES_ERR,'Too many ENTRIES'			;fatal
+MK	EXP_CONST_ERR,'Cannot EXPORT'				;error
+MK	DUP_ENT_ORD_ERR,'Duplicate ORDINAL Number'		;error
+MK	START_CANT_REACH_ERR,'Illegal frame on start address'	;error
+MK	START_IMPORT_ERR,'IMPORT illegal as start address'	;error
+MK	BAD_STUB_ERR,'Bad STUB file'				;fatal
+MK	EXPORT_CONFLICT_ERR,'_export conflicts with EXPORTS'	;error
+MK	ALIGN_SMALL_ERR,'Need larger /ALIGNMENT value'			;fatal
+MK	HEAP_STACK_DGROUP_ERR,'DGROUP + Stack + Heap exceeds 64k-16'	;error
+MK	GRP_OVERLAP_ERR,'Groups Overlap'			;error
+MK	ONE_NAME_ERR,'Only one NAME or LIBRARY allowed'		;error
+MK	SEGM_COM_SYS_ERR,'Cannot generate Segmented .COM or .SYS file'	;warning
+MK	DLL_NO_LIB_ERR,'Missing LIBRARY in .DEF file for .DLL'	;warning
+MK	ONE_DESC_ERR,'Multiple Descriptions'			;error
+MK	DEF_CODE_ERR,'CODE Directive'				;error
+MK	DEF_DATA_ERR,'DATA Directive'				;error
+MK	DEF_SEGMENTS_ERR,'SEGMENTS Directive'			;error
+MK	DUP_HEAP_ERR,'HEAPSIZE Directive'			;error
+MK	DEF_EXETYPE_ERR,'EXETYPE Directive'			;error
+MK	PROT_REAL_ERR,'PROT vs REAL conflict'			;error
+MK	DEF_IMPORTS_ERR,'IMPORTS Directive'			;error
+MK	DEF_EXPORTS_ERR,'EXPORTS Directive'			;error
+MK	DUP_OLD_ERR,'Duplicate OLD'				;error
+MK	DUP_STUB_ERR,'Duplicate STUB'				;error
+MK	DEF_STRING_ERR,'Delimited String Expected'		;error
+MK	APPLOAD_ERR,'APPLOAD must appear before any SEGMENTS'	;fatal
+MK	DUP_RESOURCE_ERR,'Duplicate RESOURCE, ignored'		;error
+MK	MULTIPLE_RC_ERR,'Duplicate RC commands'			;error
+MK	RC_64K_ERR,'Preload Segment + Relocs > 64k, use -k'	;error
+MK	EXEHDR_ERR,'.EXE Header >64k'				;error
+MK	RESOURCE_CORRUPT_ERR,'.RES file Corrupt'		;fatal
+MK	EXP_TEXT_ERR,'EXPORTed names text >64k'			;fatal
+MK	SUBSYSTEM_ERR,'SUBSYSTEM Directive'			;error
+
+endif
+
+MK	NO_IMPORTS_ERR,'Import Declarations Illegal'		;fatal
+
+if	fg_prot
+
+MK	OS2_FLAG_CONFLICT_ERR,'Grouped segments have conflicting flags'	;warning
+MK	GRP_COD_DAT_ERR,'Group cannot contain CODE and DATA segments'	;error
+MK	NEAR_IMPORT_ERR,'NEAR call to IMPORT'
+
+endif
+
+MK	TOKEN_TOO_LONG_ERR,'Token Too Long'		;fatal
+MK	FILE_EXP_ERR,'Filename Expected'		;fatal
+MK	WEAK_DEF_ERR,'Weak EXTRN Different'		;error
+
+MK	INDIRECT_DEEP_ERR,'Indirect file nested too deep';fatal
+MK	GRP_ERR,'Unsupported GRPDEF Type'		;error
+MK	ALIAS_IGNORED_ERR,'ALIAS Previously defined'	;warn
+MK	CANNOT_LINK_ERR,'Cannot Link'			;fatal
+
+if	any_overlays
+
+MK	MISSING_ENDAREA_ERR,'Missing ENDAREA'		;fatal
+MK	ENDAREA_ERR,'ENDAREA without BEGINAREA'		;fatal
+MK	CACHE_VALUE_ERR,'Cache Value'			;fatal
+MK	DUP_CACHE_ERR,'Duplicate Cache Request'		;fatal
+MK	SECTION_REQ_ERR,'Must be in Overlay Section'	;fatal
+MK	PAREN_NESTING_ERR,'Mismatched Parens'		;fatal
+
+endif
+
+MK	ID_EXP_ERR,'Symbol or Name Expected'		;fatal
+
+if	fg_plink
+
+MK	RIGHT_ERR,"Comma or ')' Expected"		;fatal
+MK	ALWAYS_NEVER_CONFLICT_ERR,'Always-Never Conflict';fatal
+MK	AREA_DEEP_ERR,'BEGINAREAs nested too deep'	;fatal
+MK	TRACK_NEVER_ERR,'Track-Never Conflict'		;fatal
+MK	NEAR_FAR_ERR,'Near-Far Expected'		;fatal
+MK	PUB_NOPUB_ERR,'Public-Nopublics Conflict'	;fatal
+MK	FI_MO_SY_ERR,'File-Module-Symbol Expected'	;fatal
+
+endif
+if	any_overlays
+
+MK	DUP_SECTION_ERR,'That Item Already has Section Declared'	;fatal
+MK	TOO_MANY_VECTORS_ERR,'Too Many Vectored Symbols';fatal
+MK	OVL_COM_SYS_ERR,'Cannot Overlay COM or SYS files, extent changed to EXE';warning
+
+endif
+
+if	debug
+MK	EMS_XMS_LIST_ERR,'MRU or Freelist corrupt'
+endif
+
+MK	SECTION_ERR,'Overlay Number >32k'			;error
+MK	COMDAT_SYNTAX_ERR,'COMDAT Syntax'			;fatal
+MK	COMDAT_CONT_ERR,'COMDAT Continuation Mismatch'		;fatal
+MK	BAD_CD_ALLOC_ERR,'Unknown COMDAT Allocation type'	;fatal
+MK	DEF_WEAK_INT_ERR,'WeakLazyAlias Internal'		;fatal
+MK	COMMUNAL_ERR,'Bad COMDEF Sizes'			;warn
+MK	CEXTDEF_ERR,'CEXTDEF with no COMDAT'		;fatal
+MK	CONST_FRAME_ERR,'Constants must have FRAME=0'	;error
+
+MK	STD_MAXINDEX_ERR,'64k Limit Exceeded:'		;fatal
+MK	NO_START_ERR,'No Start Address'			;warn
+
+MK	UNREC_IN_CFG_ERR,'Unrecognized data in .CFG'	;ERROR
+MK	LIB_DUP_ERR,'Symbol in this LIB Defined Elsewhere'	;warn
+MK	HEAP_NO_DGROUP_ERR,'Heap without DGROUP'	;warning
+
+if	fg_td
+
+;MK	TD_E0_EXTDEF_ERR,'E0 without EXTDEF'		;ERROR
+;MK	TD_E1_PUBDEF_ERR,'E1 without PUBDEF'		;ERROR
+MK	TD_SCOPE_NEST_ERR,'Missing SCOPE'		;ERROR
+MK	TD_NAMES_COUNT_ERR,'>64k Names, TD 3.x limit'	;ERROR
+MK	TD_LOCALS_COUNT_ERR,'>64k Locals, TD 3.x limit'	;ERROR
+MK	TD_TYPES_COUNT_ERR,'>64k Types, TD 3.x limit'	;ERROR
+MK	TD_MEMBERS_COUNT_ERR,'>64k Members, TD 3.x limit'	;ERROR
+MK	TD_LINES_COUNT_ERR,'>64k Linenumbers, TD 3.x limit'	;ERROR
+MK	TD_SYMBOLS_COUNT_ERR,'>64k Symbols, TD limit'	;FATAL
+MK	TD_COVERAGE_COUNT_ERR,'>64k Coverages, TD limit';FATAL
+MK	TD_TID_ERR,'Unknown TID, notify SLR'		;FATAL
+MK	TD_CLASS_ERR,'Cannot parse Class record'	;FATAL
+MK	TLINK_XTRA_ERR,'Extra characters ignored'	;warn
+if	debug
+MK	TYPE_PUNT_ERR,'TYPE Punt'
+MK	TYPE_PUNT_SUCCESS_ERR,'TYPE Success, No Punt'
+MK	MEMBER_PUNT_ERR,'MEMBER Punt'
+MK	CLASS_PUNT_ERR,'CLASS Punt'
+MK	TD_UNUSED_TYPES_ERR,'Unused Types'
+MK	TD_UNUSED_CLASSES_ERR,'Unused Classes'
+MK	CLASS_ZERO_ERR,'Class Index == 0'
+MK	FIXED_SPEC_ERR,'Fixed SpecFunc'
+MK	TYPE_ZERO_ERR,'TYPE ZERO'
+MK	CANNOT_FIX_SPEC_ERR,'Cannot Fix SpecialFunction'
+endif
+MK	TD_REF_ERR,'Invalid Reference info'		;FATAL
+endif
+
+if	debug
+MK	DGROUP_STEPPED_ERR,'DGROUP Wedged'
+MK	VIRT_FAIL_ERR,'Illegal Virtual Address'
+endif
+
+MK	INVALID_OBJ_ERR,'Module or Dictionary corrupt'	;fatal
+MK	FATAL_RESTART_ERR,'FATAL Restart error'		;fatal
+MK	FIX_LIB_ERR,'Library probably needs FIXLIB'	;warning
+MK	NO_BASE_SEG_ERR,'References Undefined Segment'	;fatal
+
+if	V5
+MK	PAGESIZE_ERR,'/IMPLIB needs larger /PAGESIZE'	;fatal
+MK	DIR_TOO_BIG,'Dictionary Exceeded 512k'		;fatal
+if	fg_virt
+MK	CANT_WINPACK_ERR,'Cannot WINPACK in REAL mode'	;fatal
+endif
+endif
+MK	IMPORT_TOO_LONG_ERR,'Cannot Import by Name >255 chars'	;fatal
+MK	EXPORT_TOO_LONG_ERR,'Cannot Export by Name >255 chars'	;fatal
+MK	RES_TOO_LONG_ERR,'Resource Name >255 chars'	;fatal
+MK	TOO_LONG_ERR,'Symbol >8192 chars'		;fatal
+
+MK	USE32_USE16_ERR,'USE16/USE32 Mismatch'		;error
+MK	LIDATA_ERR,'Illegal LIDATA Record'		;fatal
+MK	STACK_NZERO_ERR,'Stack Error'			;error
+
+if	fg_pe
+MK	RES_CONV_ERR,'16-bit to 32-bit .RES conversion failed'	;fatal
+MK	VERSION_BIG_ERR,'Cannot yet convert VERSION resources from 16 to 32-bit';fatal
+endif
+
+if	V6
+MK	CVP_CORRUPT_ERR,'Cannot Parse $$SYMBOLS'	;ERROR
+MK	CVP_SYMDEL_ERR,'Unknown Symbol, deleting'	;WARNING
+MK	CVP_BAD_LEAF_ERR,'Unknown LEAF'			;FATAL
+MK	CVP_SCOPE_ERR,'Scope Nesting'			;FATAL
+MK	CVP_NEST_SEG_ERR,'Nested Scope changes Segment'	;WARNING
+MK	CVP_BLOCK_WO_PARENT_ERR,'Block w/o Parent'	;
+MK	CVP_UNSUPPORTED_TYPE_ERR,'Unsupported $$TYPES ID'	;warning
+MK	CVP_PRECOMP_ERR,'MS Precompiled TYPES not supported'	;warning
+MK	CVP_IGNORE_ERR,'Unknown CV version, ignored'
+MK	BAD_TYPEINDEX_ERR,'Bad Type Index reference to type'
+MK	CVP_CIRC_NO_CSUE_ERR,'Cannot CVPACK Type'	;FATAL
+MK	CVP_SSEARCH_ERR,'Missing SSEARCH Symbol'
+MK	CVP_STILL_FWDREF_ERR,'Debug Info Undefined for Class'	;Warning
+MK	CVP_SYMBOLS_64K_ERR,'SSTALIGNSYM >=64K, too large for CodeView'	;Warning
+MK	CVP_LTYPES_64K_ERR,'>64K Types in a Module'
+MK	CVP_GTYPES_64K_ERR,'>64K Global Types'
+endif
+
+MK	MODEL_CONFLICT_ERR,'Memory Model Conflict'	;warning
+MK	DUP_LOD_ERR,'Duplicate .LOD Specified'		;warning
+MK	LOD_MISSING_ERR,'.LOD Missing'			;FATAL
+MK	DOSX_NONDOSX_ERR,'.LOD conflicts with output type'	;error
+MK	DOSX_EXEPACK_ERR,'Cannot EXEPACK DOSX output'	;FATAL
+;MK	DOSX_1MB_ERR,'DOSX >1Mb not supported'		;error
+MK	SEGM_32_ERR,'32-bit Segments Inappropriate for 16-bit Segmented output'
+MK	PE_16_ERR,'16-bit Segments Inappropriate for 32-bit PE output'
+
+MK	BAD_PAGESIZE_ERR,'/IMPLIB pagesize must be power of 2 < 512'	;fatal
+MK	ILLEGAL_READ_ADDRESS_ERR,'Internal READ Address'
+MK	LIB_PAGESIZE_ERR,'.LIB pagesize exceeds 512'	;WARNING
+MK	RES3216_ERR,'Cannot bind 32-bit resources to 16-bit target'	;error
+
+MK	NOUNDECOMATCH_ERR,'No Match Found for Export/ENTRY - '	;error
+MK	DUPUNDECOMATCH_ERR,'Multiple Matches Found for Export/ENTRY - '	;error
+MK	DUPDECOMATCH_ERR,'Matches above Export/ENTRY - '	;error
+
+MK	IMPROBABLE_RES_ERR,'Extension not .RES'		;WARNING
+
+		ALIGN	4
+
+ERR_TABLE	EQU	THIS DWORD
+
+LOOP_CNT	=	0
+		REPT	ERR_CNT
+		BUILD	%LOOP_CNT
+LOOP_CNT	=	LOOP_CNT+1
+		ENDM
+
+OFFSET_ADR	DB	' Offset '
+ERROR_ADR	DB	' Error '
+WARN_ADR	DB	' Warning '
+RECTYP_ADR	DB	'Record Type '
+
+if	fg_segm
+
+PREVOFF_ADR	DB	'  Previous Offset: '
+NAME_ADR	DB	'  Name: '
+TYPE_ADR	DB	0DH,0AH,'Type: '
+
+
+endif
+
+OPTLINK_TEXT	DB	'OPTLINK :'
+
+XX	=	0
+
+STD_HELP	MACRO	X
+
+		PUBLIC	X&_EQU
+
+X&_EQU		EQU	(XX)
+XX		=	XX+1
+
+		DD	X&_TEXT
+
+		ENDM
+
+		ALIGN	4
+
+STD_TEXT_TABLE	LABEL	DWORD
+
+		STD_HELP	LIBRARY
+		STD_HELP	SEGCLASS
+		STD_HELP	FILES
+		STD_HELP	PUBSYMS
+		STD_HELP	SEGMENTS
+		STD_HELP	SEGMODS
+		STD_HELP	GROUPS
+		STD_HELP	MODULES
+		STD_HELP	OUTFILES
+		STD_HELP	AREAS
+		STD_HELP	SECTIONS
+		STD_HELP	CSEGS
+		STD_HELP	RELOCS
+		STD_HELP	SRCS
+		STD_HELP	MDBS
+if	fg_td
+		STD_HELP	TDLOCALS
+		STD_HELP	TDCLASSES
+		STD_HELP	TDLTYPES
+		STD_HELP	TDLCLASSES
+		STD_HELP	TDLMEMBERS
+endif
+
+if	fg_segm OR fg_pe
+		STD_HELP	IMPNAMES
+		STD_HELP	ENTNAMES
+		STD_HELP	PENTS
+		STD_HELP	ENTRIES
+		STD_HELP	IMPMODS
+		STD_HELP	RESNAMES
+		STD_HELP	RESTYPES
+		STD_HELP	RES_TYPENAMES
+		STD_HELP	RTNLS
+endif
+
+if	fg_pe
+		STD_HELP	PAGE_RELOCS
+endif
+
+if	fg_cvpack
+		STD_HELP	CVLTYPES
+		STD_HELP	CVGTYPES
+		STD_HELP	CVGSYMS
+		STD_HELP	CVSSYMS
+		STD_HELP	CVHASHES
+endif
+
+LIBRARY_TEXT	DB	SIZEOF LIBRARY_TEXT-1,'Library Files'
+SEGCLASS_TEXT	DB	SIZEOF SEGCLASS_TEXT-1,'Segment Classes'
+FILES_TEXT	DB	SIZEOF FILES_TEXT-1,'Filenames'
+PUBSYMS_TEXT	DB	SIZEOF PUBSYMS_TEXT-1,'Global Symbols'
+SEGMENTS_TEXT	DB	SIZEOF SEGMENTS_TEXT-1,'Segments'
+SEGMODS_TEXT	DB	SIZEOF SEGMODS_TEXT-1,'Segment Pieces'
+GROUPS_TEXT	DB	SIZEOF GROUPS_TEXT-1,'Groups'
+MODULES_TEXT	DB	SIZEOF MODULES_TEXT-1,'Modules'
+OUTFILES_TEXT	DB	SIZEOF OUTFILES_TEXT-1,'Output Filenames'
+AREAS_TEXT	DB	SIZEOF AREAS_TEXT-1,'Areas'
+SECTIONS_TEXT	DB	SIZEOF SECTIONS_TEXT-1,'Sections'
+CSEGS_TEXT	DB	SIZEOF CSEGS_TEXT-1,'Debug Segment Pieces'
+RELOCS_TEXT	DB	SIZEOF RELOCS_TEXT-1,'Relocations'
+SRCS_TEXT	DB	SIZEOF SRCS_TEXT-1,'Source Files'
+MDBS_TEXT	DB	SIZEOF MDBS_TEXT-1,'MDB Struct'
+
+if	fg_td
+TDLOCALS_TEXT	DB	SIZEOF	TDLOCALS_TEXT-1,'TD Local Symbols'
+TDCLASSES_TEXT	DB	SIZEOF	TDCLASSES_TEXT-1,'TD Classes'
+TDLTYPES_TEXT	DB	SIZEOF	TDLTYPES_TEXT-1,'TD Local Types'
+TDLCLASSES_TEXT	DB	SIZEOF TDLCLASSES_TEXT-1,'TD Local Classes'
+TDLMEMBERS_TEXT	DB	SIZEOF TDLMEMBERS_TEXT-1,'TD Local Members'
+endif
+
+if	fg_segm OR fg_pe
+IMPNAMES_TEXT	DB	SIZEOF IMPNAMES_TEXT-1,'Imported Names'
+ENTNAMES_TEXT	DB	SIZEOF ENTNAMES_TEXT-1,'Exported Names'
+PENTS_TEXT	DB	SIZEOF PENTS_TEXT-1,'Possible Entries'
+ENTRIES_TEXT	DB	SIZEOF ENTRIES_TEXT-1,'Exported Symbols'
+IMPMODS_TEXT	DB	SIZEOF IMPMODS_TEXT-1,'Imported Modules'
+RESNAMES_TEXT	DB	SIZEOF RESNAMES_TEXT-1,'RES Names'
+RESTYPES_TEXT	DB	SIZEOF RESTYPES_TEXT-1,'RES Types'
+RES_TYPENAMES_TEXT	DB	SIZEOF RES_TYPENAMES_TEXT-1,'RES TypeNames'
+RTNLS_TEXT	DB	SIZEOF RTNLS_TEXT-1,'RES RTNLs'
+
+endif
+
+if	fg_pe
+
+PAGE_RELOCS_TEXT	DB	SIZEOF PAGE_RELOCS_TEXT-1,'Relocation Pages'
+
+endif
+
+if	fg_cvpack
+CVLTYPES_TEXT	DB	SIZEOF CVLTYPES_TEXT-1,'CV Local Types'
+CVGTYPES_TEXT	DB	SIZEOF CVGTYPES_TEXT-1,'CV Global Types'
+CVGSYMS_TEXT	DB	SIZEOF CVGSYMS_TEXT-1,'CV GlobalSyms'
+CVSSYMS_TEXT	DB	SIZEOF CVSSYMS_TEXT-1,'CV StaticSyms'
+CVHASHES_TEXT	DB	SIZEOF CVHASHES_TEXT-1,'CV Hashes'
+endif
+
+		.CONST
+
+EOF_TXT		DB	'[EOF]'
+
+endif
+
+		END

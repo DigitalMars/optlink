@@ -1,0 +1,79 @@
+
+const FNAME_SIZE = 16;
+const OVLINIT_STACKSIZE	= 0x100;
+
+struct SECTION_FLAGS
+{
+	SECT_AUTOSECT:1,
+	SECT_SLRPACK:1,
+	SECT_CODEVIEW:1,
+	SECT_IN_MEMORY:1,
+	SECT_CACHEABLE:1,
+	SECT_PRELOAD:1,
+	SEXE_FILE_NUMBER:2
+}
+
+struct SECT_EXE_STRUCT
+{
+    // STRUCTURE AS IT APPEARS IN EXE FILE AT RUN TIME
+
+    version(fg_plink)
+    {
+	ushort _SEXE_LOAD_PARA;	// LOAD ADDRESS FOR MODULE
+	ushort _SEXE_END_PARA;	// END OF MY AREA
+    }
+    ubyte[3] _SEXE_FILE_PARA;	// PARA ADDRESS IN FILE
+    ubyte _SEXE_FLAGS;		// PRELOAD, CACHEABLE, CACHED, IN-MEMORY, COMPRESSED, RELOCS
+    version(fg_plink)
+    {
+	ushort _SEXE_PARENT_OFFSET;
+	ushort _SEXE_FILE_OFFSET;	// OFFSET TO FILE
+    }
+}
+
+struct SLRCODE_STRUCT
+{
+    ushort $$SLR_FIRST_AVAIL;	// FIRST AVAILABLE PARAGRAPH
+    ushort $$SLR_SECT_SIZE ;	// SIZE OF SECTION ENTRY
+    ushort $$SLR_NSECTS;	// NUMBER OF SECTIONS
+    ushort $$SLR_NVECTS;	// NUMBER OF VECTORS
+    ushort $$SLR_RELOAD_STACK_BASE;	// OFFSET IN 'SECTIONS' OF RELOAD STACK
+    ushort $$SLR_RELOAD_STACK_SIZE;
+    ushort $$SLR_RELOAD_TYPE;
+
+    uint $$SLR_MAIN;		// START ADDRESS...
+    ushort $$SLR_CACHE_BLOCKS_NEEDED;
+    ushort[3] $$SLR_EMS_TABLE;
+    ushort[3] $$SLR_XMS_TABLE;
+    ushort[3] $$SLR_REG_TABLE;
+    ushort[3] $$SLR_UMB_TABLE;
+    ushort $$SLR_INT_NUMBER;
+    ushort $$SLR_SEXE_FILE_OFFSET;	// OFFSET TO FILE POINTER
+
+    ushort $$SLR_NEAR_SEGMENT;	// SEGMENT USED BY SMALL-MODEL OVERLAYS
+    ushort $$SLR_RELOAD_JUMP;	// ADDRESS OF FAR JUMP TO RELOAD CODE...
+
+    ushort $$SLR_DATA_AREA;
+    ushort $$SLR_DATA_SECTION;
+    ushort $$SLR_OVERLAY_AREA;
+    ushort $$SLR_TIME_WD;
+    ushort $$SLR_DATE_WD;
+    ubyte $$SLR_ROOT_ENVIRONMENT_LEGAL;	// USE NAME FROM ENVIRONMENT
+    ubyte reserved;
+
+    ushort $$SLR_PSP;
+    ushort $$SLR_PSP_10;
+    ushort $$SLR_LAST_SECTION_LOADED;
+    ushort $$SLR_BUFFER;	// PARAGRAPH ADDRESS OF 'BUFFER'
+    uint $$SLR_OLD_TERMINATE;
+    uint $$SLR_OLD_INT_ADDRESS;	// INT VECTOR BEFORE WE TOOK IT...
+    ubyte $$SLR_TERM_FLAGS;
+    ubyte reserved2;
+    ushort $$SLR_HEADER_DELTA;	// CHANGE IN HEADER SIZE IN PARAGRAPHS
+}
+
+struct CACHE_RECORD
+{
+	MINI_PERCENT:1,
+	MAXI_PERCENT:1
+}

@@ -1,0 +1,2 @@
+NMAKE ALLOC.MAK %1=
+

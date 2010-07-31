@@ -1,0 +1,2 @@
+NMAKE PARSE.MAK %1=
+

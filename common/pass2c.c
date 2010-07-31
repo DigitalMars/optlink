@@ -1,0 +1,159 @@
+
+#include "all.h"
+
+void STORE_STACK_SEGMENT();
+void STORE_VECTOR_TABLE_ADDRESS();
+void ALLOW_LINNUMS_MAP();
+void INIT_SET_RELOC_BITS();
+void FIXUPP2();
+void REPORT_UNDEFINEDS_2();
+void ALLOW_XREF_MAP();
+void ALLOW_START_MAP();
+void COM_FLUSH_SEGMOD();
+
+void _select_output(void *EAX);
+
+void PASS2_STUFF()
+{
+    if (OUTPUT_PE)
+	_select_output(&PE_OUT_TABLE);
+    else if (OUTPUT_SEGMENTED)
+	_select_output(&SEGM_OUT_TABLE);
+    else
+	_select_output(&EXE_OUT_TABLE);
+    if (OUTPUT_COM_SYS)
+	OUT_FLUSH_SEGMOD = &COM_FLUSH_SEGMOD;
+    STORE_STACK_SEGMENT();		// PUT STACK STUFF IN EXEHEADER
+    STORE_VECTOR_TABLE_ADDRESS();	// ALSO ASSIGNS FILENAME IF MISSING...
+    if (!CODEVIEW_FLAG)
+	ALLOW_LINNUMS_MAP();		// IF NO DEBUG .EXE OUTPUT, DO LINNUMS NOW...
+    INIT_SET_RELOC_BITS();
+    FIXUPP2();				// output .EXE
+    REPORT_UNDEFINEDS_2();
+    if (!CODEVIEW_FLAG)
+	ALLOW_XREF_MAP();		// IF NO DEBUG .EXE OUTPUT, DON'T DO XREF TILL NOW..., CAUSE I NEEDED SYMBOLS
+    ALLOW_START_MAP();			// PRINT START ADDRESS
+}
+
+void STORE_STACK_SEGMENT()
+{
+	unsigned ECX;
+
+	if (OUTPUT_PE & 0xFF)
+	    goto L128;
+	if (OUTPUT_COM_SYS & 0xFF)
+	    return;
+	SEGMENT_STRUCT *ESI = FIRST_STACK_GINDEX;
+	if (!ESI)
+	    return;
+	// Just put frame and offset in EXE header
+	unsigned EBX = ESI->_SEG_LEN;
+	STACK_SIZE = ESI->_SEG_LEN;
+	if (!(OUTPUT_SEGMENTED & 0xFF))
+	    goto L14B;
+	if (FLAG_0C & APPTYPE)
+	    goto LD7;		// IGNORE STACK FOR LIBRARY
+	if (ESI->_SEG_TYPE & SEG_IN_DGROUP)
+	    goto LDF;
+LBB:
+	EBX += ESI->_SEG_OFFSET;
+	unsigned EAX = ESI->_SEG_OS2_NUMBER;
+LC1:
+	NEXEHEADER._NEXE_SSSP = (EAX << 16) | (EBX & 0xFFFF);	// RETAIN OFFSET IF NOT DGRUOP
+	STACK_SIZE = 0;		// 07-01-93 FIX STACK+DGROUP TROUBLE...
+	return;
+
+LD7:
+	EAX = 0;
+	EBX = 0;
+	ECX = 0;
+	goto LC1;
+
+LDF:
+	// Make sure this is last segment in DGROUP
+	SEGMENT_STRUCT *EDI = ESI->_SEG_NEXT_SEG_GINDEX;
+	EAX = ESI->_SEG_OS2_NUMBER;
+	if (EDI && EDI->_SEG_OS2_NUMBER == EAX)
+	    goto LBB;		// more segments same segment #
+
+	// WE SHOW THIS AS 'ADDITIONAL STACK ALLOCATION' AND SUBTRACT ITS SIZE FROM DGROUP SEGMENT
+	ECX = EAX << 16;
+	NEXEHEADER._NEXE_STACKSIZE = EBX;	// ADDITIONAL STACK ALLOCATION
+	NEXEHEADER._NEXE_SSSP = ECX;		// SHOW DGROUP SEGMENT BUT OFFSET 0
+	SEGTBL_STRUCT *ss = &SEGMENT_TABLE[EAX];
+	ss->_SEGTBL_LSIZE -= EBX;	// ADJUST DGROUP SEGMENT SIZE
+	if (!ss->_SEGTBL_LSIZE)
+	{
+	    ss->_SEGTBL_LSIZE += EBX;	// OOPS, DGROUP IS ALL STACK, MUST SHOW IT AS SEGMENT SIZE...
+	    STACK_SIZE = 0;
+	    NEXEHEADER._NEXE_STACKSIZE = 0;	// ADDITIONAL STACKSIZE == ZERO
+	    NEXEHEADER._NEXE_SSSP = EBX;
+	}
+	return;
+
+L128:
+	if (FLAG_0C & APPTYPE)
+	{
+	    // Ignore stack for library
+	    STACK_SIZE = 0;
+	    PEXEHEADER._PEXE_STACK_COMMIT = 0;
+	}
+	PEXEHEADER._PEXE_STACK_RESERVE = STACK_SIZE;
+	return;
+L14B:
+	EBX += ESI->_SEG_OFFSET;
+	EAX = ESI->_SEG_FRAME;
+	if (STACK_GROUP_FLAG & 0xFF)	// recognize group?
+	{
+	    if (ESI->_SEG_GROUP_GINDEX)	// in a group?
+	    {
+		GROUP_STRUCT *gs = ESI->_SEG_GROUP_GINDEX;
+		EAX = gs->_G_FRAME;
+	    }
+	}
+	// Ok, store offset
+	EXEHEADER._EXE_REG_SP = EBX - EAX;
+	EXEHEADER._EXE_REG_SS = EAX >> 4;
+}
+
+
+void _select_output(void *EAX)
+{
+    memcpy(&OUT_INIT, EAX, OUT_TYPES * 4);
+}
+
+void UNUSE_SYMBOLS()
+{
+    if (--SYMBOL_TABLE_USE == 0)
+    {
+	_release_minidata(&SSYM_STUFF);
+	_release_garray(&SYMBOL_GARRAY);
+    }
+}
+
+void UNUSE_MDB_PARRAY()
+{
+    if (--MDB_TABLE_USE == 0)
+    {
+	_release_garray(&MDB_GARRAY);
+    }
+}
+
+void REPORT_UNDEFINEDS_2()
+{
+    if (!(ERROR_NOT_REFERENCED & 0xFF))
+    {
+	ERROR_NOT_REFERENCED = 0xFF;
+	SYMBOL_STRUCT *ESI = FIRST_EXTERNAL_GINDEX;
+	while (ESI)
+	{
+	    if (ESI->_S_REF_FLAGS & S_REFERENCED)
+	    {
+		if ((ESI->_S_REF_FLAGS & S_FLOAT_SYM) || !(OUTPUT_SEGMENTED & 0xFF))
+		    _error_undefined(ESI);
+	    }
+	    ESI = ESI->_S_NEXT_SYM_GINDEX;
+	}
+	CURNMOD_GINDEX = 0;
+    }
+}

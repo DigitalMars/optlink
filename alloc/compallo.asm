@@ -1,0 +1,107 @@
+		TITLE	COMPALLO - Copyright (c) SLR Systems 1994
+
+		INCLUDE MACROS
+
+if	fg_slrpack
+
+if	fgh_win32
+		INCLUDE	WIN32DEF
+endif
+
+;		PUBLIC	GET_LARGE_SEGMENT
+
+
+		.DATA
+
+		EXTERNDEF	SEG_RELEASED_256K:DWORD,SEG_RELEASED_128K:DWORD
+
+
+		.CODE	PASS2_TEXT
+
+		EXTERNDEF	_oom_error:proc,_SBRK:PROC
+		externdef	_get_large_segment:proc
+
+
+GMEM_MOVEABLE	EQU	2
+
+
+if	fgh_dosx
+
+GET_LARGE_SEGMENT	PROC
+		;
+		;
+		;
+		CMP	EAX,256K
+		JZ	GET_256K_SEGMENT
+
+		CMP	EAX,128K
+		JNZ	OOM_ERROR
+
+		XOR	EAX,EAX
+
+		XCHG	EAX,SEG_RELEASED_128K
+
+		OR	EAX,EAX
+		JNZ	L1$
+
+		MOV	EAX,128K
+		CALL	_SBRK
+L1$:
+		RET
+
+GET_256K_SEGMENT:
+		XOR	EAX,EAX
+
+		XCHG	EAX,SEG_RELEASED_256K
+
+		TEST	EAX,EAX
+		JNZ	L1$
+
+		MOV	EAX,256K
+		CALL	_SBRK
+
+		RET
+
+GET_LARGE_SEGMENT	ENDP
+
+
+endif
+
+
+if	fgh_win32
+
+GET_LARGE_SEGMENT	PROC
+		;
+		;
+		;
+		PUSHM	EDX,ECX
+		push	EAX
+		call	_get_large_segment
+		add	ESP,4
+	
+;		PUSH	PAGE_READWRITE
+;		PUSH	MEM_RESERVE+MEM_COMMIT
+
+;		PUSH	EAX
+;		PUSH	0
+
+;		CALL	VirtualAlloc
+
+		POPM	ECX,EDX
+
+;		OR	EAX,EAX
+;		JZ	L1
+
+		RET
+
+;L1:		call	_oom_error
+;		ret
+
+GET_LARGE_SEGMENT	ENDP
+
+endif
+
+endif
+
+		END
+

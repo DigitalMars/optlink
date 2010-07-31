@@ -1,0 +1,61 @@
+// PUBCHECK - Copyright (c) SLR Systems 1994
+
+
+PUB_CHECK(ESI)
+{
+    // ESI IS OBJ_INPUT_DATA
+    // RETURNS ESI UPDATED
+
+    if (PUB_SIZE)
+    {	// 32 bit record
+	// DO WE DO ANY MORE?
+	while (END_OF_RECORD > ESI)
+	{
+	    // NOW, WE ENTER LOOP READING PUBLIC SYMBOLS AND OFFSETS
+
+	    TPTR_STRUCT* EDI = &SYMBOL_TPTR;
+	    GET_NAME_HASH	// TOO	;MUST PRESERVE EDX TILL INSTALL
+	    EAX = [ESI];
+	    ESI += 4;
+	    PUB_OFFSET = EAX;
+	    BUFFER_OFFSET = ESI;
+
+	    NEXT_INDEXI
+	    ECX = TYPDEF_ANDER;
+
+	    // SKIP IF NO CV THIS MODULE
+	    EAX &= ECX;
+	    PUB_CV = EAX;
+	    DO_PUBLIC();
+	}
+    }
+    else
+    {	// 16 bit record
+	// DO WE DO ANY MORE?
+	while (END_OF_RECORD > ESI)
+	{
+	    // NOW, WE ENTER LOOP READING PUBLIC SYMBOLS AND OFFSETS
+
+	    TPTR_STRUCT* EDI = &SYMBOL_TPTR;
+	    GET_NAME_HASH	// MUST PRESERVE EDX TILL INSTALL
+	    EAX = [ESI];
+	    BUFFER_OFFSET = ESI;
+	    EAX &= 0FFFFH;
+	    ESI += 2;
+	    PUB_OFFSET = EAX;
+
+	    NEXT_INDEXI
+	    ECX = TYPDEF_ANDER;
+
+	    // SKIP IF NO CV THIS MODULE
+	    EAX &= ECX;
+	    PUB_CV = EAX;
+	    DO_PUBLIC();
+	}
+    }
+
+    if (END_OF_RECORD != ESI)
+	OBJ_PHASE();
+    return ESI;
+}
+

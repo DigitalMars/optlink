@@ -1,0 +1,2 @@
+NMAKE CV.MAK %1=
+

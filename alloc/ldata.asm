@@ -1,0 +1,197 @@
+		TITLE	LDATA - Copyright (c) SLR Systems 1994
+
+		INCLUDE MACROS
+		INCLUDE	SEGMENTS
+
+		.DATA
+
+		EXTERNDEF	CLASS_TYPE:BYTE
+
+		EXTERNDEF	FCA_STUFF:FA_S
+		EXTERNDEF	LNA_STUFF:FA_S
+		EXTERNDEF	COD_STUFF:FA_S
+		EXTERNDEF	GRP_STUFF:FA_S
+		EXTERNDEF	LDA_STUFF:FA_S
+		EXTERNDEF	DBG_SYM_STUFF:FA_S
+		EXTERNDEF	DBG_TYP_STUFF:FA_S
+
+
+		.CODE	ROOT_TEXT
+
+		EXTERNDEF	_get_new_phys_blk:proc
+
+; int _farcall_alloc(unsigned EAX, unsigned *pEAX, unsigned *pECX)
+; Returns:
+;   C
+;	EAX
+;	ECX FARCALL_HEADER_TYPE*
+;   NC
+;	EAX
+;	ECX FARCALL_HEADER_TYPE*
+
+		public	_farcall_alloc
+_farcall_alloc	proc
+		mov	EAX,4[ESP]
+		call	FARCALL_ALLOC
+		mov	EDX,8[ESP]
+		mov	[EDX],EAX
+		mov	EDX,12[ESP]
+		mov	[EDX],ECX
+		mov	EAX,0
+		jnc	L1
+		mov	EAX,1
+L1:		ret
+_farcall_alloc	endp
+
+		public	FARCALL_ALLOC
+FARCALL_ALLOC	LABEL	PROC
+		;
+		;RETURNS ECX = ADDRESS
+		;	 EAX = BASE
+		;
+		MOV	EDX,OFF FCA_STUFF
+		JMP	LDA_CONT1
+
+; _linnum_alloc(EAX, pEDX, pECX, pEAX)
+		public	_linnum_alloc
+_linnum_alloc	proc
+		mov	EAX,4[ESP]
+		call	LINNUM_ALLOC
+		mov	4[ESP],EAX
+		mov	EAX,8[ESP]
+		mov	[EAX],EDX
+		mov	EAX,12[ESP]
+		mov	[EAX],ECX
+		mov	EAX,16[ESP]
+		mov	EDX,4[ESP]
+		mov	[EAX],EDX
+		mov	EAX,0
+		jnc	L1
+		mov	EAX,1
+L1:		ret
+_linnum_alloc	endp
+
+		public	LINNUM_ALLOC
+LINNUM_ALLOC	LABEL	PROC
+		;
+		;RETURNS ECX = PHYS ADDRESS
+		;	 EAX = BLOCK BASE
+		;
+		MOV	EDX,OFF DBG_SYM_STUFF
+		JMP	LDA_CONT1
+
+		public	_fixupp_alloc
+_fixupp_alloc	label	proc
+		public	_ldata_alloc
+_ldata_alloc	label	proc
+; _forref_alloc(EAX, pEDX, pECX, pEAX)
+		public	_forref_alloc
+_forref_alloc	proc
+		mov	EAX,4[ESP]
+		call	FORREF_ALLOC
+		mov	4[ESP],EAX
+		mov	EAX,8[ESP]
+		mov	[EAX],EDX
+		mov	EAX,12[ESP]
+		mov	[EAX],ECX
+		mov	EAX,16[ESP]
+		mov	EDX,4[ESP]
+		mov	[EAX],EDX
+		mov	EAX,0
+		jnc	L1
+		mov	EAX,1
+L1:		ret
+_forref_alloc	endp
+
+		public	FORREF_ALLOC
+FORREF_ALLOC	LABEL	PROC
+		public	FIXUPP_ALLOC
+FIXUPP_ALLOC	LABEL	PROC
+		public	LDATA_ALLOC
+LDATA_ALLOC	PROC
+		;
+		;RETURNS ECX = PHYS ADDRESS
+		;	 EAX = BLOCK BASE
+		;
+		;IF CARRY SET, EDX IS ACTUAL NUMBER ALLOCATED, NOT ENOUGH...
+		;
+		;ALLOCATION STRATEGY - KINDA LIKE DOSSEG...
+		;
+		;	'CODE' SEGMENTS
+		;	NOT IN DGROUP
+		;	DGROUP MEMBERS
+		;	DEBUG INFO
+		;
+		MOV	CL,CLASS_TYPE
+		MOV	EDX,OFF DBG_SYM_STUFF
+		TEST	CL,MASK SEG_CV_SYMBOLS1 + MASK SEG_CV_TYPES1
+		JNZ	LDA_CONT
+		TEST	CL,MASK SEG_CLASS_IS_CODE
+		MOV	EDX,OFF COD_STUFF
+		JNZ	LDA_CONT
+		MOV	EDX,OFF LDA_STUFF
+LDA_CONT:
+LDA_CONT1::
+		ASSUME	EDX:PTR FA_S
+
+		PUSH	EBX
+LDA_CONT2:
+		ADD	EAX,3
+		MOV	EBX,[EDX].FA_CNT
+		AND	AL,0FCH
+		MOV	ECX,[EDX].FA_PTR
+
+		SUB	EBX,EAX
+		JC	LD_2
+		ADD	EAX,ECX
+		MOV	[EDX].FA_CNT,EBX
+		MOV	[EDX].FA_PTR,EAX
+		MOV	EAX,[EDX].FA_BASE
+		POP	EBX
+		INC	DPTR [EAX]		;# ITEMS THIS BLOCK
+		RET
+
+LD_2:
+		ADD	EBX,EAX			;SEE IF FA_CNT WAS ZERO
+		JZ	LD_3			;YES, JUMP
+		MOV	EAX,[EDX].FA_BASE
+		MOV	[EDX].FA_CNT,0
+		MOV	EDX,EBX
+		POP	EBX
+		STC
+		INC	DPTR [EAX]
+		RET
+
+LD_3:
+		;
+		;NEED A NEW BLOCK
+		;
+		MOV	ECX,EAX			;ECX IS # OF BYTES WANTED
+		MOV	EBX,[EDX].FA_BASE
+
+
+		push	ECX
+		push	EDX
+		call	_get_new_phys_blk
+		pop	EDX
+		pop	ECX
+
+		TEST	EBX,EBX
+		JZ	LD_4
+		MOV	4[EBX],EAX
+		XOR	EBX,EBX
+LD_4:
+		MOV	[EDX].FA_BASE,EAX	;SET CURRENT BASE
+		MOV	[EAX],EBX		;ZERO ITEMS SO FAR
+		MOV	4[EAX],EBX		;NO NEXT-BLOCK YET
+		LEA	EAX,[EAX+BLOCK_BASE]
+		MOV	[EDX].FA_CNT,PAGE_SIZE-BLOCK_BASE
+		MOV	[EDX].FA_PTR,EAX
+		MOV	EAX,ECX
+		JMP	LDA_CONT2
+
+LDATA_ALLOC	ENDP
+
+
+		END
+

@@ -1,0 +1,60 @@
+750.6	09-10-97	Expand implib directory maximum blocks from 1021 to 2039
+
+750.5	07-10-97	Fix register clobbered by STORE_XREF_ENTRY
+
+750.4	06-16-97	Fix boundary bug in external symbol handling
+
+750.3	03-18-97	Create dynamic library if .dll extension specified for output file
+
+750B2   02-06-97	Change /CO:5 signature to JTR1
+
+750B1	01-02-97	Update version for 7.5.
+
+722B15	12-13-96	Avoid Win95 boundary bug
+
+722B14	08-27-96	Zero codeview source hash collision field before 
+			using as a line count.
+
+722B13	08-11-96	Fix resource string compare
+
+722B12	06-25-96	Fix long library symbol bug
+
+722B11	06-18-96	Add align type 7: 32 byte
+
+722B10	06-11-96	Fix gpf associated with initializing cv import info
+
+722B9	03-21-96	Fix stack frame allocation bug introduced in 722B8
+			Fix gpf associated with attempting to link objects
+			with no code or data.
+
+722B8   03-05-96	Increase maximum symbol length from 468 to 8192.
+			Note that the maximum symbol length for OMF
+		        libraries remains 468. Fix associated error message
+			and update copyright to 1996.
+
+722B7	02-17-96	Fix /PACKFUNCTIONS recursion problem
+
+722B6	12-29-95	New CV info format for TDB /CO:5 initial support
+
+722B5	12-21-95	Handle CV type records >16K. Restore current module
+			variable before issuing error message while processing
+			unresolved externals.
+
+722B4	12-13-95	Specify filename, line number (column number if dll)
+			on errors associated with parsing the .DEF file.
+
+722B3	12-12-95	Drop imports into SSTGLOBALPUB CV4 table.
+
+722B2	12-04-95	Suport COFF import library generation switch:
+			/IMPLIBCOFF[:filename]
+
+722B1	11-11-95	Fixed a few bugs related to >4095 modules in a library.
+			Fixed a bug with spurious TLS generation (flag in
+			released memory...).  Modified memory allocation stuff
+			to release back to os sooner.  Also grabs smaller
+			chunks from os.
+
+721b1	10-19-95	/entry is now a fuzzy-matched guy.  This requires an
+			IDDE change as some of the /entries currently passed
+			don't work.
+

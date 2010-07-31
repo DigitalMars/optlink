@@ -1,0 +1,39 @@
+		TITLE	MVFN - Copyright (c) SLR Systems 1994
+
+		INCLUDE	MACROS
+		INCLUDE	IO_STRUC
+
+		PUBLIC	MOVE_NFN
+
+
+		.CODE	PHASE1_TEXT
+
+		externdef	_move_nfn:proc
+
+
+MOVE_NFN	PROC
+		;
+		;EAX IS TARGET NFN_STRUCT, ECX IS SOURCE
+		;
+		push	ECX
+		push	EAX
+		call	_move_nfn
+		add	ESP,8
+		ret
+
+		PUSH	ESI
+		MOV	ESI,ECX
+		MOV	ECX,[ECX].NFN_STRUCT.NFN_TOTAL_LENGTH
+		PUSH	EDI
+		ADD	ECX,NFN_STRUCT.NFN_TEXT+4
+		MOV	EDI,EAX
+		SHR	ECX,2
+		REP	MOVSD
+		POPM	EDI,ESI
+		RET
+
+MOVE_NFN	ENDP
+
+
+		END
+

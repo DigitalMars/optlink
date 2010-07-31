@@ -1,0 +1,10 @@
+Notes on possible optimizations:
+
+1. Put Environment strings into a hash table
+
+2. Localized hashes like cv4 symbol table
+
+3. HASH without divide
+
+4. use shift instead of mult in newlib
+

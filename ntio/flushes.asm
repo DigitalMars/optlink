@@ -1,0 +1,159 @@
+		TITLE	FLUSHES - Copyright (C) SLR Systems 1994
+
+		INCLUDE	MACROS
+		INCLUDE	IO_STRUC
+if	fgh_win
+		INCLUDE	WINMACS
+endif
+
+		PUBLIC	FLUSH_TRUNC_CLOSE,FLUSH_BUFFER,FLUSH_TRUNC,FLUSH_CLOSE
+
+
+		.DATA
+
+		EXTERNDEF	SHARE_ANDER:BYTE,ASCIZ:BYTE
+
+
+		.CODE	PASS2_TEXT
+
+		EXTERNDEF	DO_DOSWRITE:PROC,GET_NEW_IO_LOG_BLK:PROC,_doswrite:PROC
+
+
+		public	_flush_trunc
+_flush_trunc	PROC
+		mov	EAX,4[ESP]
+_flush_trunc	ENDP
+FLUSH_TRUNC	PROC
+		;
+		;EAX IS MYO_STRUCT
+		;
+		MOV	CL,MASK F_TRUNC_FILE+MASK F_CLEAR_BLOCK
+		JMP	FTC_1
+
+FLUSH_TRUNC	ENDP
+
+
+		public	_flush_close
+_flush_close	PROC
+		mov	EAX,4[ESP]
+_flush_close	ENDP
+
+FLUSH_CLOSE	PROC
+		;
+		;
+		;
+		MOV	CL,MASK F_CLOSE_FILE+MASK F_CLEAR_BLOCK
+		JMP	FTC_1
+
+FLUSH_CLOSE	ENDP
+
+		public	_flush_trunc_close
+_flush_trunc_close	PROC
+		mov	EAX,4[ESP]
+_flush_trunc_close	ENDP
+
+FLUSH_TRUNC_CLOSE	PROC
+		;
+		;EAX IS MYO_STRUCT
+		;
+		ASSUME	EAX:PTR MYO_STRUCT
+
+		MOV	CL,MASK F_TRUNC_FILE+MASK F_CLOSE_FILE+MASK F_CLEAR_BLOCK
+FTC_1::
+		TEST	EAX,EAX			;NUL
+		JZ	L9$
+
+		PUSH	EBX
+		MOV	EBX,ECX
+
+		MOV	EDX,[EAX].MYO_BLOCK	;IS THERE ANYTHING TO FLUSH?
+		MOV	ECX,[EAX].MYO_PTR
+
+		OR	EDX,EDX
+		JZ	L2$
+
+		OR	BL,MASK F_RELEASE_BLOCK
+		SUB	ECX,EDX
+
+		MOV	[EAX].MYO_PTR,0
+L2$:
+		OR	[EAX].MYO_SPEC_FLAGS,BL
+		CALL	DO_DOSWRITE
+
+		XOR	ECX,ECX
+		POP	EBX
+
+		MOV	[EAX].MYO_COUNT,ECX
+L9$:
+		YIELD
+
+		RET
+
+FLUSH_TRUNC_CLOSE	ENDP
+
+		public	_flush_buffer
+_flush_buffer	PROC
+		mov	EAX,4[ESP]
+_flush_buffer	ENDP
+
+FLUSH_BUFFER	PROC
+		;
+		;EAX IS MYO_STRUCT
+		;
+		ASSUME	EAX:PTR MYO_STRUCT
+
+		MOV	ECX,PAGE_SIZE
+		MOV	EDX,[EAX].MYO_COUNT
+
+		MOV	[EAX].MYO_COUNT,ECX
+		SUB	ECX,EDX
+
+		MOV	EDX,[EAX].MYO_BLOCK
+		JZ	L2$
+
+		TEST	EDX,EDX
+		JZ	L3$
+
+		MOV	[EAX].MYO_PTR,EDX
+if	fgh_win32dll
+		push	EDX
+		push	ECX
+		push	EAX
+		call	_doswrite
+		add	ESP,12
+
+		YIELD
+else
+		push	EDX
+		push	ECX
+		push	EAX
+		call	_doswrite
+		add	ESP,12
+endif
+
+L1$:
+		RET
+
+L2$:
+		TEST	EDX,EDX
+		JNZ	L1$
+L3$:
+		PUSH	EBX
+		MOV	EBX,EAX
+		ASSUME	EBX:PTR MYO_STRUCT
+
+		CALL	GET_NEW_IO_LOG_BLK 	;LEAVE IN FAST
+
+		MOV	[EBX].MYO_BLOCK,EAX
+		MOV	[EBX].MYO_PTR,EAX
+
+		MOV	EAX,EBX
+		POP	EBX
+
+		RET
+
+FLUSH_BUFFER	ENDP
+
+
+		END
+
