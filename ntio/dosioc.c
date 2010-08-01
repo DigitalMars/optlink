@@ -241,7 +241,7 @@ MYI_STRUCT *_read_16k_threaded(MYI_STRUCT *myi)
     return myi;
 }
 
-void _err_nfn_abort(unsigned char errnum, NFN_STRUCT *);
+void _err_nfn_abort(int errnum, NFN_STRUCT *);
 
 void _err_file_list_abort(unsigned char errnum, FILE_LIST_STRUCT *ECX)
 {
@@ -260,7 +260,7 @@ int _n_nonres_table(MYI_STRUCT *s)
 
 #if 1
 
-int RES_LENGTH;
+unsigned RES_LENGTH;
 
 struct NRT_VARS
 {
