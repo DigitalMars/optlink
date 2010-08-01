@@ -2112,8 +2112,8 @@ extern unsigned char REFERENCING_LIBS;
 //extern unsigned char WEAK_DEFINED;
 extern unsigned char DOING_START_ADDRESS;
 
-/*
-if	fg_segm OR fg_pe
+
+#if	fg_segm || fg_pe
 extern unsigned char RC_SUPPLIED;
 extern unsigned char RC_REORDER;
 extern unsigned char RC_REORDER_SEGS;
@@ -2130,8 +2130,8 @@ extern unsigned char IMPDEF_FLAG;
 extern unsigned char WINVER_SELECTED;
 extern unsigned char RES_32_BIT;
 extern unsigned char POST_INSTALL_FIX;
-endif
-*/
+#endif
+
 extern unsigned char OPREADS_DONE;
 
 extern unsigned char PMLIB_FLAG;
