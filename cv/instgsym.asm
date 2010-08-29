@@ -58,6 +58,10 @@ FAR_CONT:
 		ASSUME	EAX:PTR CV_GLOBALSYM_STRUCT
 
 		MOV	EBX,EAX
+
+		; Bugzilla http://d.puremagic.com/issues/show_bug.cgi?id=4009
+		; The following dies with a segfault
+		; No, EAX is not NULL, it's 6F7333231
 		MOV	EDI,[EAX]._HASH
 
 		CMP	EDI,EDX
