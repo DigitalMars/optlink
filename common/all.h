@@ -10,6 +10,7 @@
 #include "segments.h"
 #include "segmsyms.h"
 #include "lnkdat.h"
+#include "cvtypes.h"
 
 
 // alloc\allocc
@@ -35,6 +36,8 @@ void **_cv_gtype_pool_get(unsigned nbytes);
 void **_segment_pool_get(unsigned nbytes);
 void **_text_pool_alloc(unsigned nbytes);
 void **_p1only_pool_get(unsigned nbytes);
+void **_cv_gsym_pool_get(unsigned nbytes);
+void **_cv_ssym_pool_get(unsigned nbytes);
 
 // common.errors
 extern char *ERR_TABLE[];
@@ -219,6 +222,7 @@ unsigned strlen(const char *p);
 void *memset(void *p, int value, unsigned n);
 void *memcpy(void *dst, const void *src, unsigned n);
 void *memmove(void *dst, const void *src, unsigned n);
+int memcmp(const void *,const void *,unsigned);
 NFN_STRUCT *_move_ecxpath_eax(NFN_STRUCT* EAX, NFN_STRUCT* ECX);
 
 // mvsrcfilc

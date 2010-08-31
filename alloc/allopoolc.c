@@ -136,3 +136,14 @@ void **_p1only_pool_get(unsigned nbytes)
     return _allo_pool_get1(nbytes, &P1ONLY_STUFF);
 }
 
+void **_cv_gsym_pool_get(unsigned nbytes)
+{
+    return _allo_pool_get1(nbytes, &CV_GSYM_STUFF);
+}
+
+void **_cv_ssym_pool_get(unsigned nbytes)
+{
+    return _allo_pool_get1(nbytes, &CV_SSYM_STUFF);
+}
+
+
