@@ -454,5 +454,5 @@ zip:
 	zip32 $(ZIPFILE) $(SUBSSRC)
 	zip32 $(ZIPFILE) $(X32SRC)
 
-checkin: zip
+checkin:
 	\putty\pscp -pw walter optlinkcsrc.zip walter@mercury:cbx/
