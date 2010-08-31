@@ -139,7 +139,8 @@ CVSRC= \
 	cv\cvtypes.asm \
 	cv\instgsym.asm \
 	cv\cvlibrar.asm \
-	cv\instgsymc.c
+	cv\instgsymc.c \
+	cv\cvsymbolc.c
 
 DLLSTUFFSRC= \
 	dllstuff\go.bat \
@@ -453,3 +454,5 @@ zip:
 	zip32 $(ZIPFILE) $(SUBSSRC)
 	zip32 $(ZIPFILE) $(X32SRC)
 
+checkin: zip
+	\putty\pscp -pw walter optlinkcsrc.zip walter@mercury:cbx/

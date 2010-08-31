@@ -1,3 +1,7 @@
+
+#include "all.h"
+
+#if 0
 		TITLE	CVSYMBOL - Copyright (c) SLR Systems 1994
 
 		INCLUDE	MACROS
@@ -24,7 +28,6 @@ if	fg_cvpack
 
 		.CODE	CVPACK_TEXT
 
-		externdef	_opti_hash32:proc
 		EXTERNDEF	ALLOC_LOCAL:PROC,RELEASE_EXETABLE_ALL:PROC,RELEASE_BLOCK:PROC,ERR_RET:PROC,WARN_RET:PROC
 		EXTERNDEF	_err_abort:proc,RELEASE_BLOCK:PROC,GET_NEW_LOG_BLK:PROC,INSTALL_GLOBALSYM:PROC
 		EXTERNDEF	STORE_EAXECX_EDX_SEQ:PROC,INSTALL_STATICSYM:PROC,STORE_EAXECX_EDXEBX_RANDOM:PROC
@@ -1313,90 +1316,51 @@ GET_NAME_HASH32	PROC	NEAR
 		GET_OMF_NAME_LENGTH_EAX
 
 		MOV	SYMBOL_LENGTH,EAX
-
-		lea	EDX,[EAX][ECX]
-		push	EDX
-		push	ECX
-		push	EAX
-		call	_opti_hash32
-		add	ESP,8
-		pop	ECX
-		ret
-
 ;		CALL	OPTI_HASH32
 ;		RET
 
 GET_NAME_HASH32	ENDP
+#endif
 
+unsigned _opti_hash32(unsigned EAX, unsigned char *ESI)
+{
+    // ECX IS INPUT POINTER, EAX IS BYTE COUNT
 
-OPTI_HASH32	PROC	NEAR
-		;
-		;ECX IS INPUT POINTER, EAX IS BYTE COUNT
-		;
-		TEST	EAX,EAX
-		JZ	L95$
+    unsigned EDX = 0;
+    if (EAX)
+    {
+	unsigned n = EAX >> 2;
+	while (n)
+	{
+	    EDX = (EDX << 4) | (EDX >> 12);
+	    EDX ^= *(unsigned *)ESI & 0x0DFDFDFDF;
 
-		PUSH	ESI
-		MOV	ESI,ECX
+	    ESI += 4;
+	    n--;
+	}
+	EDX = (EDX << 4) | (EDX >> 12);
 
-		PUSH	EAX
-		XOR	EDX,EDX
+	EAX &= 3;
+	if (EAX)
+	{
+	    unsigned ECX = *ESI << 24;
+	    if (--EAX)
+	    {
+		ECX |= *++ESI;
+		EAX--;
+		if (EAX)
+		    ECX |= *++ESI << 8;
+		ECX = (ECX >> 16) | (ECX << 16);
+	    }
+	    EDX ^= ECX & 0x0DFDFDFDF;
+	    ESI++;
+	}
+	// 4 PER 4 BYTES + 6 OVERHEAD + 4 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
+    }
+    return EDX;
+}
 
-		SHR	EAX,2
-		JZ	L4$			;3		;6
-L2$:
-		MOV	ECX,[ESI]
-
-		ROL	EDX,4
-		AND	ECX,0DFDFDFDFH
-
-		ADD	ESI,4
-		XOR	EDX,ECX
-
-		DEC	EAX
-		JNZ	L2$			;4		;7
-L4$:
-		ROL	EDX,4
-		POP	EAX
-
-		AND	EAX,3
-		JZ	L9$			;2
-
-		XOR	ECX,ECX
-		DEC	EAX
-
-		MOV	CH,[ESI]
-		JZ	L7$
-
-		SHL	ECX,16
-
-		MOV	CL,[ESI+1]
-		INC	ESI
-
-		DEC	EAX
-		JZ	L8$
-
-		MOV	CH,[ESI+1]
-		INC	ESI
-L8$:
-		ROR	ECX,16
-
-L7$:
-		AND	ECX,0DFDFDFDFH
-		INC	ESI
-
-		XOR	EDX,ECX
-L9$:
-		MOV	EAX,EDX		;4 PER 4 BYTES + 6 OVERHEAD + 4 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
-
-		MOV	ECX,ESI
-		POP	ESI
-L95$:
-		RET
-
-OPTI_HASH32	ENDP
-
-
+#if 0
 GET_NAME_HASH32_CASE	PROC	NEAR
 		;
 		;
@@ -2636,3 +2600,4 @@ endif
 
 		END
 
+#endif
