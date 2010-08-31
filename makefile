@@ -102,7 +102,8 @@ COMMONSRC= common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
 	common\macrosc.c common\errors.asm common\macros.h common\pass1.asm \
 	common\obj_mod.asm common\extdef.asm common\symbols.h \
 	common\common.mak common\all.h common\library.h common\optlink.h \
-	common\lnkdat.h common\newlib.asm common\newlibc.c
+	common\lnkdat.h common\newlib.asm common\newlibc.c \
+	common\cvtype.h
 
 CVSRC= \
 	cv\xdebug.asm \
@@ -137,7 +138,8 @@ CVSRC= \
 	cv\cvtypcon.asm \
 	cv\cvtypes.asm \
 	cv\instgsym.asm \
-	cv\cvlibrar.asm
+	cv\cvlibrar.asm \
+	cv\instgsymc.c
 
 DLLSTUFFSRC= \
 	dllstuff\go.bat \

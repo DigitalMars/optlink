@@ -18,10 +18,19 @@ if	fg_cvpack
 
 		.CODE	PASS2_TEXT
 
-		EXTERNDEF	_get_omf_name_length_routine:proc,CV_GSYM_POOL_GET:PROC
+		externdef	_install_globalsym:proc
+		externdef	_do_far_install:proc
+		EXTERNDEF	_get_omf_name_length_routine:proc,_cv_gsym_pool_get:proc
 
 
 INSTALL_GLOBALSYM	PROC
+		push	ESI
+		push	ECX
+		push	EAX
+		call	_install_globalsym
+		add	ESP,12
+		ret
+
 		;
 		;EAX IS HASH VALUE, CONVERT IT
 		;ESI IS SYMBOL, ECX IS TEXT
@@ -34,7 +43,7 @@ INSTALL_GLOBALSYM	PROC
 		XOR	EDX,EDX
 		MOV	EDI,EAX
 		
-		HASHDIV	GSYM_HASH
+		div	dword ptr GSYM_HASH
 
 		MOV	EBX,GSYM_HASH_LOG
 
@@ -54,7 +63,6 @@ FAR_CONT:
 		TEST	EAX,EAX
 		JZ	DO_FAR_INSTALL
 
-		CONVERT	EAX,EAX,CV_GSYM_GARRAY
 		ASSUME	EAX:PTR CV_GLOBALSYM_STRUCT
 
 		MOV	EBX,EAX
@@ -172,6 +180,16 @@ INSTALL_GLOBALSYM	ENDP
 
 
 DO_FAR_INSTALL	PROC	PRIVATE
+		push	ESI
+		push	EDX
+		push	ECX
+		push	EBX
+		call	_do_far_install
+		add	ESP,16
+		pop	EBX
+		pop	EDI
+		ret
+
 		;
 		;EBX GETS POINTER...
 		;
@@ -180,12 +198,17 @@ DO_FAR_INSTALL	PROC	PRIVATE
 		AND	EAX,0FFFFH
 
 		ADD	EAX,SIZE CV_GLOBALSYM_STRUCT-2
-		CALL	CV_GSYM_POOL_GET
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_cv_gsym_pool_get
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		MOV	EDI,EAX
 		ASSUME	EDI:PTR CVG_REF_STRUCT
-
-		INSTALL_POINTER_GINDEX	CV_GSYM_GARRAY
 
 		MOV	[EBX]._NEXT_HASH_GINDEX,EAX
 		MOV	EBX,LAST_GSYM_GINDEX
@@ -196,7 +219,6 @@ DO_FAR_INSTALL	PROC	PRIVATE
 		TEST	EBX,EBX
 		JZ	L3$
 
-		CONVERT	EBX,EBX,CV_GSYM_GARRAY
 		MOV	[EBX]._NEXT_GSYM_GINDEX,EAX
 L4$:
 		TEST	ECX,ECX			;IS THERE TEXT?
@@ -220,9 +242,17 @@ L5$:
 		AND	ECX,0FFFFH
 		LEA	EDI,[EDI]._LENGTH
 
-		OPTI_MOVSB
+		cmp	ECX,8
+		jb	L123
+		push	ECX
+		shr	ECX,2
+		rep	movsd
+		pop	ECX
+		and	ECX,3
+		je	L125
+L123:		rep	movsb
 
-		MOV	ESI,EAX
+L125:		MOV	ESI,EAX
 		POP	EBX
 
 		MOV	[ESI]._ID,I_S_DELETE

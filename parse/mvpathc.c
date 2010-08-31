@@ -46,6 +46,22 @@ void *memmove(void *dst, const void *src, unsigned n)
     return dst;
 }
 
+int memcmp(const void *p1, const void *p2, unsigned n)
+{
+    int c = 0;
+    const char *s1 = (const char *)p1;
+    const char *s2 = (const char *)p2;
+    while (n--)
+    {
+	c = *s1 - *s2;
+	if (c == 0)
+	    break;
+	s1++;
+	s2++;
+    }
+    return c;
+}
+
 NFN_STRUCT *_move_ecxpath_eax(NFN_STRUCT* EAX, NFN_STRUCT* ECX)
 {
 	// MOVE PATH FROM ECX TO EAX, PRESERVE EAX
