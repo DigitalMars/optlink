@@ -24,6 +24,7 @@ if	fg_cvpack
 
 		.CODE	CVPACK_TEXT
 
+		externdef	_install_gsym:proc
 		externdef	_install_globalsym:proc
 		externdef	_get_name_hash32:proc
 		externdef	_opti_hash32:proc
@@ -1254,6 +1255,12 @@ IS_MY_CODESEG	ENDP
 
 
 INSTALL_GSYM	PROC	NEAR
+		push	ESI
+		push	ECX
+		call	_install_gsym
+		add	ESP,8
+		ret
+
 		;
 		;INSTALL GDATA16, GDATA32, CONSTANT, AND UDT IN GLOBALSYM
 		;
