@@ -103,7 +103,7 @@ COMMONSRC= common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
 	common\obj_mod.asm common\extdef.asm common\symbols.h \
 	common\common.mak common\all.h common\library.h common\optlink.h \
 	common\lnkdat.h common\newlib.asm common\newlibc.c \
-	common\cvtype.h
+	common\cvtypes.h
 
 CVSRC= \
 	cv\xdebug.asm \
