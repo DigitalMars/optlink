@@ -24,6 +24,7 @@ if	fg_cvpack
 
 		.CODE	CVPACK_TEXT
 
+		externdef	_install_globalsym:proc
 		externdef	_get_name_hash32:proc
 		externdef	_opti_hash32:proc
 		EXTERNDEF	ALLOC_LOCAL:PROC,RELEASE_EXETABLE_ALL:PROC,RELEASE_BLOCK:PROC,ERR_RET:PROC,WARN_RET:PROC
@@ -1259,10 +1260,19 @@ INSTALL_GSYM	PROC	NEAR
 		MOV	EAX,ECX
 		PUSH	ECX
 
-		CALL	GET_NAME_HASH32		;HASH IS IN EAX
+		push	EAX
+		call	_get_name_hash32
+		add	ESP,4
 
 		POP	ECX
-		JMP	INSTALL_GLOBALSYM	;STICK IN GLOBALSYM TABLE
+
+		push	ESI
+		push	ECX
+		push	EAX
+		call	_install_globalsym
+		add	ESP,12
+		ret
+		;JMP	INSTALL_GLOBALSYM	;STICK IN GLOBALSYM TABLE
 
 INSTALL_GSYM	ENDP
 
