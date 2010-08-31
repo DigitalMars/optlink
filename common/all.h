@@ -80,6 +80,10 @@ unsigned char *_cbta16(int n, unsigned char *dest);
 // cv.instgsymc
 void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 
+// cv.cvsymbolc
+unsigned _get_name_hash32(unsigned char *EAX);
+unsigned _opti_hash32(unsigned EAX, unsigned char *ESI);
+
 // install/addtoext
 void _add_to_external_list(void *EAX, SYMBOL_STRUCT *ECX);
 void _add_to_weak_list(void *EAX, SYMBOL_STRUCT *ECX);
@@ -190,6 +194,7 @@ extern void FIRST_LABEL();
 
 // subs/getname
 int _get_omf_name_length_routine(unsigned char **pp);
+void xTOO_LONG();
 
 //////// parse
 
