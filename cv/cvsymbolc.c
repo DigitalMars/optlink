@@ -1285,9 +1285,83 @@ unsigned _get_name_hash32(unsigned char *EAX)
     return _opti_hash32(len, EAX);
 }
 
+_declspec(naked)
+unsigned _opti_hash32X(unsigned EAX, unsigned char *ESI)
+{
+    __asm
+    {
+		mov	EAX,4[ESP]
+		mov	ECX,8[ESP]
+
+                TEST    EAX,EAX
+                JZ      L95$
+
+                PUSH    ESI
+                MOV     ESI,ECX
+
+                PUSH    EAX
+                XOR     EDX,EDX
+
+                SHR     EAX,2
+                JZ      L4$
+L2$:
+                MOV     ECX,[ESI]
+
+                ROL     EDX,4
+                AND     ECX,0DFDFDFDFH
+
+                ADD     ESI,4
+                XOR     EDX,ECX
+
+                DEC     EAX
+                JNZ     L2$
+L4$:
+                ROL     EDX,4
+                POP     EAX
+
+                AND     EAX,3
+                JZ      L9$
+
+                XOR     ECX,ECX
+                DEC     EAX
+
+                MOV     CH,[ESI]
+                JZ      L7$
+
+                SHL     ECX,16
+
+                MOV     CL,[ESI+1]
+                INC     ESI
+
+                DEC     EAX
+                JZ      L8$
+
+                MOV     CH,[ESI+1]
+                INC     ESI
+L8$:
+                ROR     ECX,16
+
+L7$:
+                AND     ECX,0DFDFDFDFH
+                INC     ESI
+
+                XOR     EDX,ECX
+L9$:
+                MOV     EAX,EDX
+
+                MOV     ECX,ESI
+                POP     ESI
+L95$:
+		ret
+    }
+}
+
 unsigned _opti_hash32(unsigned EAX, unsigned char *ESI)
 {
     // ECX IS INPUT POINTER, EAX IS BYTE COUNT
+
+unsigned eax = EAX;
+unsigned char *esi = ESI;
 
     unsigned EDX = 0;
     if (EAX)
@@ -1295,31 +1369,32 @@ unsigned _opti_hash32(unsigned EAX, unsigned char *ESI)
 	unsigned n = EAX >> 2;
 	while (n)
 	{
-	    EDX = (EDX << 4) | (EDX >> 12);
-	    EDX ^= *(unsigned *)ESI & 0x0DFDFDFDF;
+	    EDX = (EDX << 4) | (EDX >> 28);
+	    EDX ^= *(unsigned *)ESI & 0xDFDFDFDF;
 
 	    ESI += 4;
 	    n--;
 	}
-	EDX = (EDX << 4) | (EDX >> 12);
+	EDX = (EDX << 4) | (EDX >> 28);
 
 	EAX &= 3;
 	if (EAX)
 	{
-	    unsigned ECX = *ESI << 24;
+	    unsigned ECX = *ESI << 8;
 	    if (--EAX)
-	    {
+	    {	ECX <<= 16;
 		ECX |= *++ESI;
 		EAX--;
 		if (EAX)
-		    ECX |= *++ESI << 8;
+		    ECX = (ECX & 0xFFFF00FF) | (*++ESI << 8);
 		ECX = (ECX >> 16) | (ECX << 16);
 	    }
-	    EDX ^= ECX & 0x0DFDFDFDF;
+	    EDX ^= ECX & 0xDFDFDFDF;
 	    ESI++;
 	}
 	// 4 PER 4 BYTES + 6 OVERHEAD + 4 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
     }
+    if (EDX != _opti_hash32X(eax, esi)) printf("\tERROR = %d\n", eax & 3);
     return EDX;
 }
 
