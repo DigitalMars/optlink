@@ -5,13 +5,13 @@ void _do_far_install(CV_GLOBALSYM_STRUCT* EBX,char *ECX,unsigned hash,CV_SYMBOL_
 
 void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI)
 {
-printf("_install_globalsym(hash = %x, ECX = %p, ESI = %p)\n", hash, ECX, ESI);
+//printf("_install_globalsym(hash = %x, ECX = %p, ESI = %p)\n", hash, ECX, ESI);
 		// hash IS HASH VALUE, CONVERT IT
 		// ESI IS SYMBOL, ECX IS TEXT
 		// SYMBOL IS CONSTANT, GDATA32, GDATA16, UDT
 
-for (int j = 0; j < 1024; j++)
-    if (GSYM_HASH_LOG[j]) printf("GSYM_HASH_LOG[%d] = %p\n", j, GSYM_HASH_LOG[j]);
+//for (int j = 0; j < 1024; j++)
+//    if (GSYM_HASH_LOG[j]) printf("GSYM_HASH_LOG[%d] = %p\n", j, GSYM_HASH_LOG[j]);
 
 		unsigned i = hash % GSYM_HASH;
 
@@ -33,7 +33,7 @@ FAR_CONT:
 		    _do_far_install(EBX, ECX, hash, ESI);
 		    return;
 		}
-printf("i = %p EBX = %p EAX = %p\n", i, EBX, EAX);
+//printf("i = %p EBX = %p EAX = %p\n", i, EBX, EAX);
 
 		EBX = EAX;
 
@@ -96,7 +96,7 @@ FAR_TEXT_NUL:
 
 void _do_far_install(CV_GLOBALSYM_STRUCT* EBX,char *ECX,unsigned hash,CV_SYMBOL_STRUCT* ESI)
 {
-if (GSYM_HASH_LOG[0]) printf("test1 %s\n", GSYM_HASH_LOG);
+//if (GSYM_HASH_LOG[0]) printf("test1 %p\n", GSYM_HASH_LOG);
 	unsigned EAX;
 
 	// EBX gets pointer
@@ -124,7 +124,7 @@ L4:
 	EDI->_NEXT_GSYM_GINDEX = 0;
 	memcpy(&EDI->_LENGTH, ESI, ECX2);
 	ESI->_ID = I_S_DELETE;
-if (GSYM_HASH_LOG[0]) printf("test2\n");
+//if (GSYM_HASH_LOG[0]) printf("test2\n");
 	return;
 
 L3:

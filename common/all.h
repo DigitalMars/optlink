@@ -77,6 +77,9 @@ void _lib_reopen();
 // common.subs
 unsigned char *_cbta16(int n, unsigned char *dest);
 
+// cv.instgsymc
+void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
+
 // install/addtoext
 void _add_to_external_list(void *EAX, SYMBOL_STRUCT *ECX);
 void _add_to_weak_list(void *EAX, SYMBOL_STRUCT *ECX);
