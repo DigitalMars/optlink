@@ -83,6 +83,7 @@ void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 // cv.cvsymbolc
 unsigned _get_name_hash32(unsigned char *EAX);
 unsigned _opti_hash32(unsigned EAX, unsigned char *ESI);
+void _install_gsym_ref(struct CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, unsigned EDX, unsigned char *ESI);
 
 // install/addtoext
 void _add_to_external_list(void *EAX, SYMBOL_STRUCT *ECX);

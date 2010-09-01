@@ -25,6 +25,7 @@ if	fg_cvpack
 		.CODE	CVPACK_TEXT
 
 		externdef	_install_gsym:proc
+		externdef	_install_gsym_ref:proc
 		externdef	_install_globalsym:proc
 		externdef	_get_name_hash32:proc
 		externdef	_opti_hash32:proc
@@ -1285,6 +1286,16 @@ INSTALL_GSYM	ENDP
 
 
 INSTALL_GSYM_REF	PROC	NEAR
+		push	ESI
+		push	EDX
+		push	ECX
+		push	EAX
+		lea	EAX,CV_SCOPE_NEST_TABLE
+		push	EAX
+		call	_install_gsym_ref
+		add	ESP,5*4
+		ret
+
 		;
 		;INSTALL A REFERENCE IN GLOBALSYM
 		;
