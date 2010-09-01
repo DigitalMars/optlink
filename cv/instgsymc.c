@@ -96,7 +96,7 @@ FAR_TEXT_NUL:
 
 void _do_far_install(CV_GLOBALSYM_STRUCT* EBX,char *ECX,unsigned hash,CV_SYMBOL_STRUCT* ESI)
 {
-//if (GSYM_HASH_LOG[0]) printf("test1 %p\n", GSYM_HASH_LOG);
+//if (GSYM_HASH_LOG[0]) printf("test1 %p[0] = %p\n", GSYM_HASH_LOG, GSYM_HASH_LOG[0]);
 	unsigned EAX;
 
 	// EBX gets pointer

@@ -54,13 +54,16 @@ void *_get_new_phys_blk()
     if (n < 0)
     {
 	_release_eax(&GLOBALALLOC_SEM);
-	return _sbrk();
+	void *p = _sbrk();
+	//printf("_get_new_phys_blk() sbrk %p\n", p);
+	return p;
     }
     PHYS_TABLE_ENTRIES = n;
     void *p = PHYS_TABLE[0];
     if (n)
 	memcpy(&PHYS_TABLE[0], &PHYS_TABLE[1], n * sizeof(void*));
     _release_eax(&GLOBALALLOC_SEM);
+    //printf("_get_new_phys_blk() %p\n", p);
     return p;
 }
 
