@@ -108,7 +108,7 @@ typedef struct SEQ_STRUCT
     unsigned _SEQ_PTR;		// NEXT ADDRESS TO WRITE TO
     unsigned _SEQ_TABLE[(32 *1024)/PAGE_SIZE*4]; // 128K MAX DATA THIS TYPE
     unsigned _SEQ_TARGET;		// PTR TO NEXEHEADER OFFSET OF OFFSET...
-    unsigned _SEQ_NEXT_TARGET
+    unsigned _SEQ_NEXT_TARGET;
 } SEQ_STRUCT;
 
 
