@@ -72,7 +72,7 @@ SDBS_1::
 		MOV	ESI,EAX
 		MOV	EAX,PAGE_SIZE
 
-cmp EDI,(32*1024)/PAGE_SIZE*4
+cmp EDI,(16*32*1024)/PAGE_SIZE*4
 jb L100$
 push EDI
 call _checkpoint

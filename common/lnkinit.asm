@@ -2936,7 +2936,7 @@ if	fg_symc
 		DB	'  for DMC++'
 endif
 		DB	0DH,0AH
-		DB	'Copyright (C) Digital Mars 1989-2009'
+		DB	'Copyright (C) Digital Mars 1989-2010'
 		DB	'  All rights reserved.',0DH,0AH
 		db	'http://www.digitalmars.com/ctg/optlink.html',0DH,0AH
 
