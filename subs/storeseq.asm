@@ -12,6 +12,7 @@
 
 		.CODE	ROOT_TEXT
 
+		externdef	_checkpoint:proc
 		EXTERNDEF	GET_NEW_LOG_BLK:PROC,ERR_ABORT:PROC
 
 
@@ -71,6 +72,13 @@ SDBS_1::
 		MOV	ESI,EAX
 		MOV	EAX,PAGE_SIZE
 
+cmp EDI,(32*1024)/PAGE_SIZE*4
+jb L100$
+push EDI
+call _checkpoint
+add ESP,4
+hlt
+L100$:
 		LEA	EDX,[EDX+EDI*4]._SEQ_TABLE
 		SUB	EAX,EBX				;BYTES LEFT THIS BLOCK
 

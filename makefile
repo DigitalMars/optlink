@@ -456,3 +456,16 @@ zip:
 
 checkin:
 	\putty\pscp -pw walter optlinkcsrc.zip walter@mercury:cbx/
+
+clean:
+	del ntio\objnt\*.obj libnt\ntio.lib
+	del os2link\objnt\*.obj libnt\os2link.lib
+	del cv\objnt\*.obj libnt\cv.lib
+	del exe\objnt\*.obj libnt\exe.lib
+	del common\objnt\*.obj libnt\common.lib
+	del subs\objnt\*.obj libnt\subs.lib
+	del moves\objnt\*.obj libnt\moves.lib
+	del alloc\objnt\*.obj libnt\alloc.lib
+	del parse\objnt\*.obj libnt\parse.lib
+	del install\objnt\*.obj libnt\install.lib
+	del overlays\objnt\*.obj libnt\overlays.lib

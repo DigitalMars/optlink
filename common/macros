@@ -1047,24 +1047,33 @@ _A_RELEASED	DW	?
 ALLOC_STRUC	ENDS
 
 GET_OMF_NAME_LENGTH	MACRO
+		LOCAL	L1
 
-;if	fg_symc
+		EXTERNDEF	xTOO_LONG:PROC
 
-		EXTERNDEF	GET_OMF_NAME_LENGTH_ROUTINE:PROC
+                XOR     EAX,EAX
 
-		CALL	GET_OMF_NAME_LENGTH_ROUTINE
+                MOV     AL,BPTR [ESI]
+                INC     ESI
 
-;else
-;		LODSB
-;		XOR	AH,AH
-;endif
+                CMP     AL,-1
+                JNZ      L1
 
+                CMP     BPTR [ESI],AH
+                JNZ     L1
+
+                MOV     AX,word ptr[ESI+1]
+                ADD     ESI,3
+
+                CMP     EAX,SYMBOL_TEXT_SIZE
+                JA      xTOO_LONG
+L1:
 		ENDM
 
 GET_OMF_NAME_LENGTH_EAX	MACRO
 		LOCAL	L1
 
-		EXTERNDEF	TOO_LONG:PROC
+		EXTERNDEF	xTOO_LONG:PROC
 
 		MOV	ECX,EAX
 		MOV	AL,BPTR [EAX]
@@ -1082,7 +1091,7 @@ GET_OMF_NAME_LENGTH_EAX	MACRO
 		ADD	ECX,3
 
 		CMP	EAX,SYMBOL_TEXT_SIZE
-		JA	TOO_LONG
+		JA	xTOO_LONG
 
 L1:
 		ENDM

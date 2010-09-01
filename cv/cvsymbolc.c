@@ -37,6 +37,11 @@ typedef struct CVSYMBOLS_VARS
 } CVSYMBOLS_VARS;
 
 
+void _checkpoint(int i)
+{
+    printf("checkpoint(%d)\n", i);
+}
+
 #if 0
 
 CV_SSEARCH_PTRS	EQU	DWORD PTR CV_SCOPE_NEST_TABLE

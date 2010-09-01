@@ -24,6 +24,7 @@ if	fg_cvpack
 
 		.CODE	CVPACK_TEXT
 
+		externdef	_checkpoint:proc
 		externdef	_install_gsym:proc
 		externdef	_install_gsym_ref:proc
 		externdef	_install_globalsym:proc
@@ -115,6 +116,10 @@ GET_CV_ASYM_OFFSET	MACRO
 
 
 PROCESS_CV_SYMBOLS	PROC
+;push 1
+;call _checkpoint
+;add ESP,4
+
 		;
 		;CONVERT CV4 SYMBOLS SEGMENT INTO ALIGNSYM AND GLOBALSYM
 		;
