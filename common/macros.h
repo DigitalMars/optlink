@@ -102,6 +102,31 @@ typedef struct ALLOCS_STRUCT
     void *ALLO_BLK_LIST[8];	// LIST OF UP TO 8 ALLOCATED BLOCKS
 } ALLOCS_STRUCT;
 
+typedef struct SEQ_STRUCT
+{
+
+    unsigned _SEQ_PTR;		// NEXT ADDRESS TO WRITE TO
+    unsigned _SEQ_TABLE[(32 *1024)/PAGE_SIZE*4]; // 128K MAX DATA THIS TYPE
+    unsigned _SEQ_TARGET;		// PTR TO NEXEHEADER OFFSET OF OFFSET...
+    unsigned _SEQ_NEXT_TARGET
+} SEQ_STRUCT;
+
+
+typedef struct DTA_STRUCT
+{
+    unsigned short FDATECREATION;
+    unsigned short FTIMECREATION;
+    unsigned short FDATELASTACCESS;
+    unsigned short FTIMELASTACCESS;
+    unsigned short FDATELASTWRITE;
+    unsigned short FTIMELASTWRITE;
+    unsigned CBFILE;
+    unsigned CBFILEALLOC;
+    unsigned short ATTRFILE;
+    unsigned char CCHNAME;
+    unsigned char ACHNAME[13];
+} DTA_STRUCT;
+
 typedef struct CMDLINE_STRUCT
 {
     int (*CMD_SELECTED)();	// USE SRCNAM (NZ) OR NUL
