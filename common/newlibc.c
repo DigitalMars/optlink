@@ -778,9 +778,12 @@ AFL_CV_RET:
 	// USE EXETABLE AS PTR STORAGE FOR TEMPORARY INFO
 	_scan_bits();
 
+#if 0
+	// Don't understand this, doesn't seem to be a real problem
 	if (LIB_SYMBOLS < LIB_MODULES - 1)
 	    // See Bugzilla 2378 and 4645
 	    _warn_ret(FIX_LIB_ERR);		// Library probably needs FIXLIB
+#endif
 	goto L6;
 
 AFL_CV:
