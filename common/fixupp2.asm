@@ -1962,6 +1962,9 @@ LOC_DWORD_OFFSET_TLS	PROC	NEAR
 		CONVERT	EDX,EDX,PE_OBJECT_GARRAY
 		ASSUME	EDX:PTR PE_OBJECT_STRUCT
 
+		; Bugzilla 4275
+		; Seg faults with EDX == 0
+		; Caused by missing 'export' from an imported variable declaration
 		MOV	EDX,[EDX]._PEOBJECT_RVA
 
 		SUB	ECX,EDX
