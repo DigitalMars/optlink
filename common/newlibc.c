@@ -779,7 +779,8 @@ AFL_CV_RET:
 	_scan_bits();
 
 	if (LIB_SYMBOLS < LIB_MODULES - 1)
-	    _warn_ret(FIX_LIB_ERR);
+	    // See Bugzilla 2378 and 4645
+	    _warn_ret(FIX_LIB_ERR);		// Library probably needs FIXLIB
 	goto L6;
 
 AFL_CV:

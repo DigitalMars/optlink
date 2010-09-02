@@ -200,6 +200,7 @@ L2$:
 		;BUG: seg faults here with long symbol,
 		; ECX apparently went negative.
 		; Happens when record length is > 0x1000
+		; Bugzilla 2436
 		REP	STOSD
 
 		MOV	EAX,CVG_PUT_LIMIT
