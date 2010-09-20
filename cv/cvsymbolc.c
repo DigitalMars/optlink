@@ -1220,7 +1220,7 @@ void _install_gsym_ref(CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, unsigned 
     *(unsigned *)&cv->CV_IREF._LENGTH = EDX;
     cv->CV_IREF._ALIGN_OFF = EAX;
 
-    ECX >>= 16;
+    ECX <<= 16;
     EAX = CURNMOD_NUMBER;
     ECX |= EAX;
     *(unsigned *)&cv->CV_IREF._MODULE = ECX;
