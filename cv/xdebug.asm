@@ -15,6 +15,7 @@
 		.CODE	PASS2_TEXT
 
 		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,RELEASE_BLOCK:PROC
+		externdef	_xdebug_normal:proc
 
 
 FLUSH_CV_TEMP	PROC
@@ -46,7 +47,12 @@ CV_DWORD_ALIGN_RTN	PROC
 		JZ	L9$
 
 		MOV	EAX,OFF ZEROS_16
-		JMP	XDEBUG_NORMAL
+
+		push	ECX
+		push	EAX
+		call	_xdebug_normal
+		add	ESP,8
+		ret
 
 L9$:
 		RET
@@ -82,7 +88,11 @@ L1$:
 		MOV	ECX,EDX
 L2$:
 		PUSH	ECX
-		CALL	XDEBUG_NORMAL
+
+		push	ECX
+		push	EAX
+		call	_xdebug_normal
+		add	ESP,8
 
 		POPM	EAX,EDX
 
@@ -118,6 +128,12 @@ XDEBUG_WRITE	PROC
 		MOV	ECX,EDI
 
 		SUB	ECX,EAX
+
+		push	ECX
+		push	EAX
+		call	_xdebug_normal
+		add	ESP,8
+		ret
 
 XDEBUG_NORMAL	LABEL	PROC
 

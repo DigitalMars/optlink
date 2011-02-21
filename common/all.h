@@ -86,8 +86,11 @@ void _install_gsym_ref(struct CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, un
 // cv.instgsymc
 void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 
-// cv.qsortadr
+// cv.qsortadrc
 unsigned _sort_hashes_garray();
+
+// cv.xdebugc
+void _xdebug_normal(void *EAX, unsigned ECX);
 
 // exe.movefina
 void _move_eax_to_final_high_water(void *EAX, unsigned ECX);
