@@ -146,4 +146,9 @@ void **_cv_ssym_pool_get(unsigned nbytes)
     return _allo_pool_get1(nbytes, &CV_SSYM_STUFF);
 }
 
+void **_cv_hashes_pool_get(unsigned nbytes)
+{
+    return _allo_pool_get1(nbytes, &CV_HASHES_STUFF);
+}
+
 

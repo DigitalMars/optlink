@@ -29,8 +29,8 @@ struct CV_HASHES_STRUCT
     unsigned _SEGMENT_OFFSET;
     unsigned _SEGMENT;
     unsigned _NEXT_HASH;
-    unsigned _NEXT;
-    unsigned _PREV;		// for 16-bit compatibility
+    struct CV_HASHES_STRUCT *_NEXT;
+    struct CV_HASHES_STRUCT *_PREV;		// for 16-bit compatibility
 };
 
 
