@@ -46,6 +46,7 @@ if	fg_cvpack
 		EXTERNDEF	RELEASE_GARRAY:PROC,_release_minidata:proc
 		externdef	_move_eax_to_edx_final:proc
 		externdef	_move_eax_to_final_high_water:proc
+		externdef	_do_address_hash:proc
 
 
 INIT_CV_SYMBOL_HASHES	PROC
@@ -319,7 +320,7 @@ FLUSH_CV_SYMBOL_HASHES	PROC
 		MOV	BYTES_SO_FAR,EDX
 		CALL	DO_SYMBOL_HASH
 
-		CALL	DO_ADDRESS_HASH
+		call	_do_address_hash
 
 		;
 		;WRITE OUT CV_HASH_HEADER

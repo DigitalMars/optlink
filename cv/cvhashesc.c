@@ -1,11 +1,25 @@
 #include "all.h"
 
+extern unsigned FINAL_HIGH_WATER;
+extern unsigned char CV_TEMP_RECORD;
+extern unsigned CV_PUB_TXT_OFFSET;
+extern unsigned CV_PUB_SYMBOL_ID;
+extern unsigned CVG_SEGMENT;
+extern unsigned BYTES_SO_FAR;
+extern unsigned CVG_SYMBOL_OFFSET;
+extern unsigned CVG_SEGMENT_OFFSET;
+extern unsigned CVG_SYMBOL_HASH;
+extern unsigned LAST_CVH_SEGMENT;
+extern struct STD_PTR_S CV_HASHES_GARRAY;
+extern struct ALLOCS_STRUCT CV_HASHES_STUFF;
+extern unsigned CV_DWORD_ALIGN;
+
 unsigned CV_PAGE_BYTES;
 unsigned CV_HASH_COUNT;
 //unsigned CV_TEMP_JUNK;
-unsigned CVG_PUT_PTR;
+unsigned *CVG_PUT_PTR;
 unsigned CVG_PUT_LIMIT;
-unsigned CVG_PUT_BLK;
+unsigned *CVG_PUT_BLK;
 unsigned CV_SECTION_OFFSET;
 unsigned CV_SECTION_HDR_ADDRESS;
 unsigned CV_SYMBOL_BASE_ADDR;
@@ -14,7 +28,6 @@ unsigned CVG_BUFFER_LOG;
 unsigned CVG_BUFFER_LIMIT;
 unsigned FIRST_CVH;
 unsigned LAST_CVH;
-
 
 
 unsigned short CV_PRIMES[] =
@@ -53,15 +66,6 @@ if	fg_cvpack
 
 		.DATA
 
-		EXTERNDEF	CV_TEMP_RECORD:BYTE
-
-		EXTERNDEF	CURNMOD_GINDEX:DWORD,CURNMOD_NUMBER:DWORD,CV_PUB_TXT_OFFSET:DWORD,CV_PUB_SYMBOL_ID:DWORD
-		EXTERNDEF	CVG_SEGMENT:DWORD,BYTES_SO_FAR:DWORD,CVG_SYMBOL_OFFSET:DWORD,CVG_SEGMENT_OFFSET:DWORD
-		EXTERNDEF	CVG_SYMBOL_HASH:DWORD,FINAL_HIGH_WATER:DWORD,EXETABLE:DWORD,LAST_CVH_SEGMENT:DWORD
-
-		EXTERNDEF	CV_HASHES_GARRAY:STD_PTR_S,CV_HASHES_STUFF:ALLOCS_STRUCT
-
-		EXTERNDEF	CV_DWORD_ALIGN:DWORD
 
 
 		.CODE	CVPACK_TEXT
@@ -606,385 +610,193 @@ L57$:
 
 DO_SYMBOL_HASH	ENDP
 
-
-DAH_VARS	STRUC
-
-CV_SEG_TBL_BP		DD	128/(PAGE_SIZE/1024) DUP(?)
-CVG_CSEG_BP		DD	?
-CV_SEGTBL_PTR_BP	DD	?
-CV_SEGTBL_PTR_LIMIT_BP	DD	?
-CV_EXETABLE_PTR_BP	DD	?
-CV_PUT_LIMIT_BP		DD	?
-CV_NEXT_SEG_TBL_BP	DD	?
-
-DAH_VARS	ENDS
-
-
-FIX	MACRO	X
-
-X	EQU	([EBP-SIZE DAH_VARS].(X&_BP))
-
-	ENDM
-
-
-FIX	CV_SEG_TBL
-FIX	CVG_CSEG
-FIX	CV_SEGTBL_PTR
-FIX	CV_SEGTBL_PTR_LIMIT
-FIX	CV_EXETABLE_PTR
-FIX	CV_PUT_LIMIT
-FIX	CV_NEXT_SEG_TBL
-
-
-DO_ADDRESS_HASH	PROC	NEAR
-		;
-		;NOW BUILD AND OUTPUT ADDRESS HASH
-		;
-		MOV	EAX,CV_HASH_COUNT
-
-		OR	EAX,EAX
-		JNZ	L0$
-L00$:
-		MOV	CV_HASH_HEADER._CVHH_CBADDRHASH,EAX
-
-		RET
-
-L0$:
-		call	_sort_hashes_garray		;SORT IN ADDRESS ORDER
-
-		PUSHM	EBP,EDI,ESI,EBX
-
-		MOV	EBP,ESP
-		ASSUME	EBP:PTR DAH_VARS
-		SUB	ESP,SIZE DAH_VARS
-
-		MOV	EAX,FINAL_HIGH_WATER
-
-		LEA	EBX,CV_SEG_TBL
-		MOV	ECX,LAST_CVH_SEGMENT
-		;
-		;NOW BUILD COUNT TABLE
-		;
-		PUSH	EAX
-
-		push	ECX
-		push	EDX
-		call	_get_new_log_blk
-		pop	EDX
-		pop	ECX
-
-		MOV	CVG_CSEG,ECX			;== # OF SEGMENTS I ALLOW FOR
-		MOV	EDI,EAX
-
-		MOV	[EBX],EAX
-		ADD	EAX,PAGE_SIZE
-
-		ADD	EBX,4
-		MOV	CV_SEGTBL_PTR_LIMIT,EAX
-
-		MOV	CV_SEGTBL_PTR,EBX
-		MOV	EBX,OFF EXETABLE
-
-		XOR	ECX,ECX			;ALSO START WITH SYMBOL # 1
-		MOV	EDX,1			;CURRENTLY LOOKING FOR SEG 1
-
-		MOV	[EDI],ECX		;COUNT IS ZERO FOR SEGMENT #1
-		MOV	ECX,CV_HASH_COUNT
-L1$:
-		MOV	ESI,[EBX]
-		ADD	EBX,4
-
-		MOV	CV_EXETABLE_PTR,EBX
-
-		LEA	EBX,[ESI+PAGE_SIZE]
-L11$:
-		MOV	EAX,[ESI]._SEGMENT
-		ADD	ESI,SIZEOF CVH_STRUCT
-L13$:
-		CMP	EDX,EAX
-		JNZ	L15$
-
-		INC	DPTR [EDI]		;COUNT SYMBOLS IN THAT SEGMENT
-L17$:
-		DEC	ECX
-		JZ	L19$
-
-		CMP	ESI,EBX
-		JB	L11$
-
-		MOV	EBX,CV_EXETABLE_PTR
-		JMP	L1$
-
-L15$:
-		TEST	EAX,EAX			;CONSTANT?
-		JZ	L17$
-
-		INC	EDX
-		ADD	EDI,4
-
-		CMP	EDI,CV_SEGTBL_PTR_LIMIT
-		JZ	L16$
-L153$:
-		MOV	DPTR [EDI],0
-		JMP	L13$
-
-L16$:
-		PUSHM	EBX,EAX
-
-		MOV	EBX,CV_SEGTBL_PTR
-
-		push	ECX
-		push	EDX
-		call	_get_new_log_blk
-		pop	EDX
-		pop	ECX
-
-		MOV	[EBX],EAX
-		ADD	EBX,4
-
-		MOV	EDI,EAX
-		ADD	EAX,PAGE_SIZE
-
-		MOV	CV_SEGTBL_PTR,EBX
-		MOV	CV_SEGTBL_PTR_LIMIT,EAX
-
-		POPM	EAX,EBX
-
-		JMP	L153$
-
-L19$:
-		;
-		;NOW, OUTPUT STUFF
-		;
-		MOV	ESI,CVG_PUT_PTR
-		ASSUME	ESI:NOTHING
-		LEA	EAX,CV_SEG_TBL
-
-		MOV	ECX,CVG_CSEG
-
-		MOV	[ESI],ECX
-		LEA	EBX,[ESI+PAGE_SIZE]
-
-		MOV	EDI,[EAX]
-		ADD	EAX,4
-
-		ADD	ESI,4
-		MOV	CV_NEXT_SEG_TBL,EAX
-
-		LEA	EDX,[EDI+PAGE_SIZE]
-		XOR	EAX,EAX
-
-		TEST	ECX,ECX
-		JZ	L29$
-L20$:
-		MOV	CV_SEGTBL_PTR_LIMIT,EDX
-
-L21$:
-		MOV	EDX,[EDI]		;# OF ENTRIES
-		MOV	[ESI],EAX
-
-		SHL	EDX,3			;*8 BYTES PER ENTRY
-		ADD	ESI,4
-
-		ADD	EAX,EDX
-		ADD	EDI,4
-
-		DEC	ECX
-		JZ	L29$
-
-		CMP	ESI,EBX
-		JZ	L27$
-L271$:
-		CMP	EDI,CV_SEGTBL_PTR_LIMIT
-		JNZ	L21$
-
-		MOV	EDX,CV_NEXT_SEG_TBL
-
-		MOV	EDI,[EDX]
-		ADD	EDX,4
-
-		MOV	CV_NEXT_SEG_TBL,EDX
-
-		LEA	EDX,[EDI+PAGE_SIZE]
-		JMP	L20$
-
-L27$:
-		PUSHM	ECX,EAX
-
-		MOV	EAX,CVG_PUT_BLK
-		MOV	ECX,PAGE_SIZE
-
-		MOV	ESI,EAX
-		push	ECX
-		push	EAX
-		call	_move_eax_to_final_high_water
-		add	ESP,8
-
-		POPM	EAX,ECX
-
-		JMP	L271$
-
-L29$:
-		MOV	ECX,ESI
-		MOV	EAX,CVG_PUT_BLK
-
-		SUB	ECX,EAX
-		JZ	L3$
-
-		push	ECX
-		push	EAX
-		call	_move_eax_to_final_high_water
-		add	ESP,8
-L3$:
-		;
-		;NOW OUTPUT OFFSET COUNTS
-		;
-		LEA	EBX,CV_SEG_TBL			;TABLE POINTING TO COUNTS
-		MOV	EDX,CVG_CSEG			;# OF COUNTS
-L30$:
-		MOV	EAX,[EBX]			;BLOCK
-		MOV	ECX,EDX
-
-		CMP	EDX,PAGE_SIZE/4
-		JB	L31$
-
-		MOV	ECX,PAGE_SIZE/4
-L31$:
-		SUB	EDX,ECX
-		ADD	EBX,4
-
-		SHL	ECX,2
-		PUSH	EDX
-
-		JZ	L33$
-
-		push	ECX
-		push	EAX
-		call	_move_eax_to_final_high_water
-		add	ESP,8
-L33$:
-		MOV	EAX,[EBX-4]
-
-		push	ECX
-		push	EDX
-		push	EAX
-		call	_release_block
-		add	ESP,4
-		pop	EDX
-		pop	ECX
-
-		POP	EDX
-
-		TEST	EDX,EDX
-		JNZ	L30$
-		;
-		;NOW, OUTPUT ACTUAL SYMBOL_OFFSETS AND SEGMENT_OFFSETS
-		;
-		MOV	EDI,CVG_PUT_BLK
-		MOV	EBX,OFF EXETABLE
-
-		INC	EDX			;CURRENTLY LOOKING FOR SEG 1
-		MOV	ECX,CV_HASH_COUNT
-
-		MOV	ESI,[EBX]
-		ADD	EBX,4
-
-		MOV	CV_EXETABLE_PTR,EBX
-		LEA	EAX,[EDI+PAGE_SIZE]
-
-		LEA	EBX,[ESI+PAGE_SIZE]
-		MOV	CV_PUT_LIMIT,EAX
-L41$:
-		ASSUME	ESI:PTR CVH_STRUCT
-
-		MOV	EAX,[ESI]._SEGMENT
-		MOV	EDX,[ESI]._SEGMENT_OFFSET
-		
-		OR	EAX,EAX
-		JZ	L47$
-
-		MOV	EAX,[ESI]._SYMBOL_OFFSET
-		MOV	[EDI+4],EDX
-
-		MOV	[EDI],EAX
-		ADD	EDI,8
-
-		CMP	EDI,CV_PUT_LIMIT
-		JNZ	L47$
-
-		PUSH	ECX
-		MOV	ECX,PAGE_SIZE
-
-		LEA	EAX,[EDI-PAGE_SIZE]
-
-		MOV	EDI,EAX
-		push	ECX
-		push	EAX
-		call	_move_eax_to_final_high_water
-		add	ESP,8
-
-		POP	ECX
-L47$:
-		DEC	ECX
-		JZ	L49$
-
-		ADD	ESI,SIZE CVH_STRUCT
-
-		CMP	ESI,EBX
-		JNZ	L41$
-
-		MOV	EBX,CV_EXETABLE_PTR
-		XOR	ESI,ESI
-
-		MOV	EAX,[EBX-4]
-
-		push	ECX
-		push	EDX
-		push	EAX
-		call	_release_block
-		add	ESP,4
-		pop	EDX
-		pop	ECX
-
-		MOV	[EBX-4],ESI
-		MOV	ESI,[EBX]
-
-		ADD	EBX,4
-
-		MOV	CV_EXETABLE_PTR,EBX
-		LEA	EBX,[ESI+PAGE_SIZE]
-
-		JMP	L41$
-
-L49$:
-		MOV	EAX,CVG_PUT_BLK
-		MOV	ECX,EDI
-
-		SUB	ECX,EAX
-		JZ	L5$
-
-		push	ECX
-		push	EAX
-		call	_move_eax_to_final_high_water
-		add	ESP,8
-L5$:
-		;
-		;STORE BYTE-COUNT FOR ADDRESS HASH STUFF
-		;
-		POP	ECX
-		MOV	EAX,FINAL_HIGH_WATER
-
-		SUB	EAX,ECX
-		MOV	ESP,EBP
-
-		ADD	BYTES_SO_FAR,EAX
-		MOV	CV_HASH_HEADER._CVHH_CBADDRHASH,EAX
-
-		POPM	EBX,ESI,EDI,EBP
-
-		RET
-
-DO_ADDRESS_HASH	ENDP
-
 #endif
+
+
+void _do_address_hash()
+{
+    // Build and output address hash
+
+    //printf("_do_address_hash()\n");
+    unsigned *CV_SEG_TBL[128/(PAGE_SIZE/1024)];
+    unsigned CVG_CSEG;
+    unsigned **CV_SEGTBL_PTR;
+    unsigned *CV_SEGTBL_PTR_LIMIT;
+    struct CVH_STRUCT* *CV_EXETABLE_PTR;
+    unsigned **CV_NEXT_SEG_TBL;
+
+    if (!CV_HASH_COUNT)
+    {
+	CV_HASH_HEADER._CVHH_CBADDRHASH = 0;
+	return;
+    }
+    _sort_hashes_garray();		// sort in address order
+
+    unsigned final_high_water_save = FINAL_HIGH_WATER;
+
+    CV_SEGTBL_PTR = &CV_SEG_TBL[0];
+
+    // now build count table
+
+    CVG_CSEG = LAST_CVH_SEGMENT;	// == # of segments I allow for
+
+    unsigned *EDI = (unsigned *)_get_new_log_blk();
+    *CV_SEGTBL_PTR++ = EDI;
+    CV_SEGTBL_PTR_LIMIT = EDI + PAGE_SIZE / sizeof(*EDI);
+
+    CV_EXETABLE_PTR = (struct CVH_STRUCT **)&EXETABLE[0];
+
+				    // ALSO START WITH SYMBOL # 1
+    unsigned segnum = 1;		// CURRENTLY LOOKING FOR SEG 1
+
+    *EDI = 0;			// COUNT IS ZERO FOR SEGMENT #1
+    unsigned hcount = CV_HASH_COUNT;
+    while (1)
+    {
+	struct CVH_STRUCT *ESI = *CV_EXETABLE_PTR++;
+
+	struct CVH_STRUCT *EBX = ESI + PAGE_SIZE / sizeof(*ESI);
+L11:
+	unsigned segment = ESI->_SEGMENT;
+	++ESI;
+
+	while (segnum != segment)
+	{
+	    if (!segment)			// CONSTANT?
+		goto L17;
+
+	    ++segnum;
+	    ++EDI;
+
+	    if (EDI == CV_SEGTBL_PTR_LIMIT)
+	    {
+		EDI = _get_new_log_blk();
+		*CV_SEGTBL_PTR++ = EDI;
+		CV_SEGTBL_PTR_LIMIT = EDI + PAGE_SIZE / sizeof(*EDI);
+	    }
+
+	    *EDI = 0;
+	}
+
+	(*EDI)++;			// COUNT SYMBOLS IN THAT SEGMENT
+L17:
+	--hcount;
+	if (!hcount)
+	    break;
+
+	if (ESI < EBX)
+	    goto L11;
+    }
+
+    // OUTPUT STUFF
+
+    unsigned *ESI = CVG_PUT_PTR;
+    unsigned *EBX = ESI + PAGE_SIZE / sizeof(*ESI);
+    *ESI++ = CVG_CSEG;
+    CV_NEXT_SEG_TBL = &CV_SEG_TBL[1];
+
+    if (CVG_CSEG)
+    {
+	unsigned *EDI = CV_SEG_TBL[0];
+	unsigned *CV_SEGTBL_PTR_LIMIT = EDI + PAGE_SIZE / sizeof(*EDI);
+	unsigned EAX = 0;
+	unsigned ECX = CVG_CSEG;
+	while (1)
+	{
+	    unsigned EDX = *EDI++;		// # OF ENTRIES
+	    *ESI++ = EAX;
+
+	    EAX += EDX * 8;			// 8 bytes per entry
+
+	    ECX--;
+	    if (!ECX)
+		break;
+	    if (ESI == EBX)
+	    {
+		ESI = CVG_PUT_BLK;
+		_move_eax_to_final_high_water(ESI, PAGE_SIZE);
+	    }
+	    if (EDI == CV_SEGTBL_PTR_LIMIT)
+	    {
+		EDI = *CV_NEXT_SEG_TBL++;
+		CV_SEGTBL_PTR_LIMIT = EDI + PAGE_SIZE / sizeof(*EDI);
+	    }
+	}
+    }
+
+    {
+    unsigned ECX = (char *)ESI - (char *)CVG_PUT_BLK;
+    if (ECX)
+	_move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
+    }
+
+    // NOW OUTPUT OFFSET COUNTS
+    unsigned **EBX2 = &CV_SEG_TBL[0];		// table pointing to counts
+    do
+    {
+	unsigned ECX = CVG_CSEG;
+
+	if (ECX >= PAGE_SIZE/4)
+	    ECX = PAGE_SIZE/4;
+
+	CVG_CSEG -= ECX;
+	if (ECX)
+	    _move_eax_to_final_high_water(*EBX2, ECX * 4);
+	_release_block(*EBX2);
+	++EBX2;
+    } while (CVG_CSEG);
+
+    // OUTPUT ACTUAL SYMBOL_OFFSETS AND SEGMENT_OFFSETS
+
+    unsigned count = CV_HASH_COUNT;
+
+    CV_EXETABLE_PTR = (struct CVH_STRUCT **)&EXETABLE[0];
+    struct CVH_STRUCT *cvhp = *CV_EXETABLE_PTR++;
+
+    struct CVH_STRUCT *cvhp_top = cvhp + PAGE_SIZE / sizeof(*cvhp);
+
+    unsigned *EDI2 = CVG_PUT_BLK;
+    unsigned *CV_PUT_LIMIT = EDI2 + PAGE_SIZE / sizeof(*EDI2);
+
+    while (1)
+    {
+	if (cvhp->_SEGMENT)
+	{
+	    EDI2[0] = cvhp->_SYMBOL_OFFSET;
+	    EDI2[1] = cvhp->_SEGMENT_OFFSET;
+
+	    EDI2 += 2;
+
+	    if (EDI2 == CV_PUT_LIMIT)
+	    {
+		EDI2 -= PAGE_SIZE / sizeof(*EDI2);
+		_move_eax_to_final_high_water(EDI2, PAGE_SIZE);
+	    }
+	}
+	--count;
+	if (!count)
+	    break;
+
+	cvhp += 1;
+
+	if (cvhp == cvhp_top)
+	{
+	    _release_block(CV_EXETABLE_PTR[-1]);
+	    CV_EXETABLE_PTR[-1] = 0;
+	    cvhp = *CV_EXETABLE_PTR;
+	    ++CV_EXETABLE_PTR;
+	    cvhp_top = cvhp + PAGE_SIZE / sizeof(*cvhp);
+	}
+    }
+
+    unsigned ECX = (char *)EDI2 - (char *)CVG_PUT_BLK;
+    if (ECX)
+	_move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
+
+    // STORE BYTE-COUNT FOR ADDRESS HASH STUFF
+    unsigned EAX = FINAL_HIGH_WATER - final_high_water_save;
+    BYTES_SO_FAR += EAX;
+    CV_HASH_HEADER._CVHH_CBADDRHASH = EAX;
+}
+
 
