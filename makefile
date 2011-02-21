@@ -141,7 +141,8 @@ CVSRC= \
 	cv\cvlibrar.asm \
 	cv\instgsymc.c \
 	cv\cvhashesc.c \
-	cv\cvsymbolc.c
+	cv\cvsymbolc.c \
+	cv\xdebugc.c
 
 DLLSTUFFSRC= \
 	dllstuff\go.bat \
