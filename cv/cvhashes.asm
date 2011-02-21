@@ -40,9 +40,9 @@ if	fg_cvpack
 
 		.CODE	CVPACK_TEXT
 
-		EXTERNDEF	MOVE_TEXT_TO_OMF:PROC,HANDLE_CV_INDEX:PROC,FLUSH_CV_TEMP:PROC,RELEASE_BLOCK:PROC
-		EXTERNDEF	ALLOC_LOCKED:PROC,GET_NEW_LOG_BLK:PROC,MOVE_EAX_TO_FINAL_HIGH_WATER:PROC,RELEASE_LOCKED:PROC
-		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,SORT_HASHES_GARRAY:PROC,GET_NAME_HASH32:PROC,CV_HASHES_POOL_GET:PROC
+		EXTERNDEF	MOVE_TEXT_TO_OMF:PROC,HANDLE_CV_INDEX:PROC,FLUSH_CV_TEMP:PROC,_release_block:PROC
+		EXTERNDEF	ALLOC_LOCKED:PROC,_get_new_log_blk:PROC,MOVE_EAX_TO_FINAL_HIGH_WATER:PROC,RELEASE_LOCKED:PROC
+		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,_sort_hashes_garray:proc,GET_NAME_HASH32:PROC,CV_HASHES_POOL_GET:PROC
 		EXTERNDEF	RELEASE_GARRAY:PROC,_release_minidata:proc
 		externdef	_move_eax_to_edx_final:proc
 		externdef	_move_eax_to_final_high_water:proc
@@ -77,7 +77,12 @@ INIT_CV_SYMBOL_HASHES	PROC
 		MOV	FINAL_HIGH_WATER,ECX
 
 		MOV	CV_SYMBOL_BASE_ADDR,ECX
-		CALL	GET_NEW_LOG_BLK
+
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	CVG_PUT_BLK,EAX
 		MOV	CVG_PUT_PTR,EAX
@@ -331,7 +336,14 @@ FLUSH_CV_SYMBOL_HASHES	PROC
 		add	ESP,12
 
 		MOV	EAX,CVG_PUT_BLK
-		CALL	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		MOV	EAX,OFF CV_HASHES_GARRAY
 		CALL	RELEASE_GARRAY
@@ -457,7 +469,11 @@ L29$:
 		;
 		;NOW START WRITING HASH TABLE OUT
 		;
-		CALL	GET_NEW_LOG_BLK
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	ESI,EAX
 		MOV	EBX,CVG_N_HASHES
@@ -582,7 +598,15 @@ L59$:
 		POPM	EBX,ESI
 
 		POP	EDI
-		JMP	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
+		ret
 
 L57$:
 		MOV	ECX,EDI
@@ -646,7 +670,7 @@ L00$:
 		RET
 
 L0$:
-		CALL	SORT_HASHES_GARRAY		;SORT IN ADDRESS ORDER
+		call	_sort_hashes_garray		;SORT IN ADDRESS ORDER
 
 ;		MOV	EAX,LAST_CVH_SEGMENT		;ALL CONSTANTS?
 
@@ -667,7 +691,12 @@ L0$:
 		;NOW BUILD COUNT TABLE
 		;
 		PUSH	EAX
-		CALL	GET_NEW_LOG_BLK
+
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	CVG_CSEG,ECX			;== # OF SEGMENTS I ALLOW FOR
 		MOV	EDI,EAX
@@ -728,7 +757,12 @@ L16$:
 		PUSHM	EBX,EAX
 
 		MOV	EBX,CV_SEGTBL_PTR
-		CALL	GET_NEW_LOG_BLK
+
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	[EBX],EAX
 		ADD	EBX,4
@@ -855,7 +889,14 @@ L31$:
 		add	ESP,8
 L33$:
 		MOV	EAX,[EBX-4]
-		CALL	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		POP	EDX
 
@@ -921,7 +962,14 @@ L47$:
 		XOR	ESI,ESI
 
 		MOV	EAX,[EBX-4]
-		CALL	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		MOV	[EBX-4],ESI
 		MOV	ESI,[EBX]

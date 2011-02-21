@@ -78,13 +78,16 @@ void _lib_reopen();
 // common.subs
 unsigned char *_cbta16(int n, unsigned char *dest);
 
-// cv.instgsymc
-void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
-
 // cv.cvsymbolc
 unsigned _get_name_hash32(unsigned char *EAX);
 unsigned _opti_hash32(unsigned EAX, unsigned char *ESI);
 void _install_gsym_ref(struct CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, unsigned EDX, unsigned char *ESI);
+
+// cv.instgsymc
+void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
+
+// cv.qsortadr
+unsigned _sort_hashes_garray();
 
 // exe.movefina
 void _move_eax_to_final_high_water(unsigned EAX, unsigned ECX);
