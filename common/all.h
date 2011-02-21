@@ -11,6 +11,7 @@
 #include "segmsyms.h"
 #include "lnkdat.h"
 #include "cvtypes.h"
+#include "cvstuff.h"
 
 
 // alloc\allocc
