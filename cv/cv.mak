@@ -11,7 +11,7 @@ $(LIB)\CV.LIB : $(OBJ)\CVMODALL.OBJ $(OBJ)\XDEBUG.OBJ $(OBJ)\CVMOD4.OBJ $(OBJ)\C
 		$(OBJ)\CVSYMBOL.OBJ $(OBJ)\CVTYPCON.OBJ $(OBJ)\CVGLBALL.OBJ $(OBJ)\CVSTAALL.OBJ $(OBJ)\CVPUBALL.OBJ $(OBJ)\CVTYPALL.OBJ \
 		$(OBJ)\INSTGSYM.OBJ $(OBJ)\CVFILALL.OBJ $(OBJ)\QSORTADR.OBJ $(OBJ)\CVHASHES.OBJ $(OBJ)\DERIVATE.OBJ $(OBJ)\CVMOD3.OBJ \
 		$(OBJ)\CVPUBLIC.OBJ $(OBJ)\CVLINNUM.OBJ $(OBJ)\CVSYM1.OBJ \
-		$(OBJ)\instgsymc.obj $(OBJ)\cvsymbolc.obj $(OBJ)\cvhashesc.obj
+		$(OBJ)\instgsymc.obj $(OBJ)\cvsymbolc.obj $(OBJ)\cvhashesc.obj $(OBJ)\xdebugc.obj
   OPTLIB /OKMULTI $(LIB)\CV ~+ $(OBJ)\*;
 
 $(OBJ)\CVMODALL.OBJ : CVMODALL.ASM ..\COMMON\MACROS ..\COMMON\MODULES
@@ -103,5 +103,8 @@ $(OBJ)\cvsymbolc.obj : cvsymbolc.c
 
 $(OBJ)\instgsymc.obj : instgsymc.c
 	dmc -c instgsymc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\instgsymc.obj
+
+$(OBJ)\xdebugc.obj : xdebugc.c
+	dmc -c xdebugc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\xdebugc.obj
 
 
