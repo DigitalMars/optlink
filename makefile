@@ -105,7 +105,13 @@ COMMONSRC= common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
 	common\lnkdat.h common\newlib.asm common\newlibc.c \
 	common\cvtypes.h common\cvstuff.h
 
-CVSRC= \
+CVSRCC= \
+	cv\instgsymc.c \
+	cv\cvhashesc.c \
+	cv\cvsymbolc.c \
+	cv\xdebugc.c
+
+CVSRC= $(CVSRCC) \
 	cv\xdebug.asm \
 	cv\txtomf.asm \
 	cv\cvindex.asm \
@@ -138,11 +144,8 @@ CVSRC= \
 	cv\cvtypcon.asm \
 	cv\cvtypes.asm \
 	cv\instgsym.asm \
-	cv\cvlibrar.asm \
-	cv\instgsymc.c \
-	cv\cvhashesc.c \
-	cv\cvsymbolc.c \
-	cv\xdebugc.c
+	cv\cvlibrar.asm
+
 
 DLLSTUFFSRC= \
 	dllstuff\go.bat \
@@ -437,6 +440,7 @@ SUBSSRC= \
 X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 
 zip:
+	detab common\all.h $(CVSRCC)
 	del $(ZIPFILE)
 	zip32 $(ZIPFILE) $(ALLOCSRC)
 	zip32 $(ZIPFILE) $(APPLOADSRC)
