@@ -90,8 +90,8 @@ void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 unsigned _sort_hashes_garray();
 
 // exe.movefina
-void _move_eax_to_final_high_water(unsigned EAX, unsigned ECX);
-void _move_eax_to_edx_final(unsigned EAX, unsigned ECX, unsigned EDX);
+void _move_eax_to_final_high_water(void *EAX, unsigned ECX);
+void _move_eax_to_edx_final(void *EAX, unsigned ECX, unsigned EDX);
 
 // install/addtoext
 void _add_to_external_list(void *EAX, SYMBOL_STRUCT *ECX);
