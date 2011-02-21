@@ -6,7 +6,7 @@
 typedef struct CVSYMBOLS_VARS
 {
 
-    unsigned char CV_SCOPE_NEST_TABLE[256];	// SCOPES CAN NEST 256 LEVELS
+    unsigned char CV_SCOPE_NEST_TABLE[256];     // SCOPES CAN NEST 256 LEVELS
 
     CV_IREF_STRUCT CV_IREF;
 
@@ -44,1164 +44,1164 @@ void _checkpoint(int i)
 
 #if 0
 
-CV_SSEARCH_PTRS	EQU	DWORD PTR CV_SCOPE_NEST_TABLE
+CV_SSEARCH_PTRS EQU     DWORD PTR CV_SCOPE_NEST_TABLE
 
 
-GET_CV_ASYM_OFFSET	MACRO
-		;
-		;
-		;
-		MOV	EAX,CV_ASYM_STRUCTURE._SEQ_PTR
+GET_CV_ASYM_OFFSET      MACRO
+                ;
+                ;
+                ;
+                MOV     EAX,CV_ASYM_STRUCTURE._SEQ_PTR
 
-		ENDM
+                ENDM
 
 
-PROCESS_CV_SYMBOLS	PROC
-		;
-		;CONVERT CV4 SYMBOLS SEGMENT INTO ALIGNSYM AND GLOBALSYM
-		;
-		PUSHM	EBP,EDI,ESI,EBX
+PROCESS_CV_SYMBOLS      PROC
+                ;
+                ;CONVERT CV4 SYMBOLS SEGMENT INTO ALIGNSYM AND GLOBALSYM
+                ;
+                PUSHM   EBP,EDI,ESI,EBX
 
-		MOV	EBP,ESP
-		SUB	ESP,SIZE CVSYMBOLS_VARS
-		ASSUME	EBP:PTR CVSYMBOLS_VARS
+                MOV     EBP,ESP
+                SUB     ESP,SIZE CVSYMBOLS_VARS
+                ASSUME  EBP:PTR CVSYMBOLS_VARS
 
-		XOR	EAX,EAX
+                XOR     EAX,EAX
 
-		MOV	CV_SCOPE_LEVEL,EAX
-		MOV	CV_BYTES_PTR,EAX
+                MOV     CV_SCOPE_LEVEL,EAX
+                MOV     CV_BYTES_PTR,EAX
 
-		MOV	DPTR CV_DELETE_FLAG,EAX
-		MOV	DPTR CV_SYM_RELEASE,EAX
+                MOV     DPTR CV_DELETE_FLAG,EAX
+                MOV     DPTR CV_SYM_RELEASE,EAX
 
-		MOV	CV_SSEARCH_CNT,EAX
-		MOV	CV_SSEARCH_TBL,EAX
+                MOV     CV_SSEARCH_CNT,EAX
+                MOV     CV_SSEARCH_TBL,EAX
 
-		MOV	EAX,LAST_GSYM_GINDEX
+                MOV     EAX,LAST_GSYM_GINDEX
 
-		MOV	CV_GSYM_START,EAX
-		CALL	INIT_CV_READER			;ESI IS POINTER
-		;
-		;FIRST PASS
-		;
-		;	1.  CHANGE SYMBOL IDs TO INTERNAL FORMAT
-		;	2.  DETERMINE SYMBOLS TO DELETE BASED ON UNUSED COMDATS
-		;	3.  COUNT NUMBER OF S_SSEARCH SYMBOLS WE WILL NEED
-		;	4.  MOVE GDATAxx, AND UNSCOPED UDT AND CONSTANT SYMBOLS TO GLOBALSYM TABLE
-		;
-		CALL	GET_CV_DWORD
+                MOV     CV_GSYM_START,EAX
+                CALL    INIT_CV_READER                  ;ESI IS POINTER
+                ;
+                ;FIRST PASS
+                ;
+                ;       1.  CHANGE SYMBOL IDs TO INTERNAL FORMAT
+                ;       2.  DETERMINE SYMBOLS TO DELETE BASED ON UNUSED COMDATS
+                ;       3.  COUNT NUMBER OF S_SSEARCH SYMBOLS WE WILL NEED
+                ;       4.  MOVE GDATAxx, AND UNSCOPED UDT AND CONSTANT SYMBOLS TO GLOBALSYM TABLE
+                ;
+                CALL    GET_CV_DWORD
 
-		DEC	EAX
-		JNZ	L9$
+                DEC     EAX
+                JNZ     L9$
 
-		CALL	GET_NEW_LOG_BLK
+                CALL    GET_NEW_LOG_BLK
 
-		MOV	CV_SSEARCH_TBL,EAX
-		MOV	EDI,EAX
+                MOV     CV_SSEARCH_TBL,EAX
+                MOV     EDI,EAX
 
-		XOR	EAX,EAX
-		MOV	ECX,CV_SEGMENT_COUNT
-if	fg_pe
-		BITT	OUTPUT_PE
-		JZ	L05$
+                XOR     EAX,EAX
+                MOV     ECX,CV_SEGMENT_COUNT
+if      fg_pe
+                BITT    OUTPUT_PE
+                JZ      L05$
 
-		MOV	ECX,LAST_PEOBJECT_NUMBER
+                MOV     ECX,LAST_PEOBJECT_NUMBER
 L05$:
 endif
-		SHRI	ECX,5			;1 BIT PER SEGMENT
+                SHRI    ECX,5                   ;1 BIT PER SEGMENT
 
-		INC	ECX
+                INC     ECX
 
-		REP	STOSD
+                REP     STOSD
 
-		LEA	EDI,CV_ASYM_STRUCTURE
-		MOV	ECX,SIZE SEQ_STRUCT/4+ 1K*1K/PAGE_SIZE/4
+                LEA     EDI,CV_ASYM_STRUCTURE
+                MOV     ECX,SIZE SEQ_STRUCT/4+ 1K*1K/PAGE_SIZE/4
 
-		REP	STOSD
+                REP     STOSD
 
-		JMP	L2$
+                JMP     L2$
 
 L1$:
-		CALL	GET_CV_SYMBOL		;GET PTR TO NEXT SYMBOL, SYMBOL ID ADJUSTED
+                CALL    GET_CV_SYMBOL           ;GET PTR TO NEXT SYMBOL, SYMBOL ID ADJUSTED
 
-		CALL	PROCSYM_PASS1[EBX*4]	;PROCESS BASED ON SYMBOL ID
+                CALL    PROCSYM_PASS1[EBX*4]    ;PROCESS BASED ON SYMBOL ID
 
-		CALL	PUT_CV_SYMBOL		;STORE RESULT IF NOT DELETED
+                CALL    PUT_CV_SYMBOL           ;STORE RESULT IF NOT DELETED
 
 L2$:
-		MOV	EAX,CV_BYTES_LEFT
+                MOV     EAX,CV_BYTES_LEFT
 
-		OR	EAX,EAX
-		JNZ	L1$
-		;
-		;MIDDLE
-		;
-		;	0.  OUTPUT 00000001
-		;	1.  OUTPUT S_SEARCH SYMBOLS
-		;
-		MOV	EAX,CV_SSEARCH_TBL
-		CALL	RELEASE_BLOCK
+                OR      EAX,EAX
+                JNZ     L1$
+                ;
+                ;MIDDLE
+                ;
+                ;       0.  OUTPUT 00000001
+                ;       1.  OUTPUT S_SEARCH SYMBOLS
+                ;
+                MOV     EAX,CV_SSEARCH_TBL
+                CALL    RELEASE_BLOCK
 
-		MOV	EAX,OFF ZERO_ONE
-		MOV	ECX,4
+                MOV     EAX,OFF ZERO_ONE
+                MOV     ECX,4
 
-		LEA	EDX,CV_ASYM_STRUCTURE
-		CALL	STORE_EAXECX_EDX_SEQ
+                LEA     EDX,CV_ASYM_STRUCTURE
+                CALL    STORE_EAXECX_EDX_SEQ
 
-		CALL	DO_SSEARCH_SYMS
+                CALL    DO_SSEARCH_SYMS
 
-		;
-		;SECOND PASS
-		;
-		;	1.  IGNORE DELETED SYMBOLS
-		;       2.  CONVERT TYPES TO GLOBAL INDEXES -
-		;	3.  LINK SCOPES PER LOGICAL SEGMENT
-		;	4.  CREATE STATICSYM ENTRIES FOR LPROCs AND LDATAs
-		;	5.  CREATE GLOBALSYM PROCREF ENTRIES FOR GPROCs
-		;	6.  CHANGE SYMBOL IDs TO EXTERNAL FORMAT
-		;	7.  COPY SYMBOLS TO REAL OUTPUT
-		;	8.  ADD S_ALIGN SYMBOLS AS NECESSARY	*** NO! ***
-		;
+                ;
+                ;SECOND PASS
+                ;
+                ;       1.  IGNORE DELETED SYMBOLS
+                ;       2.  CONVERT TYPES TO GLOBAL INDEXES -
+                ;       3.  LINK SCOPES PER LOGICAL SEGMENT
+                ;       4.  CREATE STATICSYM ENTRIES FOR LPROCs AND LDATAs
+                ;       5.  CREATE GLOBALSYM PROCREF ENTRIES FOR GPROCs
+                ;       6.  CHANGE SYMBOL IDs TO EXTERNAL FORMAT
+                ;       7.  COPY SYMBOLS TO REAL OUTPUT
+                ;       8.  ADD S_ALIGN SYMBOLS AS NECESSARY    *** NO! ***
+                ;
 
-		MOV	CV_SYM_RELEASE,-1
+                MOV     CV_SYM_RELEASE,-1
 
-		CALL	INIT_CV_READER
+                CALL    INIT_CV_READER
 
-		CALL	GET_CV_DWORD		;SKIP SIGNATURE
+                CALL    GET_CV_DWORD            ;SKIP SIGNATURE
 
-		XOR	EAX,EAX
-		MOV	CV_BYTES_PTR,ESI
+                XOR     EAX,EAX
+                MOV     CV_BYTES_PTR,ESI
 
-		MOV	CV_PPARENT,EAX
-		JMP	L7$
+                MOV     CV_PPARENT,EAX
+                JMP     L7$
 
 L9$:
-		CALL	RELEASE_EXETABLE_ALL
-		JMP	L99$
+                CALL    RELEASE_EXETABLE_ALL
+                JMP     L99$
 
 L5$:
-		CALL	GET_CV_SYMBOL2		;GET SYMBOL, PASS2
+                CALL    GET_CV_SYMBOL2          ;GET SYMBOL, PASS2
 
-		CALL	PROCSYM_PASS2[EBX*4]	;PROCESS BASED ON SYMBOL ID
+                CALL    PROCSYM_PASS2[EBX*4]    ;PROCESS BASED ON SYMBOL ID
 
-		CALL	PUT_CV_SYMBOL2		;OUTPUT IF NOT DELETED
+                CALL    PUT_CV_SYMBOL2          ;OUTPUT IF NOT DELETED
 
 L7$:
-		MOV	EAX,CV_BYTES_LEFT
+                MOV     EAX,CV_BYTES_LEFT
 
-		OR	EAX,EAX
-		JNZ	L5$
+                OR      EAX,EAX
+                JNZ     L5$
 
-		CALL	ADJUST_CV_PTR		;RELEASE CURRENT (LAST) BLOCK
-		;
-		;CLEAN-UP
-		;
-		;	1.  OUTPUT ALIGNSYM SECTION AND CV_INDEX IF NOT ZERO LENGTH
-		;	2.  FIX TYPES ON ANY GLOBALSYM ENTRIES WE MADE
-		;
-		CALL	CV_SYMBOL_CLEANUP
+                CALL    ADJUST_CV_PTR           ;RELEASE CURRENT (LAST) BLOCK
+                ;
+                ;CLEAN-UP
+                ;
+                ;       1.  OUTPUT ALIGNSYM SECTION AND CV_INDEX IF NOT ZERO LENGTH
+                ;       2.  FIX TYPES ON ANY GLOBALSYM ENTRIES WE MADE
+                ;
+                CALL    CV_SYMBOL_CLEANUP
 L99$:
-		MOV	ESP,EBP
+                MOV     ESP,EBP
 
-		POPM	EBX,ESI,EDI,EBP
+                POPM    EBX,ESI,EDI,EBP
 
-		RET
+                RET
 
-PROCESS_CV_SYMBOLS	ENDP
-
-
-PP1_PASS_THRU	PROC	NEAR
-		;
-		;KEEP SYMBOL NO MATTER WHAT
-		;
-		RET
-
-PP1_PASS_THRU	ENDP
+PROCESS_CV_SYMBOLS      ENDP
 
 
-PP1_LDATA16	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_LDATA16_STRUCT
+PP1_PASS_THRU   PROC    NEAR
+                ;
+                ;KEEP SYMBOL NO MATTER WHAT
+                ;
+                RET
 
-		MOV	CL,CV_DELETE_FLAG
-		MOV	AL,BPTR [ESI]._SEGMENT+1	;SEGMENT IS HIGH WORD
-
-		OR	CL,CL
-		JNZ	PP1_DELETE
-
-		AND	AL,7FH
-
-		MOV	BPTR [ESI]._SEGMENT+1,AL
-
-		RET
-
-		ASSUME	ESI:NOTHING
-
-PP1_LDATA16	ENDP
+PP1_PASS_THRU   ENDP
 
 
-PP1_PASS_ND	PROC	NEAR
-		;
-		;KEEP SYMBOL IF NOT DELETING CURRENT SCOPE
-		;
-		MOV	AL,CV_DELETE_FLAG
+PP1_LDATA16     PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_LDATA16_STRUCT
+
+                MOV     CL,CV_DELETE_FLAG
+                MOV     AL,BPTR [ESI]._SEGMENT+1        ;SEGMENT IS HIGH WORD
+
+                OR      CL,CL
+                JNZ     PP1_DELETE
+
+                AND     AL,7FH
+
+                MOV     BPTR [ESI]._SEGMENT+1,AL
+
+                RET
+
+                ASSUME  ESI:NOTHING
+
+PP1_LDATA16     ENDP
+
+
+PP1_PASS_ND     PROC    NEAR
+                ;
+                ;KEEP SYMBOL IF NOT DELETING CURRENT SCOPE
+                ;
+                MOV     AL,CV_DELETE_FLAG
 PP1_PASS_ND_AL::
-		OR	AL,AL
-		JNZ	PP1_DELETE
+                OR      AL,AL
+                JNZ     PP1_DELETE
 
-		RET
+                RET
 
-PP1_PASS_ND	ENDP
-
-
-PP1_CONSTANT	PROC	NEAR
-		;
-		;DELETE IF DELETING CURRENT SCOPE
-		;GLOBALIZE IF NEST LEVEL == 0
-		;
-		ASSUME	ESI:PTR CV_CONST_STRUCT
-
-		MOV	ECX,CV_SCOPE_LEVEL
-		MOV	AL,CV_DELETE_FLAG
-
-		OR	ECX,ECX
-		JNZ	PP1_PASS_ND_AL
-		;
-		;STORE IN COMPACTED GLOBAL TABLE
-		;
-		LEA	ECX,[ESI]._VALUE
-		CALL	SKIP_LEAF_ECX
-
-		JMP	INSTALL_GSYM		;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
-
-		ASSUME	ESI:NOTHING
-
-PP1_CONSTANT	ENDP
+PP1_PASS_ND     ENDP
 
 
-PP1_UDT		PROC	NEAR
-		;
-		;DELETE IF DELETING CURRENT SCOPE
-		;GLOBALIZE IF NEST LEVEL == 0
-		;
-		ASSUME	ESI:PTR CV_UDT_STRUCT
+PP1_CONSTANT    PROC    NEAR
+                ;
+                ;DELETE IF DELETING CURRENT SCOPE
+                ;GLOBALIZE IF NEST LEVEL == 0
+                ;
+                ASSUME  ESI:PTR CV_CONST_STRUCT
 
-		MOV	ECX,CV_SCOPE_LEVEL
-		MOV	AL,CV_DELETE_FLAG
+                MOV     ECX,CV_SCOPE_LEVEL
+                MOV     AL,CV_DELETE_FLAG
 
-		OR	ECX,ECX
-		JNZ	PP1_PASS_ND_AL
-		;
-		;STORE IN COMPACTED GLOBAL TABLE
-		;
-		LEA	ECX,[ESI]._NAME
-		JMP	INSTALL_GSYM		;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
+                OR      ECX,ECX
+                JNZ     PP1_PASS_ND_AL
+                ;
+                ;STORE IN COMPACTED GLOBAL TABLE
+                ;
+                LEA     ECX,[ESI]._VALUE
+                CALL    SKIP_LEAF_ECX
 
-		ASSUME	ESI:NOTHING
+                JMP     INSTALL_GSYM            ;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
 
-PP1_UDT		ENDP
+                ASSUME  ESI:NOTHING
+
+PP1_CONSTANT    ENDP
 
 
-PP1_S_END	PROC	NEAR
-		;
-		;END OF A CODE BLOCK
-		;
-		ASSUME	ESI:PTR CV_SYMBOL_STRUCT
+PP1_UDT         PROC    NEAR
+                ;
+                ;DELETE IF DELETING CURRENT SCOPE
+                ;GLOBALIZE IF NEST LEVEL == 0
+                ;
+                ASSUME  ESI:PTR CV_UDT_STRUCT
 
-		MOV	ECX,CV_SCOPE_LEVEL
-		MOV	AL,CV_DELETE_FLAG
+                MOV     ECX,CV_SCOPE_LEVEL
+                MOV     AL,CV_DELETE_FLAG
 
-		SUB	ECX,1
-		JC	PP1_W_DELETE
+                OR      ECX,ECX
+                JNZ     PP1_PASS_ND_AL
+                ;
+                ;STORE IN COMPACTED GLOBAL TABLE
+                ;
+                LEA     ECX,[ESI]._NAME
+                JMP     INSTALL_GSYM            ;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
 
-		MOV	CV_SCOPE_LEVEL,ECX
-		OR	AL,AL			;THIS LEVEL BEING DELETED?
+                ASSUME  ESI:NOTHING
 
-		MOV	AL,CV_SCOPE_NEST_TABLE[ECX]
-		JZ	L2$
+PP1_UDT         ENDP
 
-		MOV	BL,I_S_DELETE		;MARK SYMBOL DELETED
 
-		MOV	BPTR [ESI]._ID,BL
+PP1_S_END       PROC    NEAR
+                ;
+                ;END OF A CODE BLOCK
+                ;
+                ASSUME  ESI:PTR CV_SYMBOL_STRUCT
+
+                MOV     ECX,CV_SCOPE_LEVEL
+                MOV     AL,CV_DELETE_FLAG
+
+                SUB     ECX,1
+                JC      PP1_W_DELETE
+
+                MOV     CV_SCOPE_LEVEL,ECX
+                OR      AL,AL                   ;THIS LEVEL BEING DELETED?
+
+                MOV     AL,CV_SCOPE_NEST_TABLE[ECX]
+                JZ      L2$
+
+                MOV     BL,I_S_DELETE           ;MARK SYMBOL DELETED
+
+                MOV     BPTR [ESI]._ID,BL
 L2$:
-		;
-		;DEFINE DELETE FLAG BASED ON PARENT
-		;
-		MOV	CV_DELETE_FLAG,AL
+                ;
+                ;DEFINE DELETE FLAG BASED ON PARENT
+                ;
+                MOV     CV_DELETE_FLAG,AL
 
-		RET
+                RET
 
-PP1_S_END	ENDP
-
-
-PP1_W_DELETE	PROC	NEAR
-		;
-		;
-		;
-		MOV	AL,CVP_SYMDEL_ERR
-		CALL	WARN_RET
-
-PP1_W_DELETE	ENDP
+PP1_S_END       ENDP
 
 
-PP1_DELETE	PROC	NEAR
+PP1_W_DELETE    PROC    NEAR
+                ;
+                ;
+                ;
+                MOV     AL,CVP_SYMDEL_ERR
+                CALL    WARN_RET
 
-		MOV	BL,I_S_DELETE	;MARK SYMBOL DELETED
-
-		MOV	BPTR [ESI]._ID,BL
-
-		RET
-
-PP1_DELETE	ENDP
-
-
-PP1_S_GDATA16	PROC	NEAR
-		;
-		;DELETE IF NEEDED
-		;
-		ASSUME	ESI:PTR CV_GDATA16_STRUCT
-
-		MOV	CL,CV_DELETE_FLAG
-		MOV	AL,BPTR [ESI]._SEGMENT+1
-
-		OR	CL,CL
-		JNZ	PP1_DELETE
-
-		AND	AL,7FH
-		LEA	ECX,[ESI]._NAME
-
-		;
-		;STORE IN COMPACTED GLOBAL TABLE
-		;
-		MOV	BPTR [ESI]._SEGMENT+1,AL
-		JMP	INSTALL_GSYM		;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
-						;MARK DELETE IF INSTALL WORKS...
-		ASSUME	ESI:NOTHING
-
-PP1_S_GDATA16	ENDP
+PP1_W_DELETE    ENDP
 
 
-PP1_PROC16	PROC	NEAR
-		;
-		;PROCEDURE START...  FIRST DETERMINE IF THIS CODESEG IS MINE
-		;
-		ASSUME	ESI:PTR CV_LPROC16_STRUCT
+PP1_DELETE      PROC    NEAR
 
-		MOV	CL,BPTR [ESI]._SEGMENT
+                MOV     BL,I_S_DELETE   ;MARK SYMBOL DELETED
 
-		MOV	CH,BPTR [ESI]._SEGMENT+1
+                MOV     BPTR [ESI]._ID,BL
+
+                RET
+
+PP1_DELETE      ENDP
+
+
+PP1_S_GDATA16   PROC    NEAR
+                ;
+                ;DELETE IF NEEDED
+                ;
+                ASSUME  ESI:PTR CV_GDATA16_STRUCT
+
+                MOV     CL,CV_DELETE_FLAG
+                MOV     AL,BPTR [ESI]._SEGMENT+1
+
+                OR      CL,CL
+                JNZ     PP1_DELETE
+
+                AND     AL,7FH
+                LEA     ECX,[ESI]._NAME
+
+                ;
+                ;STORE IN COMPACTED GLOBAL TABLE
+                ;
+                MOV     BPTR [ESI]._SEGMENT+1,AL
+                JMP     INSTALL_GSYM            ;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
+                                                ;MARK DELETE IF INSTALL WORKS...
+                ASSUME  ESI:NOTHING
+
+PP1_S_GDATA16   ENDP
+
+
+PP1_PROC16      PROC    NEAR
+                ;
+                ;PROCEDURE START...  FIRST DETERMINE IF THIS CODESEG IS MINE
+                ;
+                ASSUME  ESI:PTR CV_LPROC16_STRUCT
+
+                MOV     CL,BPTR [ESI]._SEGMENT
+
+                MOV     CH,BPTR [ESI]._SEGMENT+1
 PP1_PROC16_1::
-		CALL	IS_MY_CODESEG		;IS THIS IN MY MODULE HEADER?  ALSO, COUNT SEG REFS
+                CALL    IS_MY_CODESEG           ;IS THIS IN MY MODULE HEADER?  ALSO, COUNT SEG REFS
 
-		JZ	NEST_SCOPE_ON
+                JZ      NEST_SCOPE_ON
 
-		CALL	NEST_SCOPE_OFF
+                CALL    NEST_SCOPE_OFF
 
-		JMP	PP1_DELETE
+                JMP     PP1_DELETE
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-PP1_PROC16	ENDP
+PP1_PROC16      ENDP
 
 
 NEST_SCOPE_OFF:
-		MOV	AL,-1
-		JMP	NEST_SCOPE_1
+                MOV     AL,-1
+                JMP     NEST_SCOPE_1
 
 
-NEST_SCOPE_ON	PROC	NEAR
-		;
-		;
-		;
-		MOV	AL,0
+NEST_SCOPE_ON   PROC    NEAR
+                ;
+                ;
+                ;
+                MOV     AL,0
 NEST_SCOPE_1::
-		MOV	ECX,CV_SCOPE_LEVEL
-		MOV	AH,CV_DELETE_FLAG
+                MOV     ECX,CV_SCOPE_LEVEL
+                MOV     AH,CV_DELETE_FLAG
 
-		MOV	CV_DELETE_FLAG,AL
+                MOV     CV_DELETE_FLAG,AL
 
-		MOV	CV_SCOPE_NEST_TABLE[ECX],AH
-		INC	CL			;TO DETECT 256 OVEFLOW...
+                MOV     CV_SCOPE_NEST_TABLE[ECX],AH
+                INC     CL                      ;TO DETECT 256 OVEFLOW...
 
-		MOV	CV_SCOPE_LEVEL,ECX
-		JZ	L9$
+                MOV     CV_SCOPE_LEVEL,ECX
+                JZ      L9$
 
-		RET
+                RET
 
 L9$:
-		MOV	AL,CVP_SCOPE_ERR
-		push	EAX
-		call	_err_abort
+                MOV     AL,CVP_SCOPE_ERR
+                push    EAX
+                call    _err_abort
 
-NEST_SCOPE_ON	ENDP
-
-
-PP1_THUNK16	PROC	NEAR
-		;
-		;THUNK...  FIRST DETERMINE IF THIS CODESEG IS MINE
-		;
-		ASSUME	ESI:PTR CV_THUNK16_STRUCT
-
-		MOV	CL,BPTR [ESI]._SEGMENT
-
-		MOV	CH,BPTR [ESI]._SEGMENT+1
-		JMP	PP1_PROC16_1
-
-		ASSUME	ESI:NOTHING
-
-PP1_THUNK16	ENDP
+NEST_SCOPE_ON   ENDP
 
 
-PP1_BLOCK16	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_BLOCK16_STRUCT
+PP1_THUNK16     PROC    NEAR
+                ;
+                ;THUNK...  FIRST DETERMINE IF THIS CODESEG IS MINE
+                ;
+                ASSUME  ESI:PTR CV_THUNK16_STRUCT
 
-		MOV	CL,BPTR [ESI]._SEGMENT
+                MOV     CL,BPTR [ESI]._SEGMENT
 
-		MOV	CH,BPTR [ESI]._SEGMENT+1
-		JMP	PP1_PROC16_1
+                MOV     CH,BPTR [ESI]._SEGMENT+1
+                JMP     PP1_PROC16_1
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-PP1_BLOCK16	ENDP
-
-
-PP1_LABEL16	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_LABEL16_STRUCT
-
-		MOV	AL,BPTR [ESI]._SEGMENT+1
-
-		TEST	AL,80H
-		JNZ	PP1_DELETE
-
-		RET
-
-		ASSUME	ESI:NOTHING
-
-PP1_LABEL16	ENDP
+PP1_THUNK16     ENDP
 
 
-PP1_CEXMODEL16	PROC	NEAR
-		;
-		;
-		;
-		AND	BPTR [ESI].CV_CEXMODEL16_STRUCT._SEGMENT+1,7FH
+PP1_BLOCK16     PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_BLOCK16_STRUCT
 
-		RET
+                MOV     CL,BPTR [ESI]._SEGMENT
 
-PP1_CEXMODEL16	ENDP
+                MOV     CH,BPTR [ESI]._SEGMENT+1
+                JMP     PP1_PROC16_1
 
+                ASSUME  ESI:NOTHING
 
-PP1_VFTPATH16	PROC	NEAR
-		;
-		;
-		;
-		AND	BPTR [ESI].CV_VFTPATH16_STRUCT._SEGMENT+1,7FH
-
-		RET
-
-PP1_VFTPATH16	ENDP
+PP1_BLOCK16     ENDP
 
 
-PP1_LDATA32	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_LDATA32_STRUCT
+PP1_LABEL16     PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_LABEL16_STRUCT
 
-		MOV	CL,CV_DELETE_FLAG
-		MOV	AL,BPTR [ESI]._SEGMENT+1
+                MOV     AL,BPTR [ESI]._SEGMENT+1
 
-		OR	CL,CL
-		JNZ	PP1_DELETE
+                TEST    AL,80H
+                JNZ     PP1_DELETE
 
-		AND	AL,7FH
+                RET
 
-		MOV	BPTR [ESI]._SEGMENT+1,AL
+                ASSUME  ESI:NOTHING
 
-		RET
-
-		ASSUME	ESI:NOTHING
-
-PP1_LDATA32	ENDP
+PP1_LABEL16     ENDP
 
 
-PP1_S_GDATA32	PROC	NEAR
-		;
-		;DELETE IF NEEDED
-		;
-		ASSUME	ESI:PTR CV_GDATA32_STRUCT
+PP1_CEXMODEL16  PROC    NEAR
+                ;
+                ;
+                ;
+                AND     BPTR [ESI].CV_CEXMODEL16_STRUCT._SEGMENT+1,7FH
 
-		MOV	CL,CV_DELETE_FLAG
-		MOV	AL,BPTR [ESI]._SEGMENT+1
+                RET
 
-		OR	CL,CL
-		JNZ	PP1_DELETE
-
-		AND	AL,7FH
-		LEA	ECX,[ESI]._NAME
-
-		;
-		;STORE IN COMPACTED GLOBAL TABLE
-		;
-		MOV	BPTR [ESI]._SEGMENT+1,AL
-		JMP	INSTALL_GSYM		;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
-						;MARK DELETE IF INSTALL WORKS...
-		ASSUME	ESI:NOTHING
-
-PP1_S_GDATA32	ENDP
+PP1_CEXMODEL16  ENDP
 
 
-PP1_PROC32	PROC	NEAR
-		;
-		;PROCEDURE START...  FIRST DETERMINE IF THIS CODESEG IS MINE
-		;
-		ASSUME	ESI:PTR CV_GPROC32_STRUCT
+PP1_VFTPATH16   PROC    NEAR
+                ;
+                ;
+                ;
+                AND     BPTR [ESI].CV_VFTPATH16_STRUCT._SEGMENT+1,7FH
 
-		MOV	CL,BPTR [ESI]._SEGMENT
+                RET
 
-		MOV	CH,BPTR [ESI]._SEGMENT+1
+PP1_VFTPATH16   ENDP
+
+
+PP1_LDATA32     PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_LDATA32_STRUCT
+
+                MOV     CL,CV_DELETE_FLAG
+                MOV     AL,BPTR [ESI]._SEGMENT+1
+
+                OR      CL,CL
+                JNZ     PP1_DELETE
+
+                AND     AL,7FH
+
+                MOV     BPTR [ESI]._SEGMENT+1,AL
+
+                RET
+
+                ASSUME  ESI:NOTHING
+
+PP1_LDATA32     ENDP
+
+
+PP1_S_GDATA32   PROC    NEAR
+                ;
+                ;DELETE IF NEEDED
+                ;
+                ASSUME  ESI:PTR CV_GDATA32_STRUCT
+
+                MOV     CL,CV_DELETE_FLAG
+                MOV     AL,BPTR [ESI]._SEGMENT+1
+
+                OR      CL,CL
+                JNZ     PP1_DELETE
+
+                AND     AL,7FH
+                LEA     ECX,[ESI]._NAME
+
+                ;
+                ;STORE IN COMPACTED GLOBAL TABLE
+                ;
+                MOV     BPTR [ESI]._SEGMENT+1,AL
+                JMP     INSTALL_GSYM            ;PUT IN GLOBAL SYMBOL TABLE, ESI IS SYMBOL, ECX IS NAME PORTION
+                                                ;MARK DELETE IF INSTALL WORKS...
+                ASSUME  ESI:NOTHING
+
+PP1_S_GDATA32   ENDP
+
+
+PP1_PROC32      PROC    NEAR
+                ;
+                ;PROCEDURE START...  FIRST DETERMINE IF THIS CODESEG IS MINE
+                ;
+                ASSUME  ESI:PTR CV_GPROC32_STRUCT
+
+                MOV     CL,BPTR [ESI]._SEGMENT
+
+                MOV     CH,BPTR [ESI]._SEGMENT+1
 PP1_PROC32_1::
-		CALL	IS_MY_CODESEG		;IS THIS IN MY MODULE HEADER?  ALSO, COUNT SEG REFS
-		JZ	NEST_SCOPE_ON
+                CALL    IS_MY_CODESEG           ;IS THIS IN MY MODULE HEADER?  ALSO, COUNT SEG REFS
+                JZ      NEST_SCOPE_ON
 
-		CALL	NEST_SCOPE_OFF
+                CALL    NEST_SCOPE_OFF
 
-		JMP	PP1_DELETE
+                JMP     PP1_DELETE
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-PP1_PROC32	ENDP
-
-
-PP1_THUNK32	PROC	NEAR
-		;
-		;THUNK...  FIRST DETERMINE IF THIS CODESEG IS MINE
-		;
-		ASSUME	ESI:PTR CV_THUNK32_STRUCT
-
-		MOV	CL,BPTR [ESI]._SEGMENT
-
-		MOV	CH,BPTR [ESI]._SEGMENT+1
-		JMP	PP1_PROC32_1
-
-PP1_THUNK32	ENDP
+PP1_PROC32      ENDP
 
 
-PP1_BLOCK32	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_BLOCK32_STRUCT
+PP1_THUNK32     PROC    NEAR
+                ;
+                ;THUNK...  FIRST DETERMINE IF THIS CODESEG IS MINE
+                ;
+                ASSUME  ESI:PTR CV_THUNK32_STRUCT
 
-		MOV	CL,BPTR [ESI]._SEGMENT
+                MOV     CL,BPTR [ESI]._SEGMENT
 
-		MOV	CH,BPTR [ESI]._SEGMENT+1
-		JMP	PP1_PROC32_1
+                MOV     CH,BPTR [ESI]._SEGMENT+1
+                JMP     PP1_PROC32_1
 
-PP1_BLOCK32	ENDP
-
-		ASSUME	ESI:NOTHING
-
-PP1_LABEL32	PROC	NEAR
-		;
-		;
-		;
-		MOV	AL,BPTR [ESI].CV_LABEL32_STRUCT._SEGMENT+1
-
-		TEST	AL,80H
-		JNZ	PP1_DELETE
-
-		RET
-
-PP1_LABEL32	ENDP
+PP1_THUNK32     ENDP
 
 
-PP1_CEXMODEL32	PROC	NEAR
-		;
-		;
-		;
-		AND	BPTR [ESI].CV_CEXMODEL32_STRUCT._SEGMENT+1,7FH
+PP1_BLOCK32     PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_BLOCK32_STRUCT
 
-		RET
+                MOV     CL,BPTR [ESI]._SEGMENT
 
-PP1_CEXMODEL32	ENDP
+                MOV     CH,BPTR [ESI]._SEGMENT+1
+                JMP     PP1_PROC32_1
 
+PP1_BLOCK32     ENDP
 
-PP1_VFTPATH32	PROC	NEAR
-		;
-		;
-		;
-		AND	BPTR [ESI].CV_VFTPATH32_STRUCT._SEGMENT+1,7FH
+                ASSUME  ESI:NOTHING
 
-		RET
+PP1_LABEL32     PROC    NEAR
+                ;
+                ;
+                ;
+                MOV     AL,BPTR [ESI].CV_LABEL32_STRUCT._SEGMENT+1
 
-PP1_VFTPATH32	ENDP
+                TEST    AL,80H
+                JNZ     PP1_DELETE
 
+                RET
 
-INIT_CV_READER	PROC	NEAR	PRIVATE
-		;
-		;SET UP STUFF FOR SCANNING THROUGH A CODEVIEW SEGMENT
-		;
-		MOV	EAX,FIX2_SM_LEN
-		XOR	ECX,ECX
-
-		MOV	CV_BYTES_LEFT,EAX
-		MOV	EAX,OFF EXETABLE
-
-		MOV	CV_THIS_BLOCK,ECX
-		MOV	CV_NEXT_BLOCK,EAX
-
-;		CALL	ADJUST_CV_PTR
-;		RET
-
-INIT_CV_READER	ENDP
+PP1_LABEL32     ENDP
 
 
-ADJUST_CV_PTR	PROC	NEAR	PRIVATE
-		;
-		;
-		;
-		MOV	EDX,CV_NEXT_BLOCK		;EXETABLE
-		MOV	AL,CV_SYM_RELEASE
+PP1_CEXMODEL32  PROC    NEAR
+                ;
+                ;
+                ;
+                AND     BPTR [ESI].CV_CEXMODEL32_STRUCT._SEGMENT+1,7FH
 
-		MOV	ECX,CV_THIS_BLOCK
-		OR	AL,AL
+                RET
 
-		MOV	EAX,[EDX]			;HAVE NEXT BLOCK LOADED
-		JZ	L2$
+PP1_CEXMODEL32  ENDP
 
-		TEST	ECX,ECX					;DOES THIS BLOCK EXIST?
-		JZ	L1$
 
-		MOV	EAX,ECX
-		CALL	RELEASE_BLOCK
+PP1_VFTPATH32   PROC    NEAR
+                ;
+                ;
+                ;
+                AND     BPTR [ESI].CV_VFTPATH32_STRUCT._SEGMENT+1,7FH
+
+                RET
+
+PP1_VFTPATH32   ENDP
+
+
+INIT_CV_READER  PROC    NEAR    PRIVATE
+                ;
+                ;SET UP STUFF FOR SCANNING THROUGH A CODEVIEW SEGMENT
+                ;
+                MOV     EAX,FIX2_SM_LEN
+                XOR     ECX,ECX
+
+                MOV     CV_BYTES_LEFT,EAX
+                MOV     EAX,OFF EXETABLE
+
+                MOV     CV_THIS_BLOCK,ECX
+                MOV     CV_NEXT_BLOCK,EAX
+
+;               CALL    ADJUST_CV_PTR
+;               RET
+
+INIT_CV_READER  ENDP
+
+
+ADJUST_CV_PTR   PROC    NEAR    PRIVATE
+                ;
+                ;
+                ;
+                MOV     EDX,CV_NEXT_BLOCK               ;EXETABLE
+                MOV     AL,CV_SYM_RELEASE
+
+                MOV     ECX,CV_THIS_BLOCK
+                OR      AL,AL
+
+                MOV     EAX,[EDX]                       ;HAVE NEXT BLOCK LOADED
+                JZ      L2$
+
+                TEST    ECX,ECX                                 ;DOES THIS BLOCK EXIST?
+                JZ      L1$
+
+                MOV     EAX,ECX
+                CALL    RELEASE_BLOCK
 L1$:
-		XOR	ECX,ECX
-		MOV	EAX,[EDX]
+                XOR     ECX,ECX
+                MOV     EAX,[EDX]
 
-		MOV	[EDX],ECX
+                MOV     [EDX],ECX
 L2$:
-		ADD	EDX,4
-		MOV	CV_THIS_BLOCK,EAX
+                ADD     EDX,4
+                MOV     CV_THIS_BLOCK,EAX
 
-		OR	EAX,EAX
-		JZ	L9$
+                OR      EAX,EAX
+                JZ      L9$
 
-		MOV	ESI,EAX
-		ADD	EAX,PAGE_SIZE
+                MOV     ESI,EAX
+                ADD     EAX,PAGE_SIZE
 
-		MOV	CV_NEXT_BLOCK,EDX
-		MOV	CV_THIS_BLOCK_LIMIT,EAX
+                MOV     CV_NEXT_BLOCK,EDX
+                MOV     CV_THIS_BLOCK_LIMIT,EAX
 
-		RET
+                RET
 
 L9$:
-		STC
+                STC
 
-		RET
+                RET
 
-ADJUST_CV_PTR	ENDP
+ADJUST_CV_PTR   ENDP
 
 
-GET_CV_DWORD	PROC	NEAR	PRIVATE
-		;
-		;
-		;
-		ADD	ESI,4
-		MOV	ECX,CV_BYTES_LEFT
+GET_CV_DWORD    PROC    NEAR    PRIVATE
+                ;
+                ;
+                ;
+                ADD     ESI,4
+                MOV     ECX,CV_BYTES_LEFT
 
-		MOV	EAX,CV_THIS_BLOCK_LIMIT
-		SUB	ECX,4
+                MOV     EAX,CV_THIS_BLOCK_LIMIT
+                SUB     ECX,4
 
-		CMP	EAX,ESI
-		JB	L5$
+                CMP     EAX,ESI
+                JB      L5$
 
-		MOV	CV_BYTES_LEFT,ECX
-		MOV	EAX,[ESI-4]
+                MOV     CV_BYTES_LEFT,ECX
+                MOV     EAX,[ESI-4]
 
-		RET
+                RET
 
 L5$:
-		SUB	ESI,4
-		CALL	GET_CV_WORD
+                SUB     ESI,4
+                CALL    GET_CV_WORD
 
-		JC	L9$
+                JC      L9$
 
-		PUSH	EAX
-		CALL	GET_CV_WORD
+                PUSH    EAX
+                CALL    GET_CV_WORD
 
-		POP	EDX
-		JC	L9$
+                POP     EDX
+                JC      L9$
 
-		SHL	EAX,16
-		AND	EDX,0FFFFH
+                SHL     EAX,16
+                AND     EDX,0FFFFH
 
-		OR	EAX,EDX
+                OR      EAX,EDX
 
-		RET
+                RET
 
 L9$:
-		MOV	AL,-1
+                MOV     AL,-1
 
-		RET
+                RET
 
-GET_CV_DWORD	ENDP
+GET_CV_DWORD    ENDP
 
 
-GET_CV_WORD	PROC	NEAR	PRIVATE
-		;
-		;
-		;
-		ADD	ESI,2
-		MOV	EAX,CV_THIS_BLOCK_LIMIT
+GET_CV_WORD     PROC    NEAR    PRIVATE
+                ;
+                ;
+                ;
+                ADD     ESI,2
+                MOV     EAX,CV_THIS_BLOCK_LIMIT
 
-		CMP	EAX,ESI
-		JB	L5$
+                CMP     EAX,ESI
+                JB      L5$
 
-		XOR	EAX,EAX
-		MOV	ECX,CV_BYTES_LEFT
+                XOR     EAX,EAX
+                MOV     ECX,CV_BYTES_LEFT
 
-		MOV	AL,[ESI-2]
-		SUB	ECX,2
+                MOV     AL,[ESI-2]
+                SUB     ECX,2
 
-		MOV	AH,[ESI-1]
-		MOV	CV_BYTES_LEFT,ECX
+                MOV     AH,[ESI-1]
+                MOV     CV_BYTES_LEFT,ECX
 L9$:
-		RET
+                RET
 
 L5$:
-		SUB	ESI,2
-		CALL	GET_CV_BYTE
+                SUB     ESI,2
+                CALL    GET_CV_BYTE
 
-		JC	L9$
+                JC      L9$
 
-		PUSH	EAX
-		CALL	GET_CV_BYTE
+                PUSH    EAX
+                CALL    GET_CV_BYTE
 
-		MOV	AH,AL
-		JC	L99$
+                MOV     AH,AL
+                JC      L99$
 
-		AND	EAX,0FFFFH
+                AND     EAX,0FFFFH
 L99$:
-		POP	EDX
+                POP     EDX
 
-		MOV	AL,DL
+                MOV     AL,DL
 
-		RET
+                RET
 
-GET_CV_WORD	ENDP
+GET_CV_WORD     ENDP
 
 
-GET_CV_BYTE	PROC	NEAR	PRIVATE
-		;
-		;
-		;
+GET_CV_BYTE     PROC    NEAR    PRIVATE
+                ;
+                ;
+                ;
 L1$:
-		INC	ESI
-		MOV	ECX,CV_BYTES_LEFT
+                INC     ESI
+                MOV     ECX,CV_BYTES_LEFT
 
-		MOV	EAX,CV_THIS_BLOCK_LIMIT
-		DEC	ECX
+                MOV     EAX,CV_THIS_BLOCK_LIMIT
+                DEC     ECX
 
-		CMP	EAX,ESI
-		JB	L5$
+                CMP     EAX,ESI
+                JB      L5$
 
-		MOV	CV_BYTES_LEFT,ECX
-		MOV	AL,[ESI-1]
+                MOV     CV_BYTES_LEFT,ECX
+                MOV     AL,[ESI-1]
 
-		RET
+                RET
 
 L5$:
-		DEC	ESI
-		CALL	ADJUST_CV_PTR
+                DEC     ESI
+                CALL    ADJUST_CV_PTR
 
-		JNC	L1$
+                JNC     L1$
 
-		RET
+                RET
 
-GET_CV_BYTE	ENDP
+GET_CV_BYTE     ENDP
 
 
-MOVE_EAX_CV_BYTES	PROC	NEAR	PRIVATE
-		;
-		;NEED TO MOVE SMALLER OF EAX AND PAGE_SIZE-SI
-		;
-		MOV	ECX,CV_THIS_BLOCK_LIMIT
-		MOV	EDX,CV_BYTES_LEFT
+MOVE_EAX_CV_BYTES       PROC    NEAR    PRIVATE
+                ;
+                ;NEED TO MOVE SMALLER OF EAX AND PAGE_SIZE-SI
+                ;
+                MOV     ECX,CV_THIS_BLOCK_LIMIT
+                MOV     EDX,CV_BYTES_LEFT
 
-		SUB	ECX,ESI
-		SUB	EDX,EAX
+                SUB     ECX,ESI
+                SUB     EDX,EAX
 
-		MOV	CV_BYTES_LEFT,EDX
-		JC	L9$
+                MOV     CV_BYTES_LEFT,EDX
+                JC      L9$
 L1$:
-		SUB	EAX,ECX
-		JA	L5$
+                SUB     EAX,ECX
+                JA      L5$
 
-		ADD	ECX,EAX
-		XOR	EAX,EAX
+                ADD     ECX,EAX
+                XOR     EAX,EAX
 L5$:
-		OPTI_MOVSB
+                OPTI_MOVSB
 
-		OR	EAX,EAX
-		JNZ	L3$
+                OR      EAX,EAX
+                JNZ     L3$
 L9$:
-		RET
+                RET
 
 L3$:
-		;
-		;GET NEXT BLOCK
-		;
-		PUSH	EAX
-		CALL	ADJUST_CV_PTR
+                ;
+                ;GET NEXT BLOCK
+                ;
+                PUSH    EAX
+                CALL    ADJUST_CV_PTR
 
-		POP	EAX
-		MOV	ECX,PAGE_SIZE
+                POP     EAX
+                MOV     ECX,PAGE_SIZE
 
-		JNC	L1$
+                JNC     L1$
 
-		RET
+                RET
 
-MOVE_EAX_CV_BYTES	ENDP
+MOVE_EAX_CV_BYTES       ENDP
 
 
-GET_CV_SYMBOL	PROC	NEAR
-		;
-		;RETURN ESI PTR TO SYMBOL, EBX IS TYPE
-		;
-		XOR	EBX,EBX
-		CALL	GET_CV_WORD		;LENGTH OF SYMBOL RECORD
+GET_CV_SYMBOL   PROC    NEAR
+                ;
+                ;RETURN ESI PTR TO SYMBOL, EBX IS TYPE
+                ;
+                XOR     EBX,EBX
+                CALL    GET_CV_WORD             ;LENGTH OF SYMBOL RECORD
 
-		MOV	ECX,CV_THIS_BLOCK
-		JC	L99$			;WORD WASN'T THERE
+                MOV     ECX,CV_THIS_BLOCK
+                JC      L99$                    ;WORD WASN'T THERE
 
-		CMP	EAX,2
-		JB	L99$			;MUST HAVE ID
+                CMP     EAX,2
+                JB      L99$                    ;MUST HAVE ID
 
-		ADD	ECX,2
-		CMP	EAX,MAX_RECORD_LEN
+                ADD     ECX,2
+                CMP     EAX,MAX_RECORD_LEN
 
-		MOV	EDX,ESI
-		JA	L99$			;TOO BIG
+                MOV     EDX,ESI
+                JA      L99$                    ;TOO BIG
 
-		CMP	EDX,ECX			;DOES THIS SYMBOL CROSS BLOCK BOUNDS?
-		JB	L51$			;YES, IF ESI IS SMALLER THAN THIS_BLOCK + 2
+                CMP     EDX,ECX                 ;DOES THIS SYMBOL CROSS BLOCK BOUNDS?
+                JB      L51$                    ;YES, IF ESI IS SMALLER THAN THIS_BLOCK + 2
 
-		LEA	EDX,[ESI+EAX]
-		MOV	ECX,CV_THIS_BLOCK_LIMIT
+                LEA     EDX,[ESI+EAX]
+                MOV     ECX,CV_THIS_BLOCK_LIMIT
 
-		CMP	EDX,ECX			;YES, IF ESI + LENGTH IS > THIS_BLOCK_LIMIT
-		JA	L51$
+                CMP     EDX,ECX                 ;YES, IF ESI + LENGTH IS > THIS_BLOCK_LIMIT
+                JA      L51$
 
-		MOV	ECX,CV_BYTES_LEFT
-		SUB	ESI,2
+                MOV     ECX,CV_BYTES_LEFT
+                SUB     ESI,2
 
-		ASSUME	ESI:PTR CV_SYMBOL_STRUCT
+                ASSUME  ESI:PTR CV_SYMBOL_STRUCT
 
-		SUB	ECX,EAX
-		JC	L99$
+                SUB     ECX,EAX
+                JC      L99$
 
-		MOV	BH,BPTR [ESI]._ID+1
-		MOV	CV_BYTES_LEFT,ECX
+                MOV     BH,BPTR [ESI]._ID+1
+                MOV     CV_BYTES_LEFT,ECX
 L2$:
-		CMP	BH,1
-		JB	L27$
+                CMP     BH,1
+                JB      L27$
 
-		MOV	BL,BPTR [ESI]._ID
-		JA	L25$
-		;
-		;BX IS 100 - 1FF
-		;
-		SUB	EBX,100H-10H
+                MOV     BL,BPTR [ESI]._ID
+                JA      L25$
+                ;
+                ;BX IS 100 - 1FF
+                ;
+                SUB     EBX,100H-10H
 
-		MOV	BPTR [ESI]._ID,BL
-		CMP	BL,1CH
+                MOV     BPTR [ESI]._ID,BL
+                CMP     BL,1CH
 
-		MOV	BPTR [ESI]._ID+1,BH
-		JA	L28$
+                MOV     BPTR [ESI]._ID+1,BH
+                JA      L28$
 L23$:
-		RET
+                RET
 
 L25$:
-		SUB	EBX,200H-1DH
+                SUB     EBX,200H-1DH
 
-		MOV	BPTR [ESI]._ID,BL
-		CMP	EBX,2BH
+                MOV     BPTR [ESI]._ID,BL
+                CMP     EBX,2BH
 
-		MOV	BPTR [ESI]._ID+1,BH
-		JAE	L28$
+                MOV     BPTR [ESI]._ID+1,BH
+                JAE     L28$
 
-		RET
+                RET
 
 L27$:
-		;
-		;BX < 100H
-		;
-		MOV	BL,BPTR [ESI]._ID
+                ;
+                ;BX < 100H
+                ;
+                MOV     BL,BPTR [ESI]._ID
 
-		CMP	BL,0EH
-		JA	L28$
+                CMP     BL,0EH
+                JA      L28$
 
-		RET
+                RET
 
 L28$:
-		XOR	EBX,EBX
+                XOR     EBX,EBX
 
-		MOV	[ESI]._ID,BX
+                MOV     [ESI]._ID,BX
 
-		RET
+                RET
 
 L99$:
-		MOV	AL,CVP_CORRUPT_ERR
-		CALL	ERR_RET
+                MOV     AL,CVP_CORRUPT_ERR
+                CALL    ERR_RET
 
-		STC
+                STC
 
-		RET
+                RET
 
 L51$:
-		;
-		;SYMBOL CROSSES BLOCK BOUNDS
-		;
-		PUSH	EDI
-		MOV	EDI,OFF TEMP_RECORD+4
+                ;
+                ;SYMBOL CROSSES BLOCK BOUNDS
+                ;
+                PUSH    EDI
+                MOV     EDI,OFF TEMP_RECORD+4
 
-		PUSH	EAX
-		CALL	GET_CV_BYTE
+                PUSH    EAX
+                CALL    GET_CV_BYTE
 
-		MOV	DL,AL
-		MOV	EAX,CV_THIS_BLOCK_LIMIT
+                MOV     DL,AL
+                MOV     EAX,CV_THIS_BLOCK_LIMIT
 
-		MOV	CV_ID_LB,ESI		;ESI POINTS 1 PAST ID LOW BYTE
-		MOV	CV_ID_LIMIT,EAX
+                MOV     CV_ID_LB,ESI            ;ESI POINTS 1 PAST ID LOW BYTE
+                MOV     CV_ID_LIMIT,EAX
 
-		PUSH	EDX
-		CALL	GET_CV_BYTE
+                PUSH    EDX
+                CALL    GET_CV_BYTE
 
-		POP	EDX
+                POP     EDX
 
-		MOV	DH,AL
-		POP	EAX
+                MOV     DH,AL
+                POP     EAX
 
-		SHL	EDX,16
+                SHL     EDX,16
 
-		OR	EDX,EAX
-		SUB	EAX,2
+                OR      EDX,EAX
+                SUB     EAX,2
 
-		MOV	[EDI-4],EDX
-		JBE	L6$
+                MOV     [EDI-4],EDX
+                JBE     L6$
 
-		CALL	MOVE_EAX_CV_BYTES
+                CALL    MOVE_EAX_CV_BYTES
 L6$:
-		MOV	CV_BYTES_PTR,ESI
-		MOV	ESI,OFF TEMP_RECORD
+                MOV     CV_BYTES_PTR,ESI
+                MOV     ESI,OFF TEMP_RECORD
 
-		MOV	BH,BPTR TEMP_RECORD.CV_SYMBOL_STRUCT._ID+1
-		POP	EDI
+                MOV     BH,BPTR TEMP_RECORD.CV_SYMBOL_STRUCT._ID+1
+                POP     EDI
 
-		JMP	L2$
+                JMP     L2$
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-GET_CV_SYMBOL	ENDP
+GET_CV_SYMBOL   ENDP
 
 
-PUT_CV_SYMBOL	PROC	NEAR
-		;
-		;UPDATE PTRS
-		;
-		ASSUME	ESI:PTR CV_SYMBOL_STRUCT
+PUT_CV_SYMBOL   PROC    NEAR
+                ;
+                ;UPDATE PTRS
+                ;
+                ASSUME  ESI:PTR CV_SYMBOL_STRUCT
 
-		XOR	ECX,ECX
-		MOV	EAX,CV_BYTES_PTR
+                XOR     ECX,ECX
+                MOV     EAX,CV_BYTES_PTR
 
-		MOV	CL,BPTR [ESI]._LENGTH
-		TEST	EAX,EAX
+                MOV     CL,BPTR [ESI]._LENGTH
+                TEST    EAX,EAX
 
-		MOV	CH,BPTR [ESI]._LENGTH+1
-		JNZ	L1$
+                MOV     CH,BPTR [ESI]._LENGTH+1
+                JNZ     L1$
 
-		LEA	ESI,[ESI+ECX+2]
+                LEA     ESI,[ESI+ECX+2]
 
-		RET
+                RET
 
 L1$:
-		;
-		;TRICKY TO HANDLE MODIFICATION...
-		;
-		MOV	EDI,CV_ID_LB			;ONE PAST ID LOW BYTE
-		MOV	EAX,ECX
+                ;
+                ;TRICKY TO HANDLE MODIFICATION...
+                ;
+                MOV     EDI,CV_ID_LB                    ;ONE PAST ID LOW BYTE
+                MOV     EAX,ECX
 
-		DEC	EDI
-		MOV	ECX,CV_ID_LIMIT
+                DEC     EDI
+                MOV     ECX,CV_ID_LIMIT
 
-		LEA	ESI,[ESI]._ID
-		SUB	ECX,EDI			;EAX IS BYTES TO MOVE, ECX IS MAX LEFT THIS BLOCK
+                LEA     ESI,[ESI]._ID
+                SUB     ECX,EDI                 ;EAX IS BYTES TO MOVE, ECX IS MAX LEFT THIS BLOCK
 
-		CMP	ECX,EAX
-		JAE	L5$
+                CMP     ECX,EAX
+                JAE     L5$
 
-		SUB	EAX,ECX
+                SUB     EAX,ECX
 
-		OPTI_MOVSB
+                OPTI_MOVSB
 
-		MOV	EDI,CV_BYTES_PTR
+                MOV     EDI,CV_BYTES_PTR
 
-		SUB	EDI,EAX
+                SUB     EDI,EAX
 L5$:
-		MOV	ECX,EAX
+                MOV     ECX,EAX
 
-		OPTI_MOVSB
+                OPTI_MOVSB
 
-		MOV	ESI,CV_BYTES_PTR
-		MOV	CV_BYTES_PTR,ECX
+                MOV     ESI,CV_BYTES_PTR
+                MOV     CV_BYTES_PTR,ECX
 
-		RET
+                RET
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-PUT_CV_SYMBOL	ENDP
+PUT_CV_SYMBOL   ENDP
 
 
-SKIP_LEAF_ECX	PROC	NEAR
-		;
-		;
-		;
-		MOV	AX,[ECX]
-		ADD	ECX,2
+SKIP_LEAF_ECX   PROC    NEAR
+                ;
+                ;
+                ;
+                MOV     AX,[ECX]
+                ADD     ECX,2
 SKIP_LEAF_AX:
-		OR	AH,AH
-		JS	L1$
+                OR      AH,AH
+                JS      L1$
 
-		RET
+                RET
 
 L1$:
-		AND	EAX,07FFFH
+                AND     EAX,07FFFH
 
-		CMP	EAX,10H
-		JZ	L8$
+                CMP     EAX,10H
+                JZ      L8$
 
-		MOV	AL,LEAF_SIZE[EAX]
-		JA	L9$
+                MOV     AL,LEAF_SIZE[EAX]
+                JA      L9$
 
-		ADD	ECX,EAX
+                ADD     ECX,EAX
 
-		RET
-
-L8$:
-		MOV	AX,[ECX]
-		ADD	ECX,2
-
-		ADD	ECX,EAX
-
-		RET
-
-L9$:
-		MOV	AL,CVP_BAD_LEAF_ERR
-		push	EAX
-		call	_err_abort
-
-SKIP_LEAF_ECX	ENDP
-
-
-SKIP_LEAF_SICXAX	PROC	NEAR
-		;
-		;CARRY CLEAR IF NO ERROR
-		;
-		AND	EAX,7FFFH
-
-		CMP	EAX,10H
-		JZ	L8$
-
-		MOV	AL,LEAF_SIZE[EAX]
-		JA	L9$
-
-		ADD	ECX,EAX
-
-		RET
+                RET
 
 L8$:
-		MOV	AX,[ESI+ECX]
-		ADD	ECX,2
+                MOV     AX,[ECX]
+                ADD     ECX,2
 
-		ADD	ECX,EAX
+                ADD     ECX,EAX
 
-		RET
+                RET
 
 L9$:
-		MOV	AL,CVP_BAD_LEAF_ERR
-		push	EAX
-		call	_err_abort
+                MOV     AL,CVP_BAD_LEAF_ERR
+                push    EAX
+                call    _err_abort
 
-SKIP_LEAF_SICXAX	ENDP
+SKIP_LEAF_ECX   ENDP
 
 
-IS_MY_CODESEG	PROC	NEAR
-		;
-		;CX IS SEGMENT
-		;
-		OR	CH,CH
-		JS	L9$
+SKIP_LEAF_SICXAX        PROC    NEAR
+                ;
+                ;CARRY CLEAR IF NO ERROR
+                ;
+                AND     EAX,7FFFH
 
-		AND	ECX,0FFFFH
-		JZ	L8$
-		;
-		;WE ARE KEEPING, HAVE WE REFERENCED THIS SEGMENT BEFORE?
-		;
-		MOV	EDX,CV_SEGMENT_COUNT
-		MOV	EAX,ECX
+                CMP     EAX,10H
+                JZ      L8$
 
-		CMP	EDX,ECX
-		JB	L8$
+                MOV     AL,LEAF_SIZE[EAX]
+                JA      L9$
 
-		SHR	EAX,3			;THAT BYTE
-		MOV	CH,1
+                ADD     ECX,EAX
 
-		MOV	EDX,CV_SSEARCH_TBL
-		AND	CL,7
+                RET
 
-		SHL	CH,CL
+L8$:
+                MOV     AX,[ESI+ECX]
+                ADD     ECX,2
 
-		MOV	CL,[EDX+EAX]
-		PUSH	EBX
+                ADD     ECX,EAX
 
-		TEST	CL,CH
-		JNZ	L5$
+                RET
 
-		MOV	EBX,CV_SSEARCH_CNT
-		OR	CL,CH
+L9$:
+                MOV     AL,CVP_BAD_LEAF_ERR
+                push    EAX
+                call    _err_abort
 
-		INC	EBX
-		MOV	[EDX+EAX],CL
+SKIP_LEAF_SICXAX        ENDP
 
-		MOV	CV_SSEARCH_CNT,EBX
+
+IS_MY_CODESEG   PROC    NEAR
+                ;
+                ;CX IS SEGMENT
+                ;
+                OR      CH,CH
+                JS      L9$
+
+                AND     ECX,0FFFFH
+                JZ      L8$
+                ;
+                ;WE ARE KEEPING, HAVE WE REFERENCED THIS SEGMENT BEFORE?
+                ;
+                MOV     EDX,CV_SEGMENT_COUNT
+                MOV     EAX,ECX
+
+                CMP     EDX,ECX
+                JB      L8$
+
+                SHR     EAX,3                   ;THAT BYTE
+                MOV     CH,1
+
+                MOV     EDX,CV_SSEARCH_TBL
+                AND     CL,7
+
+                SHL     CH,CL
+
+                MOV     CL,[EDX+EAX]
+                PUSH    EBX
+
+                TEST    CL,CH
+                JNZ     L5$
+
+                MOV     EBX,CV_SSEARCH_CNT
+                OR      CL,CH
+
+                INC     EBX
+                MOV     [EDX+EAX],CL
+
+                MOV     CV_SSEARCH_CNT,EBX
 L5$:
-		POP	EBX
-		CMP	AL,AL
+                POP     EBX
+                CMP     AL,AL
 
-		RET
+                RET
 
 L8$:
-		OR	AL,-1
+                OR      AL,-1
 L9$:
-		RET
+                RET
 
-IS_MY_CODESEG	ENDP
+IS_MY_CODESEG   ENDP
 #endif
 
 void _install_gsym(unsigned char *ECX, CV_SYMBOL_STRUCT *ESI)
 {
-	// INSTALL GDATA16, GDATA32, CONSTANT, AND UDT IN GLOBALSYM
-	unsigned hash = _get_name_hash32(ECX);
-	_install_globalsym(hash, (char *)ECX, ESI);
+        // INSTALL GDATA16, GDATA32, CONSTANT, AND UDT IN GLOBALSYM
+        unsigned hash = _get_name_hash32(ECX);
+        _install_globalsym(hash, (char *)ECX, ESI);
 }
 
 void _install_gsym_ref(CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, unsigned EDX, unsigned char *ESI)
@@ -1226,7 +1226,7 @@ void _install_gsym_ref(CVSYMBOLS_VARS *cv, unsigned EAX, unsigned ECX, unsigned 
     *(unsigned *)&cv->CV_IREF._MODULE = ECX;
     EAX = _get_name_hash32(ESI);
 
-    _install_globalsym(EAX, 0, (CV_SYMBOL_STRUCT *)&cv->CV_IREF);	// STICK IN GLOBALSYM TABLE
+    _install_globalsym(EAX, 0, (CV_SYMBOL_STRUCT *)&cv->CV_IREF);       // STICK IN GLOBALSYM TABLE
 }
 
 
@@ -1242,8 +1242,8 @@ unsigned _opti_hash32X(unsigned EAX, unsigned char *ESI)
 {
     __asm
     {
-		mov	EAX,4[ESP]
-		mov	ECX,8[ESP]
+                mov     EAX,4[ESP]
+                mov     ECX,8[ESP]
 
                 TEST    EAX,EAX
                 JZ      L95$
@@ -1304,7 +1304,7 @@ L9$:
                 MOV     ECX,ESI
                 POP     ESI
 L95$:
-		ret
+                ret
     }
 }
 
@@ -1318,1274 +1318,1274 @@ unsigned char *esi = ESI;
     unsigned EDX = 0;
     if (EAX)
     {
-	unsigned n = EAX >> 2;
-	while (n)
-	{
-	    EDX = (EDX << 4) | (EDX >> 28);
-	    EDX ^= *(unsigned *)ESI & 0xDFDFDFDF;
+        unsigned n = EAX >> 2;
+        while (n)
+        {
+            EDX = (EDX << 4) | (EDX >> 28);
+            EDX ^= *(unsigned *)ESI & 0xDFDFDFDF;
 
-	    ESI += 4;
-	    n--;
-	}
-	EDX = (EDX << 4) | (EDX >> 28);
+            ESI += 4;
+            n--;
+        }
+        EDX = (EDX << 4) | (EDX >> 28);
 
-	EAX &= 3;
-	if (EAX)
-	{
-	    unsigned ECX = *ESI << 8;
-	    if (--EAX)
-	    {	ECX <<= 16;
-		ECX |= *++ESI;
-		EAX--;
-		if (EAX)
-		    ECX = (ECX & 0xFFFF00FF) | (*++ESI << 8);
-		ECX = (ECX >> 16) | (ECX << 16);
-	    }
-	    EDX ^= ECX & 0xDFDFDFDF;
-	    ESI++;
-	}
-	// 4 PER 4 BYTES + 6 OVERHEAD + 4 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
+        EAX &= 3;
+        if (EAX)
+        {
+            unsigned ECX = *ESI << 8;
+            if (--EAX)
+            {   ECX <<= 16;
+                ECX |= *++ESI;
+                EAX--;
+                if (EAX)
+                    ECX = (ECX & 0xFFFF00FF) | (*++ESI << 8);
+                ECX = (ECX >> 16) | (ECX << 16);
+            }
+            EDX ^= ECX & 0xDFDFDFDF;
+            ESI++;
+        }
+        // 4 PER 4 BYTES + 6 OVERHEAD + 4 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
     }
     if (EDX != _opti_hash32X(eax, esi)) printf("\tERROR = %d\n", eax & 3);
     return EDX;
 }
 
 #if 0
-GET_NAME_HASH32_CASE	PROC	NEAR
-		;
-		;
-		;
-		GET_OMF_NAME_LENGTH_EAX
+GET_NAME_HASH32_CASE    PROC    NEAR
+                ;
+                ;
+                ;
+                GET_OMF_NAME_LENGTH_EAX
 
-		MOV	SYMBOL_LENGTH,EAX
-;		CALL	OPTI_HASH32_CASE
-;		RET
+                MOV     SYMBOL_LENGTH,EAX
+;               CALL    OPTI_HASH32_CASE
+;               RET
 
-GET_NAME_HASH32_CASE	ENDP
+GET_NAME_HASH32_CASE    ENDP
 
 
-OPTI_HASH32_CASE	PROC	NEAR
-		;
-		;
-		;
-		TEST	EAX,EAX
-		JZ	L95$
+OPTI_HASH32_CASE        PROC    NEAR
+                ;
+                ;
+                ;
+                TEST    EAX,EAX
+                JZ      L95$
 
-		PUSH	ESI
-		MOV	ESI,ECX
+                PUSH    ESI
+                MOV     ESI,ECX
 
-		PUSH	EAX
-		XOR	EDX,EDX
+                PUSH    EAX
+                XOR     EDX,EDX
 
-		SHR	EAX,2
-		JZ	L4$			;3		;6
+                SHR     EAX,2
+                JZ      L4$                     ;3              ;6
 L2$:
-		ROL	EDX,4
-		MOV	ECX,[ESI]
+                ROL     EDX,4
+                MOV     ECX,[ESI]
 
-		ADD	ESI,4
-		XOR	EDX,ECX
+                ADD     ESI,4
+                XOR     EDX,ECX
 
-		DEC	EAX
-		JNZ	L2$			;3		;6
+                DEC     EAX
+                JNZ     L2$                     ;3              ;6
 L4$:
-		ROL	EDX,4
-		POP	EAX
+                ROL     EDX,4
+                POP     EAX
 
-		AND	EAX,3
-		JZ	L9$			;2
+                AND     EAX,3
+                JZ      L9$                     ;2
 
-		XOR	ECX,ECX
-		DEC	EAX
+                XOR     ECX,ECX
+                DEC     EAX
 
-		MOV	CH,[ESI]
-		JZ	L7$
+                MOV     CH,[ESI]
+                JZ      L7$
 
-		SHL	ECX,16
+                SHL     ECX,16
 
-		MOV	CL,[ESI+1]
-		INC	ESI
+                MOV     CL,[ESI+1]
+                INC     ESI
 
-		DEC	EAX
-		JZ	L8$
+                DEC     EAX
+                JZ      L8$
 
-		MOV	CH,[ESI+1]
-		INC	ESI
+                MOV     CH,[ESI+1]
+                INC     ESI
 L8$:
-		ROR	ECX,16
+                ROR     ECX,16
 L7$:
-		INC	ESI
+                INC     ESI
 
-		XOR	EDX,ECX
+                XOR     EDX,ECX
 L9$:
-		MOV	EAX,EDX		;3 PER 4 BYTES + 6 OVERHEAD + 3 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
+                MOV     EAX,EDX         ;3 PER 4 BYTES + 6 OVERHEAD + 3 FOR FIRST ODD BYTE + 4 FOR NEXT + 1 FOR NEXT
 
-		MOV	ECX,ESI
-		POP	ESI
+                MOV     ECX,ESI
+                POP     ESI
 L95$:
-		RET
+                RET
 
-OPTI_HASH32_CASE	ENDP
+OPTI_HASH32_CASE        ENDP
 
 
-DO_SSEARCH_SYMS	PROC	NEAR
-		;
-		;OUTPUT S_SSEARCH SYMBOLS, SET UP NECESSARY ARRAYS
-		;
-		MOV	EDX,CV_SSEARCH_CNT	;# OF START_SEARCH SYMBOLS NEEDED
+DO_SSEARCH_SYMS PROC    NEAR
+                ;
+                ;OUTPUT S_SSEARCH SYMBOLS, SET UP NECESSARY ARRAYS
+                ;
+                MOV     EDX,CV_SSEARCH_CNT      ;# OF START_SEARCH SYMBOLS NEEDED
 
-		TEST	EDX,EDX
-		JZ	L9$
+                TEST    EDX,EDX
+                JZ      L9$
 
-		PUSH	EDI
-		MOV	EDI,EDX
+                PUSH    EDI
+                MOV     EDI,EDX
 L1$:
-		MOV	ECX,CV_SSEARCH_TXT_LEN
-		LEA	EDX,CV_ASYM_STRUCTURE
+                MOV     ECX,CV_SSEARCH_TXT_LEN
+                LEA     EDX,CV_ASYM_STRUCTURE
 
-		MOV	EAX,OFF CV_SSEARCH_TXT
-		CALL	STORE_EAXECX_EDX_SEQ
+                MOV     EAX,OFF CV_SSEARCH_TXT
+                CALL    STORE_EAXECX_EDX_SEQ
 
-		DEC	EDI
-		JNZ	L1$
+                DEC     EDI
+                JNZ     L1$
 
-		MOV	ECX,CV_SSEARCH_CNT
-		LEA	EDI,CV_SSEARCH_PTRS
+                MOV     ECX,CV_SSEARCH_CNT
+                LEA     EDI,CV_SSEARCH_PTRS
 
-		CMP	ECX,8
-		JA	L5$			;TOO MANY, DO THE HARD WAY
+                CMP     ECX,8
+                JA      L5$                     ;TOO MANY, DO THE HARD WAY
 L4$:
-		ADD	ECX,ECX
-		XOR	EAX,EAX
+                ADD     ECX,ECX
+                XOR     EAX,EAX
 
-		REP	STOSD
+                REP     STOSD
 
-		MOV	CV_NEXT_SSEARCH,4	;SKIP LEADING 00000001
-		POP	EDI
+                MOV     CV_NEXT_SSEARCH,4       ;SKIP LEADING 00000001
+                POP     EDI
 L9$:
-		RET
+                RET
 
 
 L5$:
-		CMP	ECX,PAGE_SIZE/8
-		JAE	L99$
+                CMP     ECX,PAGE_SIZE/8
+                JAE     L99$
 
-		CALL	GET_NEW_LOG_BLK
+                CALL    GET_NEW_LOG_BLK
 
-		MOV	EDI,EAX
-		MOV	CV_SSEARCH_PTRS,EAX
+                MOV     EDI,EAX
+                MOV     CV_SSEARCH_PTRS,EAX
 
-		JMP	L4$
+                JMP     L4$
 
 L99$:
-		MOV	AL,CVP_SSEARCH_ERR
-		push	EAX
-		call	_err_abort
+                MOV     AL,CVP_SSEARCH_ERR
+                push    EAX
+                call    _err_abort
 
-DO_SSEARCH_SYMS	ENDP
+DO_SSEARCH_SYMS ENDP
 
 
-GET_CV_SYMBOL2	PROC	NEAR
-		;
-		;RETURN ESI PTR TO SYMBOL
-		;
-		MOV	ESI,CV_BYTES_PTR
-		CALL	GET_CV_DWORD		;LENGTH OF SYMBOL RECORD & ID
+GET_CV_SYMBOL2  PROC    NEAR
+                ;
+                ;RETURN ESI PTR TO SYMBOL
+                ;
+                MOV     ESI,CV_BYTES_PTR
+                CALL    GET_CV_DWORD            ;LENGTH OF SYMBOL RECORD & ID
 
-		MOV	ECX,EAX
-		MOV	DPTR TEMP_RECORD,EAX
+                MOV     ECX,EAX
+                MOV     DPTR TEMP_RECORD,EAX
 
-		SHR	ECX,16
-		AND	EAX,0FFFFH
+                SHR     ECX,16
+                AND     EAX,0FFFFH
 
-		SUB	EAX,2			;ID ALREADY STORED
-		MOV	EDI,OFF TEMP_RECORD+4
+                SUB     EAX,2                   ;ID ALREADY STORED
+                MOV     EDI,OFF TEMP_RECORD+4
 
-		CMP	CL,I_S_DELETE
-		JZ	L9$
+                CMP     CL,I_S_DELETE
+                JZ      L9$
 
-		CALL	MOVE_EAX_CV_BYTES
+                CALL    MOVE_EAX_CV_BYTES
 
-		MOV	EBX,DPTR TEMP_RECORD
-		MOV	CL,2
+                MOV     EBX,DPTR TEMP_RECORD
+                MOV     CL,2
 
-		SUB	ECX,EBX
-		MOV	CV_BYTES_PTR,ESI
+                SUB     ECX,EBX
+                MOV     CV_BYTES_PTR,ESI
 
-		SHR	EBX,16
-		MOV	ESI,OFF TEMP_RECORD
+                SHR     EBX,16
+                MOV     ESI,OFF TEMP_RECORD
 
-		AND	ECX,3			;DOING DWORD ALIGN
-		JZ	L5$
+                AND     ECX,3                   ;DOING DWORD ALIGN
+                JZ      L5$
 
-		ADD	WPTR [ESI],CX
-		XOR	EAX,EAX
+                ADD     WPTR [ESI],CX
+                XOR     EAX,EAX
 L3$:
-		MOV	[EDI],AL
-		INC	EDI
+                MOV     [EDI],AL
+                INC     EDI
 
-		DEC	ECX
-		JNZ	L3$
+                DEC     ECX
+                JNZ     L3$
 L5$:
-		RET
+                RET
 
 L9$:
-		MOV	EBX,ECX
-		CALL	SKIP_EAX_CV_BYTES
+                MOV     EBX,ECX
+                CALL    SKIP_EAX_CV_BYTES
 
-		MOV	CV_BYTES_PTR,ESI
-		MOV	ESI,OFF TEMP_RECORD
+                MOV     CV_BYTES_PTR,ESI
+                MOV     ESI,OFF TEMP_RECORD
 
-		RET
+                RET
 
-GET_CV_SYMBOL2	ENDP
+GET_CV_SYMBOL2  ENDP
 
 
-SKIP_EAX_CV_BYTES	PROC	NEAR	PRIVATE
-		;
-		;NEED TO SKIP SMALLER OF EAX AND PAGE_SIZE-SI
-		;
-		MOV	ECX,CV_THIS_BLOCK_LIMIT
-		MOV	EDX,CV_BYTES_LEFT
+SKIP_EAX_CV_BYTES       PROC    NEAR    PRIVATE
+                ;
+                ;NEED TO SKIP SMALLER OF EAX AND PAGE_SIZE-SI
+                ;
+                MOV     ECX,CV_THIS_BLOCK_LIMIT
+                MOV     EDX,CV_BYTES_LEFT
 
-		SUB	ECX,ESI
-		SUB	EDX,EAX
+                SUB     ECX,ESI
+                SUB     EDX,EAX
 
-		MOV	CV_BYTES_LEFT,EDX
-		JC	L9$
+                MOV     CV_BYTES_LEFT,EDX
+                JC      L9$
 L1$:
-		SUB	EAX,ECX
-		JA	L5$
+                SUB     EAX,ECX
+                JA      L5$
 
-		ADD	ECX,EAX
-		XOR	EAX,EAX
+                ADD     ECX,EAX
+                XOR     EAX,EAX
 L5$:
-		ADD	EDI,ECX
-		ADD	ESI,ECX
+                ADD     EDI,ECX
+                ADD     ESI,ECX
 
-		XOR	ECX,ECX
+                XOR     ECX,ECX
 
-		OR	EAX,EAX
-		JNZ	L3$
+                OR      EAX,EAX
+                JNZ     L3$
 L9$:
-		RET
+                RET
 
 L3$:
-		;
-		;GET NEXT BLOCK
-		;
-		PUSH	EAX
-		CALL	ADJUST_CV_PTR
+                ;
+                ;GET NEXT BLOCK
+                ;
+                PUSH    EAX
+                CALL    ADJUST_CV_PTR
 
-		POP	EAX
-		MOV	ECX,PAGE_SIZE
+                POP     EAX
+                MOV     ECX,PAGE_SIZE
 
-		JNC	L1$
+                JNC     L1$
 
-		RET
+                RET
 
-SKIP_EAX_CV_BYTES	ENDP
+SKIP_EAX_CV_BYTES       ENDP
 
 
-PUT_CV_SYMBOL2	PROC	NEAR
-		;
-		;
-		;
-		ASSUME	ESI:PTR CV_SYMBOL_STRUCT
+PUT_CV_SYMBOL2  PROC    NEAR
+                ;
+                ;
+                ;
+                ASSUME  ESI:PTR CV_SYMBOL_STRUCT
 
-		MOV	EAX,DPTR [ESI]._LENGTH
+                MOV     EAX,DPTR [ESI]._LENGTH
 
-		MOV	ECX,EAX
+                MOV     ECX,EAX
 
-		SHR	EAX,16
-		AND	ECX,0FFFFH
+                SHR     EAX,16
+                AND     ECX,0FFFFH
 
-		CMP	AL,I_S_DELETE
-		JZ	L9$
+                CMP     AL,I_S_DELETE
+                JZ      L9$
 
-		MOV	EAX,I2S_TBL[EAX*4]
-		ADD	ECX,2
+                MOV     EAX,I2S_TBL[EAX*4]
+                ADD     ECX,2
 
-		MOV	[ESI]._ID,AX
-		LEA	EDX,CV_ASYM_STRUCTURE
+                MOV     [ESI]._ID,AX
+                LEA     EDX,CV_ASYM_STRUCTURE
 
-		MOV	EAX,ESI
-		JMP	STORE_EAXECX_EDX_SEQ
+                MOV     EAX,ESI
+                JMP     STORE_EAXECX_EDX_SEQ
 
 L9$:
-		RET
+                RET
 
-PUT_CV_SYMBOL2	ENDP
-
-
-		ASSUME	ESI:NOTHING
-
-PP2_RETT	PROC	NEAR
-		;
-		;NOTHING
-		;
-		RET
-
-PP2_RETT	ENDP
+PUT_CV_SYMBOL2  ENDP
 
 
-PP2_ERROR	PROC	NEAR
-		;
-		;CANNOT HAPPEN
-		;
-		MOV	AL,CVP_CORRUPT_ERR
-		push	EAX
-		call	_err_abort
+                ASSUME  ESI:NOTHING
 
-PP2_ERROR	ENDP
+PP2_RETT        PROC    NEAR
+                ;
+                ;NOTHING
+                ;
+                RET
+
+PP2_RETT        ENDP
 
 
-PP2_TYPE_4	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 4
-		;
-		MOV	EAX,4[ESI]
+PP2_ERROR       PROC    NEAR
+                ;
+                ;CANNOT HAPPEN
+                ;
+                MOV     AL,CVP_CORRUPT_ERR
+                push    EAX
+                call    _err_abort
 
-		CMP	AH,10H
-		JB	L9$
+PP2_ERROR       ENDP
 
-		AND	EAX,0FFFFH
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	4[ESI],AX
+PP2_TYPE_4      PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 4
+                ;
+                MOV     EAX,4[ESI]
+
+                CMP     AH,10H
+                JB      L9$
+
+                AND     EAX,0FFFFH
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
+
+                MOV     4[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_4	ENDP
+PP2_TYPE_4      ENDP
 
 
-PP2_TYPE_6	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 6
-		;
-		MOV	EAX,4[ESI]
+PP2_TYPE_6      PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 6
+                ;
+                MOV     EAX,4[ESI]
 
-		CMP	EAX,10000000H
-		JB	L9$
+                CMP     EAX,10000000H
+                JB      L9$
 
-		SHR	EAX,16
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
+                SHR     EAX,16
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	6[ESI],AX
+                MOV     6[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_6	ENDP
+PP2_TYPE_6      ENDP
 
 
-PP2_TYPE_8	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 8
-		;
-		MOV	EAX,8[ESI]
+PP2_TYPE_8      PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 8
+                ;
+                MOV     EAX,8[ESI]
 
-		CMP	AH,10H
-		JB	L9$
+                CMP     AH,10H
+                JB      L9$
 
-		AND	EAX,0FFFFH
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
+                AND     EAX,0FFFFH
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	8[ESI],AX
+                MOV     8[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_8	ENDP
-
-
-PP2_VFTPATH16	PROC	NEAR
-		;
-		;
-		;
-		CALL	PP2_TYPE_8
-;		JMP	PP2_TYPE_10
-
-PP2_VFTPATH16	ENDP
+PP2_TYPE_8      ENDP
 
 
-PP2_TYPE_10	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 10
-		;
-		MOV	EAX,8[ESI]
+PP2_VFTPATH16   PROC    NEAR
+                ;
+                ;
+                ;
+                CALL    PP2_TYPE_8
+;               JMP     PP2_TYPE_10
 
-		CMP	EAX,10000000H
-		JB	L9$
+PP2_VFTPATH16   ENDP
 
-		SHR	EAX,16
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	10[ESI],AX
+PP2_TYPE_10     PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 10
+                ;
+                MOV     EAX,8[ESI]
+
+                CMP     EAX,10000000H
+                JB      L9$
+
+                SHR     EAX,16
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
+
+                MOV     10[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_10	ENDP
-
-
-PP2_VFTPATH32	PROC	NEAR
-		;
-		;
-		;
-		CALL	PP2_TYPE_10
-;		CALL	PP2_TYPE_12
-;		RET
-
-PP2_VFTPATH32	ENDP
+PP2_TYPE_10     ENDP
 
 
-PP2_TYPE_12	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 12
-		;
-		MOV	EAX,12[ESI]
+PP2_VFTPATH32   PROC    NEAR
+                ;
+                ;
+                ;
+                CALL    PP2_TYPE_10
+;               CALL    PP2_TYPE_12
+;               RET
 
-		CMP	AH,10H
-		JB	L9$
+PP2_VFTPATH32   ENDP
 
-		AND	EAX,0FFFFH
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	12[ESI],AX
+PP2_TYPE_12     PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 12
+                ;
+                MOV     EAX,12[ESI]
+
+                CMP     AH,10H
+                JB      L9$
+
+                AND     EAX,0FFFFH
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
+
+                MOV     12[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_12	ENDP
+PP2_TYPE_12     ENDP
 
 
-PP2_TYPE_26	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 26
-		;
-		MOV	EAX,24[ESI]
+PP2_TYPE_26     PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 26
+                ;
+                MOV     EAX,24[ESI]
 
-		CMP	EAX,10000000H
-		JB	L9$
+                CMP     EAX,10000000H
+                JB      L9$
 
-		SHR	EAX,16
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
+                SHR     EAX,16
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	26[ESI],AX
+                MOV     26[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_26	ENDP
+PP2_TYPE_26     ENDP
 
 
-PP2_TYPE_34	PROC	NEAR
-		;
-		;CONVERT TYPE AT OFFSET 34
-		;
-		MOV	EAX,32[ESI]
+PP2_TYPE_34     PROC    NEAR
+                ;
+                ;CONVERT TYPE AT OFFSET 34
+                ;
+                MOV     EAX,32[ESI]
 
-		CMP	EAX,10000000H
-		JB	L9$
+                CMP     EAX,10000000H
+                JB      L9$
 
-		SHR	EAX,16
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
+                SHR     EAX,16
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	34[ESI],AX
+                MOV     34[ESI],AX
 L9$:
-		RET
+                RET
 
-PP2_TYPE_34	ENDP
+PP2_TYPE_34     ENDP
 
 
-PP2_DATA16	PROC	NEAR
-		;
-		;CONVERT TYPE
-		;INSTALL A DATAREF IN STATICSYM
-		;
-		ASSUME	ESI:PTR CV_LDATA16_STRUCT
+PP2_DATA16      PROC    NEAR
+                ;
+                ;CONVERT TYPE
+                ;INSTALL A DATAREF IN STATICSYM
+                ;
+                ASSUME  ESI:PTR CV_LDATA16_STRUCT
 
-		CALL	PP2_TYPE_8
+                CALL    PP2_TYPE_8
 
-		MOV	EDX,DPTR [ESI]._LENGTH
-		MOV	EAX,DPTR [ESI]._OFFSET
+                MOV     EDX,DPTR [ESI]._LENGTH
+                MOV     EAX,DPTR [ESI]._OFFSET
 
-		SHR	EDX,16				;_ID
-		MOV	ECX,EAX
+                SHR     EDX,16                          ;_ID
+                MOV     ECX,EAX
 
-		PUSH	ESI
-		LEA	ESI,[ESI]._NAME
+                PUSH    ESI
+                LEA     ESI,[ESI]._NAME
 
-		SHR	ECX,16				;_SEGMENT
-		AND	EAX,0FFFFH			;_OFFSET
+                SHR     ECX,16                          ;_SEGMENT
+                AND     EAX,0FFFFH                      ;_OFFSET
 
-		CMP	EDX,I_S_LDATA16
-		JZ	L5$
+                CMP     EDX,I_S_LDATA16
+                JZ      L5$
 
-		MOV	DL,I_S_DATAREF
-		CALL	INSTALL_GSYM_REF
+                MOV     DL,I_S_DATAREF
+                CALL    INSTALL_GSYM_REF
 
-		POP	ESI
+                POP     ESI
 
-		RET
+                RET
 
 L5$:
-		MOV	EDX,S_DATAREF
-		CALL	INSTALL_SSYM
+                MOV     EDX,S_DATAREF
+                CALL    INSTALL_SSYM
 
-		POP	ESI
-		JC	PP2_DELETE
+                POP     ESI
+                JC      PP2_DELETE
 
-		RET
+                RET
 
-PP2_DATA16	ENDP
-
-
-PP2_DATA32	PROC	NEAR
-		;
-		;CONVERT TYPE
-		;INSTALL A DATAREF IN STATICSYM
-		;
-		ASSUME	ESI:PTR CV_LDATA32_STRUCT
-
-		PUSH	ESI
-		CALL	PP2_TYPE_10
-
-		MOV	EDX,DPTR [ESI]._LENGTH
-		MOV	ECX,DPTR [ESI]._SEGMENT
-
-		SHR	EDX,16				;_ID
-		AND	ECX,0FFFFH			;_SEGMENT
-
-		MOV	EAX,[ESI]._OFFSET
-		LEA	ESI,[ESI]._NAME
-
-		CMP	DL,I_S_LDATA32
-		JZ	L5$
-
-		MOV	DL,I_S_DATAREF
-		CALL	INSTALL_GSYM_REF
-
-		POP	ESI
-
-		RET
-
-L5$:
-		MOV	EDX,S_DATAREF
-		CALL	INSTALL_SSYM
-
-		POP	ESI
-		JC	PP2_DELETE
-
-		RET
-
-PP2_DATA32	ENDP
+PP2_DATA16      ENDP
 
 
-PP2_PROC16	PROC	NEAR
-		;
-		;CONVERT TYPE
-		;HANDLE NESTING
-		;
-		ASSUME	ESI:PTR CV_LPROC16_STRUCT
+PP2_DATA32      PROC    NEAR
+                ;
+                ;CONVERT TYPE
+                ;INSTALL A DATAREF IN STATICSYM
+                ;
+                ASSUME  ESI:PTR CV_LDATA32_STRUCT
 
-		CALL	PP2_TYPE_26
+                PUSH    ESI
+                CALL    PP2_TYPE_10
 
-		MOV	EAX,DPTR [ESI]._SEGMENT
-		CALL	NEST_PROC
+                MOV     EDX,DPTR [ESI]._LENGTH
+                MOV     ECX,DPTR [ESI]._SEGMENT
 
-		MOV	EAX,DPTR [ESI]._DBG_END
-		MOV	ECX,DPTR [ESI]._SEGMENT
+                SHR     EDX,16                          ;_ID
+                AND     ECX,0FFFFH                      ;_SEGMENT
 
-		SHR	EAX,16			;_OFFSET
-		AND	ECX,0FFFFH		;_SEGMENT
+                MOV     EAX,[ESI]._OFFSET
+                LEA     ESI,[ESI]._NAME
 
-		MOV	EDX,DPTR [ESI]._LENGTH
-		PUSH	ESI
+                CMP     DL,I_S_LDATA32
+                JZ      L5$
 
-		SHR	EDX,16			;_ID
-		LEA	ESI,[ESI]._NAME
+                MOV     DL,I_S_DATAREF
+                CALL    INSTALL_GSYM_REF
 
-		CMP	DL,I_S_LPROC16
-		JZ	L5$
+                POP     ESI
 
-		MOV	DL,I_S_PROCREF
-		CALL	INSTALL_GSYM_REF
-
-		POP	ESI
-
-		RET
+                RET
 
 L5$:
-		MOV	EDX,S_PROCREF
-		CALL	INSTALL_SSYM
+                MOV     EDX,S_DATAREF
+                CALL    INSTALL_SSYM
 
-		POP	ESI
-		JC	PP2_DELETE
+                POP     ESI
+                JC      PP2_DELETE
 
-		RET
+                RET
 
-PP2_PROC16	ENDP
-
-
-PP2_DELETE	PROC	NEAR
-		;
-		;I DON'T REMEMBER WHY THIS IS DIFFERENT FROM PP1_DELETE...
-		;
-		MOV	BPTR [ESI]._ID,I_S_DELETE
-
-		RET
-
-PP2_DELETE	ENDP
+PP2_DATA32      ENDP
 
 
-PP2_PROC32	PROC	NEAR
-		;
-		;CONVERT TYPE
-		;HANDLE NESTING
-		;
-		ASSUME	ESI:PTR CV_LPROC32_STRUCT
+PP2_PROC16      PROC    NEAR
+                ;
+                ;CONVERT TYPE
+                ;HANDLE NESTING
+                ;
+                ASSUME  ESI:PTR CV_LPROC16_STRUCT
 
-		PUSH	ESI
-		CALL	PP2_TYPE_34
+                CALL    PP2_TYPE_26
 
-		MOV	EAX,DPTR [ESI]._SEGMENT
-		CALL	NEST_PROC
+                MOV     EAX,DPTR [ESI]._SEGMENT
+                CALL    NEST_PROC
 
-		MOV	EDX,DPTR [ESI]._LENGTH
-		MOV	ECX,DPTR [ESI]._SEGMENT
+                MOV     EAX,DPTR [ESI]._DBG_END
+                MOV     ECX,DPTR [ESI]._SEGMENT
 
-		SHR	EDX,16			;_ID
-		AND	ECX,0FFFFH		;_SEGMENT
+                SHR     EAX,16                  ;_OFFSET
+                AND     ECX,0FFFFH              ;_SEGMENT
 
-		MOV	EAX,[ESI]._OFFSET
-		LEA	ESI,[ESI]._NAME
+                MOV     EDX,DPTR [ESI]._LENGTH
+                PUSH    ESI
 
-		CMP	DL,I_S_LPROC32
-		JZ	L5$
+                SHR     EDX,16                  ;_ID
+                LEA     ESI,[ESI]._NAME
 
-		MOV	DL,I_S_PROCREF
-		CALL	INSTALL_GSYM_REF
+                CMP     DL,I_S_LPROC16
+                JZ      L5$
 
-		POP	ESI
+                MOV     DL,I_S_PROCREF
+                CALL    INSTALL_GSYM_REF
 
-		RET
+                POP     ESI
+
+                RET
 
 L5$:
-		MOV	EDX,S_PROCREF
-		CALL	INSTALL_SSYM
+                MOV     EDX,S_PROCREF
+                CALL    INSTALL_SSYM
 
-		POP	ESI
-		JC	PP2_DELETE
+                POP     ESI
+                JC      PP2_DELETE
 
-		RET
+                RET
 
-PP2_PROC32	ENDP
-
-
-PP2_THUNK16	PROC	NEAR
-		;
-		;NEST PROC
-		;
-		ASSUME	ESI:PTR CV_THUNK16_STRUCT
-
-		MOV	AX,[ESI]._SEGMENT
-		JMP	NEST_PROC
-
-PP2_THUNK16	ENDP
+PP2_PROC16      ENDP
 
 
-PP2_THUNK32	PROC	NEAR
-		;
-		;NEST PROC
-		;
-		ASSUME	ESI:PTR CV_THUNK32_STRUCT
+PP2_DELETE      PROC    NEAR
+                ;
+                ;I DON'T REMEMBER WHY THIS IS DIFFERENT FROM PP1_DELETE...
+                ;
+                MOV     BPTR [ESI]._ID,I_S_DELETE
 
-		MOV	EAX,DPTR [ESI]._SEGMENT
-		JMP	NEST_PROC
+                RET
 
-PP2_THUNK32	ENDP
-
-
-PP2_BLOCK16	PROC	NEAR
-		;
-		;NEST BLOCK
-		;
-		ASSUME	ESI:PTR CV_BLOCK16_STRUCT
-
-		MOV	EAX,DPTR [ESI]._SEGMENT
-		JMP	NEST_BLOCK
-
-PP2_BLOCK16	ENDP
+PP2_DELETE      ENDP
 
 
-PP2_BLOCK32	PROC	NEAR
-		;
-		;NEST BLOCK
-		;
-		ASSUME	ESI:PTR CV_BLOCK32_STRUCT
+PP2_PROC32      PROC    NEAR
+                ;
+                ;CONVERT TYPE
+                ;HANDLE NESTING
+                ;
+                ASSUME  ESI:PTR CV_LPROC32_STRUCT
 
-		MOV	EAX,DPTR [ESI]._SEGMENT
-		JMP	NEST_BLOCK
+                PUSH    ESI
+                CALL    PP2_TYPE_34
 
-PP2_BLOCK32	ENDP
+                MOV     EAX,DPTR [ESI]._SEGMENT
+                CALL    NEST_PROC
+
+                MOV     EDX,DPTR [ESI]._LENGTH
+                MOV     ECX,DPTR [ESI]._SEGMENT
+
+                SHR     EDX,16                  ;_ID
+                AND     ECX,0FFFFH              ;_SEGMENT
+
+                MOV     EAX,[ESI]._OFFSET
+                LEA     ESI,[ESI]._NAME
+
+                CMP     DL,I_S_LPROC32
+                JZ      L5$
+
+                MOV     DL,I_S_PROCREF
+                CALL    INSTALL_GSYM_REF
+
+                POP     ESI
+
+                RET
+
+L5$:
+                MOV     EDX,S_PROCREF
+                CALL    INSTALL_SSYM
+
+                POP     ESI
+                JC      PP2_DELETE
+
+                RET
+
+PP2_PROC32      ENDP
 
 
-PP2_S_END	PROC	NEAR
-		;
-		;CLOSE A SCOPE
-		;
-		MOV	EDX,CV_PPARENT		;IS THERE A PARENT?
-		GET_CV_ASYM_OFFSET		;IN EAX
+PP2_THUNK16     PROC    NEAR
+                ;
+                ;NEST PROC
+                ;
+                ASSUME  ESI:PTR CV_THUNK16_STRUCT
 
-		TEST	EDX,EDX
-		JZ	L99$
+                MOV     AX,[ESI]._SEGMENT
+                JMP     NEST_PROC
 
-		MOV	CV_TEMP_DWORD,EAX
-		LEA	EAX,CV_TEMP_DWORD
+PP2_THUNK16     ENDP
 
-		LEA	EBX,[EDX+8]
-		LEA	EDX,CV_ASYM_STRUCTURE
 
-		MOV	ECX,4
-		CALL	STORE_EAXECX_EDXEBX_RANDOM
+PP2_THUNK32     PROC    NEAR
+                ;
+                ;NEST PROC
+                ;
+                ASSUME  ESI:PTR CV_THUNK32_STRUCT
 
-		MOV	ECX,4
-		MOV	EBX,CV_PPARENT
+                MOV     EAX,DPTR [ESI]._SEGMENT
+                JMP     NEST_PROC
 
-		LEA	EAX,CV_PPARENT
-		LEA	EDX,CV_ASYM_STRUCTURE
+PP2_THUNK32     ENDP
 
-		ADD	EBX,ECX
-		JMP	READ_EAXECX_EDXEBX_RANDOM
+
+PP2_BLOCK16     PROC    NEAR
+                ;
+                ;NEST BLOCK
+                ;
+                ASSUME  ESI:PTR CV_BLOCK16_STRUCT
+
+                MOV     EAX,DPTR [ESI]._SEGMENT
+                JMP     NEST_BLOCK
+
+PP2_BLOCK16     ENDP
+
+
+PP2_BLOCK32     PROC    NEAR
+                ;
+                ;NEST BLOCK
+                ;
+                ASSUME  ESI:PTR CV_BLOCK32_STRUCT
+
+                MOV     EAX,DPTR [ESI]._SEGMENT
+                JMP     NEST_BLOCK
+
+PP2_BLOCK32     ENDP
+
+
+PP2_S_END       PROC    NEAR
+                ;
+                ;CLOSE A SCOPE
+                ;
+                MOV     EDX,CV_PPARENT          ;IS THERE A PARENT?
+                GET_CV_ASYM_OFFSET              ;IN EAX
+
+                TEST    EDX,EDX
+                JZ      L99$
+
+                MOV     CV_TEMP_DWORD,EAX
+                LEA     EAX,CV_TEMP_DWORD
+
+                LEA     EBX,[EDX+8]
+                LEA     EDX,CV_ASYM_STRUCTURE
+
+                MOV     ECX,4
+                CALL    STORE_EAXECX_EDXEBX_RANDOM
+
+                MOV     ECX,4
+                MOV     EBX,CV_PPARENT
+
+                LEA     EAX,CV_PPARENT
+                LEA     EDX,CV_ASYM_STRUCTURE
+
+                ADD     EBX,ECX
+                JMP     READ_EAXECX_EDXEBX_RANDOM
 
 L99$:
-		MOV	AL,CVP_SCOPE_ERR
-		push	EAX
-		call	_err_abort
+                MOV     AL,CVP_SCOPE_ERR
+                push    EAX
+                call    _err_abort
 
-PP2_S_END	ENDP
+PP2_S_END       ENDP
 
 
-NEST_PROC	PROC	NEAR
-		;
-		;AX IS SEGMENT, NEST PLEASE
-		;
-		MOV	EDX,CV_PPARENT		;IS THERE A PARENT?
-		AND	EAX,0FFFFH
+NEST_PROC       PROC    NEAR
+                ;
+                ;AX IS SEGMENT, NEST PLEASE
+                ;
+                MOV     EDX,CV_PPARENT          ;IS THERE A PARENT?
+                AND     EAX,0FFFFH
 
-		TEST	EDX,EDX
-		JNZ	L7$
-		;
-		;THIS IS ROOT LEVEL, HOOK THIS TO CORRECT SSEARCH CHAIN.
-		;
-;		PUSH	ESI
-		MOV	CV_PPARENT_SEGMENT,EAX
+                TEST    EDX,EDX
+                JNZ     L7$
+                ;
+                ;THIS IS ROOT LEVEL, HOOK THIS TO CORRECT SSEARCH CHAIN.
+                ;
+;               PUSH    ESI
+                MOV     CV_PPARENT_SEGMENT,EAX
 
-		MOV	ECX,CV_SSEARCH_CNT
-		LEA	EDX,CV_SSEARCH_PTRS
+                MOV     ECX,CV_SSEARCH_CNT
+                LEA     EDX,CV_SSEARCH_PTRS
 
-		CMP	ECX,8
-		JBE	L1$
+                CMP     ECX,8
+                JBE     L1$
 
-		MOV	EDX,CV_SSEARCH_PTRS	;SEARCH FOR MATCH OR ZERO
+                MOV     EDX,CV_SSEARCH_PTRS     ;SEARCH FOR MATCH OR ZERO
 L1$:
-		MOV	ECX,[EDX]
-		ADD	EDX,8
+                MOV     ECX,[EDX]
+                ADD     EDX,8
 
-		CMP	ECX,EAX
-		JZ	L14$
+                CMP     ECX,EAX
+                JZ      L14$
 
-		TEST	ECX,ECX
-		JNZ	L1$
+                TEST    ECX,ECX
+                JNZ     L1$
 L12$:
-		;
-		;CREATE ENTRY
-		;
-		MOV	[EDX-8],EAX
-		GET_CV_ASYM_OFFSET		;IN EAX
+                ;
+                ;CREATE ENTRY
+                ;
+                MOV     [EDX-8],EAX
+                GET_CV_ASYM_OFFSET              ;IN EAX
 
-		MOV	[EDX-4],EAX
+                MOV     [EDX-4],EAX
 L13$:
-		MOV	EBX,CV_NEXT_SSEARCH
-		MOV	CV_PPARENT,EAX
+                MOV     EBX,CV_NEXT_SSEARCH
+                MOV     CV_PPARENT,EAX
 
-		MOV	EAX,EBX
-		ADD	EBX,4
+                MOV     EAX,EBX
+                ADD     EBX,4
 
-		ADD	EAX,SIZE CV_SEARCH_STRUCT
-		MOV	ECX,6
+                ADD     EAX,SIZE CV_SEARCH_STRUCT
+                MOV     ECX,6
 
-		MOV	CV_NEXT_SSEARCH,EAX
-		LEA	EDX,CV_ASYM_STRUCTURE
+                MOV     CV_NEXT_SSEARCH,EAX
+                LEA     EDX,CV_ASYM_STRUCTURE
 
-		LEA	EAX,CV_PPARENT
-		JMP	STORE_EAXECX_EDXEBX_RANDOM
+                LEA     EAX,CV_PPARENT
+                JMP     STORE_EAXECX_EDXEBX_RANDOM
 
 L14$:
-		;
-		;FOUND ENTRY
-		;
-		GET_CV_ASYM_OFFSET		;IN EAX
-		MOV	ECX,[EDX-4]
+                ;
+                ;FOUND ENTRY
+                ;
+                GET_CV_ASYM_OFFSET              ;IN EAX
+                MOV     ECX,[EDX-4]
 
-		MOV	CV_PPARENT,EAX
-		MOV	[EDX-4],EAX
+                MOV     CV_PPARENT,EAX
+                MOV     [EDX-4],EAX
 
-		LEA	EBX,[ECX+12]		;POINT TO PNEXT
-		LEA	EDX,CV_ASYM_STRUCTURE
+                LEA     EBX,[ECX+12]            ;POINT TO PNEXT
+                LEA     EDX,CV_ASYM_STRUCTURE
 
-		LEA	EAX,CV_PPARENT		;UPDATE PREVIOUS TO POINT TO ME
-		MOV	ECX,4
+                LEA     EAX,CV_PPARENT          ;UPDATE PREVIOUS TO POINT TO ME
+                MOV     ECX,4
 
-		JMP	STORE_EAXECX_EDXEBX_RANDOM
+                JMP     STORE_EAXECX_EDXEBX_RANDOM
 
 L7$:
 NEST_PROC_WITH_PARENT::
-		ASSUME	ESI:PTR CV_LPROC16_STRUCT
+                ASSUME  ESI:PTR CV_LPROC16_STRUCT
 
-		MOV	ECX,CV_PPARENT_SEGMENT
-		MOV	[ESI]._PPARENT,EDX
+                MOV     ECX,CV_PPARENT_SEGMENT
+                MOV     [ESI]._PPARENT,EDX
 
-		CMP	ECX,EAX
-		JNZ	L99$
+                CMP     ECX,EAX
+                JNZ     L99$
 L8$:
-		GET_CV_ASYM_OFFSET		;IN EAX
+                GET_CV_ASYM_OFFSET              ;IN EAX
 
-		MOV	CV_PPARENT,EAX
+                MOV     CV_PPARENT,EAX
 
-		RET
+                RET
 
 L99$:
-		MOV	AL,CVP_NEST_SEG_ERR
-		CALL	WARN_RET
-		JMP	L8$
+                MOV     AL,CVP_NEST_SEG_ERR
+                CALL    WARN_RET
+                JMP     L8$
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
-NEST_PROC	ENDP
-
-
-NEST_BLOCK	PROC	NEAR
-		;
-		;AX IS SEGMENT, NEST PLEASE
-		;
-		MOV	EDX,CV_PPARENT		;IS THERE A PARENT?
-
-		TEST	EDX,EDX
-		JNZ	NEST_PROC_WITH_PARENT
-
-		MOV	AL,CVP_BLOCK_WO_PARENT_ERR
-		push	EAX
-		call	_err_abort
-
-NEST_BLOCK	ENDP
+NEST_PROC       ENDP
 
 
-CV_SYMBOL_CLEANUP	PROC	NEAR
-		;
-		;CLEAN-UP
-		;
-		;	1.  OUTPUT ALIGNSYM SECTION AND CV_INDEX IF NOT ZERO LENGTH
-		;	2.  FIX TYPES ON ANY GLOBALSYM ENTRIES WE MADE
-		;
-		PUSHM	EDI,ESI,EBX
+NEST_BLOCK      PROC    NEAR
+                ;
+                ;AX IS SEGMENT, NEST PLEASE
+                ;
+                MOV     EDX,CV_PPARENT          ;IS THERE A PARENT?
 
-		CMP	CV_SSEARCH_CNT,8
-		JBE	L1$
+                TEST    EDX,EDX
+                JNZ     NEST_PROC_WITH_PARENT
 
-		MOV	EAX,CV_SSEARCH_PTRS
-		CALL	RELEASE_BLOCK
+                MOV     AL,CVP_BLOCK_WO_PARENT_ERR
+                push    EAX
+                call    _err_abort
+
+NEST_BLOCK      ENDP
+
+
+CV_SYMBOL_CLEANUP       PROC    NEAR
+                ;
+                ;CLEAN-UP
+                ;
+                ;       1.  OUTPUT ALIGNSYM SECTION AND CV_INDEX IF NOT ZERO LENGTH
+                ;       2.  FIX TYPES ON ANY GLOBALSYM ENTRIES WE MADE
+                ;
+                PUSHM   EDI,ESI,EBX
+
+                CMP     CV_SSEARCH_CNT,8
+                JBE     L1$
+
+                MOV     EAX,CV_SSEARCH_PTRS
+                CALL    RELEASE_BLOCK
 L1$:
-		;
-		;TRANSFER STUFF FROM CV_ASYM_STRUCTURE TO EXETABLE
-		;
-		LEA	ESI,CV_ASYM_STRUCTURE._SEQ_TABLE
-		MOV	EBX,OFF EXETABLE
+                ;
+                ;TRANSFER STUFF FROM CV_ASYM_STRUCTURE TO EXETABLE
+                ;
+                LEA     ESI,CV_ASYM_STRUCTURE._SEQ_TABLE
+                MOV     EBX,OFF EXETABLE
 L11$:
-		MOV	EAX,[ESI]
-		ADD	ESI,4
+                MOV     EAX,[ESI]
+                ADD     ESI,4
 
-		MOV	[EBX],EAX
-		ADD	EBX,4
+                MOV     [EBX],EAX
+                ADD     EBX,4
 
-		TEST	EAX,EAX
-		JNZ	L11$
-		;
-		;NOW FLUSH THAT STUFF TO FINAL
-		;
-		GET_CV_ASYM_OFFSET	;EAX IS BYTES IN TABLE
+                TEST    EAX,EAX
+                JNZ     L11$
+                ;
+                ;NOW FLUSH THAT STUFF TO FINAL
+                ;
+                GET_CV_ASYM_OFFSET      ;EAX IS BYTES IN TABLE
 
-		PUSH	EAX
-		CALL	FLUSH_EAX_TO_FINAL
-		;
-		;WRITE CV_INDEX
-		;
-		POP	ECX
-		MOV	EAX,0125H		;SSTALIGNSYM
+                PUSH    EAX
+                CALL    FLUSH_EAX_TO_FINAL
+                ;
+                ;WRITE CV_INDEX
+                ;
+                POP     ECX
+                MOV     EAX,0125H               ;SSTALIGNSYM
 
-		PUSH	ECX
-		CALL	WRITE_CV_INDEX
+                PUSH    ECX
+                CALL    WRITE_CV_INDEX
 
-		POP	ECX
-		MOV	EDX,BYTES_SO_FAR
+                POP     ECX
+                MOV     EDX,BYTES_SO_FAR
 
-		ADD	EDX,ECX
-		MOV	ESI,CV_GSYM_START
-		;
-		;NOW CHECK GLOBALSYMS I ADDED FOR TYPES TO CONVERT
-		;
-		MOV	BYTES_SO_FAR,EDX
-		GETT	AL,CV_WARNINGS
+                ADD     EDX,ECX
+                MOV     ESI,CV_GSYM_START
+                ;
+                ;NOW CHECK GLOBALSYMS I ADDED FOR TYPES TO CONVERT
+                ;
+                MOV     BYTES_SO_FAR,EDX
+                GETT    AL,CV_WARNINGS
 
-		CMP	ECX,64K
-		JB	L3$
+                CMP     ECX,64K
+                JB      L3$
 
-		TEST	AL,AL
-		JZ	L3$
+                TEST    AL,AL
+                JZ      L3$
 
-		MOV	AL,CVP_SYMBOLS_64K_ERR
-		CALL	WARN_RET
+                MOV     AL,CVP_SYMBOLS_64K_ERR
+                CALL    WARN_RET
 L3$:
-		TEST	ESI,ESI
-		JZ	L4$
+                TEST    ESI,ESI
+                JZ      L4$
 
-		CONVERT	ESI,ESI,CV_GSYM_GARRAY
-		ASSUME	ESI:PTR CVG_REF_STRUCT
+                CONVERT ESI,ESI,CV_GSYM_GARRAY
+                ASSUME  ESI:PTR CVG_REF_STRUCT
 
-		MOV	ESI,[ESI]._NEXT_GSYM_GINDEX
-		JMP	L6$
+                MOV     ESI,[ESI]._NEXT_GSYM_GINDEX
+                JMP     L6$
 
 L4$:
-		MOV	ESI,FIRST_GSYM_GINDEX
-		JMP	L6$
+                MOV     ESI,FIRST_GSYM_GINDEX
+                JMP     L6$
 
 L5$:
-		CONVERT	ESI,ESI,CV_GSYM_GARRAY
-		ASSUME	ESI:PTR CVG_REF_STRUCT
+                CONVERT ESI,ESI,CV_GSYM_GARRAY
+                ASSUME  ESI:PTR CVG_REF_STRUCT
 
-		MOV	EBX,[ESI]._NEXT_GSYM_GINDEX
-		XOR	EAX,EAX
+                MOV     EBX,[ESI]._NEXT_GSYM_GINDEX
+                XOR     EAX,EAX
 
-		MOV	AL,BPTR [ESI]._ID	;INTERNAL ID...
-		ADD	ESI,SIZE CV_GLOBALSYM_STRUCT
+                MOV     AL,BPTR [ESI]._ID       ;INTERNAL ID...
+                ADD     ESI,SIZE CV_GLOBALSYM_STRUCT
 
-		CMP	AL,I_S_CONSTANT
-		JZ	L55$
+                CMP     AL,I_S_CONSTANT
+                JZ      L55$
 
-		CMP	AL,I_S_UDT
-		JZ	L55$
+                CMP     AL,I_S_UDT
+                JZ      L55$
 
-		ADD	ESI,4
+                ADD     ESI,4
 
-		CMP	AL,I_S_GDATA16
-		JZ	L55$
+                CMP     AL,I_S_GDATA16
+                JZ      L55$
 
-		ADD	ESI,2
+                ADD     ESI,2
 
-		CMP	AL,I_S_GDATA32
-		JNZ	L59$
+                CMP     AL,I_S_GDATA32
+                JNZ     L59$
 
-		ASSUME	ESI:NOTHING
+                ASSUME  ESI:NOTHING
 
 L55$:
-		MOV	AH,[ESI+1]
+                MOV     AH,[ESI+1]
 
-		CMP	AH,10H
-		JB	L59$
+                CMP     AH,10H
+                JB      L59$
 
-		MOV	AL,[ESI]
-		CALL	CONVERT_CV_LTYPE_GTYPE_A
+                MOV     AL,[ESI]
+                CALL    CONVERT_CV_LTYPE_GTYPE_A
 
-		MOV	[ESI],AX
+                MOV     [ESI],AX
 L59$:
-		MOV	ESI,EBX
+                MOV     ESI,EBX
 L6$:
-		TEST	ESI,ESI
-		JNZ	L5$
-		;
-		;THAT SHOULD DO IT...
-		;
-		POPM	EBX,ESI,EDI
+                TEST    ESI,ESI
+                JNZ     L5$
+                ;
+                ;THAT SHOULD DO IT...
+                ;
+                POPM    EBX,ESI,EDI
 
-		RET
+                RET
 
-CV_SYMBOL_CLEANUP	ENDP
+CV_SYMBOL_CLEANUP       ENDP
 
 
-INSTALL_SSYM	PROC	NEAR
-		;
-		;EAX IS OFFSET
-		;ECX IS SEGMENT
-		;EDX IS REF TYPE
-		;ESI IS NAME TEXT
-		;
+INSTALL_SSYM    PROC    NEAR
+                ;
+                ;EAX IS OFFSET
+                ;ECX IS SEGMENT
+                ;EDX IS REF TYPE
+                ;ESI IS NAME TEXT
+                ;
 
-		SHL	EDX,16
-		MOV	ISSYM_OFFSET,EAX
+                SHL     EDX,16
+                MOV     ISSYM_OFFSET,EAX
 
-		OR	ECX,EDX
-		MOV	EAX,ESI
+                OR      ECX,EDX
+                MOV     EAX,ESI
 
-		MOV	DPTR ISSYM_SEGMENT,ECX
-		CALL	GET_NAME_HASH32
+                MOV     DPTR ISSYM_SEGMENT,ECX
+                CALL    GET_NAME_HASH32
 
-		MOV	EDX,DPTR ISSYM_SEGMENT
-		MOV	ECX,ISSYM_OFFSET
+                MOV     EDX,DPTR ISSYM_SEGMENT
+                MOV     ECX,ISSYM_OFFSET
 
-		SHL	EDX,16
-		MOV	ISSYM_HASH,EAX
+                SHL     EDX,16
+                MOV     ISSYM_HASH,EAX
 
-		XOR	EAX,ECX
-		MOV	ESI,SSYM_HASH_LOG
+                XOR     EAX,ECX
+                MOV     ESI,SSYM_HASH_LOG
 
-		XOR	EAX,EDX
-		XOR	EDX,EDX
-		;
-		;SEE IF ONE ALREADY IN TABLE WITH MATCHING HASH AND ADDRESS
-		;
-		HASHDIV	SSYM_HASH
+                XOR     EAX,EDX
+                XOR     EDX,EDX
+                ;
+                ;SEE IF ONE ALREADY IN TABLE WITH MATCHING HASH AND ADDRESS
+                ;
+                HASHDIV SSYM_HASH
 
-		PUSHM	EDI,EBX
+                PUSHM   EDI,EBX
 
-		MOV	ECX,ISSYM_HASH
-		MOV	EDI,ISSYM_OFFSET
+                MOV     ECX,ISSYM_HASH
+                MOV     EDI,ISSYM_OFFSET
 
-		MOV	EBX,DPTR ISSYM_SEGMENT
-		MOV	EAX,[ESI+EDX*4]
+                MOV     EBX,DPTR ISSYM_SEGMENT
+                MOV     EAX,[ESI+EDX*4]
 
-		LEA	ESI,[ESI+EDX*4 - CV_GLOBALSYM_STRUCT._NEXT_HASH_GINDEX]
-		JMP	L2$
+                LEA     ESI,[ESI+EDX*4 - CV_GLOBALSYM_STRUCT._NEXT_HASH_GINDEX]
+                JMP     L2$
 
-		ASSUME	ESI:PTR CV_GLOBALSYM_STRUCT
+                ASSUME  ESI:PTR CV_GLOBALSYM_STRUCT
 L1$:
-		MOV	EAX,[ESI]._NEXT_HASH_GINDEX
+                MOV     EAX,[ESI]._NEXT_HASH_GINDEX
 L2$:
-		TEST	EAX,EAX
-		JZ	L5$
+                TEST    EAX,EAX
+                JZ      L5$
 
-		CONVERT	EAX,EAX,CV_SSYM_GARRAY
-		ASSUME	EAX:PTR CVG_REF_STRUCT
-		MOV	ESI,EAX
-		MOV	EDX,[EAX]._HASH
+                CONVERT EAX,EAX,CV_SSYM_GARRAY
+                ASSUME  EAX:PTR CVG_REF_STRUCT
+                MOV     ESI,EAX
+                MOV     EDX,[EAX]._HASH
 
-		CMP	EDX,ECX
-		JNZ	L1$
+                CMP     EDX,ECX
+                JNZ     L1$
 
-		MOV	DX,[EAX]._SEGMENT
-		MOV	EAX,[EAX]._OFFSET
+                MOV     DX,[EAX]._SEGMENT
+                MOV     EAX,[EAX]._OFFSET
 
-		CMP	EAX,EDI
-		JNZ	L1$
+                CMP     EAX,EDI
+                JNZ     L1$
 
-		CMP	DX,BX
-		JNZ	L1$
+                CMP     DX,BX
+                JNZ     L1$
 
-		CMP	ESP,-1
+                CMP     ESP,-1
 
-		POPM	EBX,EDI
+                POPM    EBX,EDI
 
-		RET
+                RET
 
 L5$:
-		MOV	EAX,SIZE CVG_REF_STRUCT
-		CALL	CV_SSYM_POOL_GET
+                MOV     EAX,SIZE CVG_REF_STRUCT
+                CALL    CV_SSYM_POOL_GET
 
-		MOV	EDX,EAX
-		ASSUME	EDX:PTR CVG_REF_STRUCT
-		INSTALL_POINTER_GINDEX	CV_SSYM_GARRAY
-		MOV	[ESI]._NEXT_HASH_GINDEX,EAX
+                MOV     EDX,EAX
+                ASSUME  EDX:PTR CVG_REF_STRUCT
+                INSTALL_POINTER_GINDEX  CV_SSYM_GARRAY
+                MOV     [ESI]._NEXT_HASH_GINDEX,EAX
 
-		MOV	ESI,LAST_SSYM_GINDEX
-		MOV	[EDX]._HASH,ECX
+                MOV     ESI,LAST_SSYM_GINDEX
+                MOV     [EDX]._HASH,ECX
 
-		TEST	ESI,ESI
-		JZ	L6$
+                TEST    ESI,ESI
+                JZ      L6$
 
-		CONVERT	ESI,ESI,CV_SSYM_GARRAY
-		MOV	[ESI]._NEXT_GSYM_GINDEX,EAX
+                CONVERT ESI,ESI,CV_SSYM_GARRAY
+                MOV     [ESI]._NEXT_GSYM_GINDEX,EAX
 L7$:
-		MOV	LAST_SSYM_GINDEX,EAX
+                MOV     LAST_SSYM_GINDEX,EAX
 
-		XOR	EAX,EAX
-		MOV	[EDX]._OFFSET,EDI
+                XOR     EAX,EAX
+                MOV     [EDX]._OFFSET,EDI
 
-		MOV	[EDX]._NEXT_HASH_GINDEX,EAX
-		MOV	[EDX]._NEXT_GSYM_GINDEX,EAX
+                MOV     [EDX]._NEXT_HASH_GINDEX,EAX
+                MOV     [EDX]._NEXT_GSYM_GINDEX,EAX
 
-		MOV	[EDX]._TEXT_OFFSET,EAX
-		MOV	DPTR [EDX]._LENGTH,EBX		;ACTUALLY, ID IN HIGH WORD
+                MOV     [EDX]._TEXT_OFFSET,EAX
+                MOV     DPTR [EDX]._LENGTH,EBX          ;ACTUALLY, ID IN HIGH WORD
 
-		SHL	EBX,16				;MOVE SEGMENT TO HI WORD
-		MOV	EAX,CV_REFSYM_CNT
+                SHL     EBX,16                          ;MOVE SEGMENT TO HI WORD
+                MOV     EAX,CV_REFSYM_CNT
 
-		MOV	ECX,CURNMOD_NUMBER
-		INC	EAX
+                MOV     ECX,CURNMOD_NUMBER
+                INC     EAX
 
-		OR	EBX,ECX
-		MOV	CV_REFSYM_CNT,EAX
+                OR      EBX,ECX
+                MOV     CV_REFSYM_CNT,EAX
 
-		GET_CV_ASYM_OFFSET		;IN EAX
-		MOV	DPTR [EDX]._MODULE,EBX
+                GET_CV_ASYM_OFFSET              ;IN EAX
+                MOV     DPTR [EDX]._MODULE,EBX
 
-		POPM	EBX,EDI
+                POPM    EBX,EDI
 
-		MOV	[EDX]._ALIGN_OFF,EAX
-		OR	EAX,EAX
+                MOV     [EDX]._ALIGN_OFF,EAX
+                OR      EAX,EAX
 
-		RET
+                RET
 
 L6$:
-		MOV	FIRST_SSYM_GINDEX,EAX
-		JMP	L7$
+                MOV     FIRST_SSYM_GINDEX,EAX
+                JMP     L7$
 
-INSTALL_SSYM	ENDP
-
-
-		.DATA
-
-		ALIGN	4
-
-PROCSYM_PASS1	LABEL	DWORD
-
-		DD	PP1_W_DELETE		;TYPE 0 - UNDEFINED, WARN AND DELETE
-		DD	PP1_PASS_THRU		;TYPE 1 - S_COMPILE
-		DD	PP1_PASS_ND		;TYPE 2 - S_REGISTER, PASS THRU IF NOT DELETING THIS SCOPE
-		DD	PP1_CONSTANT		;TYPE 3 - S_CONSTANT, GLOBALIZE IF LEVEL 0
-		DD	PP1_UDT			;TYPE 4 - S_UDT
-		DD	PP1_W_DELETE		;TYPE 5 - S_SSEARCH, ILLEGAL
-		DD	PP1_S_END		;TYPE 6 - UNNEST SCOPES
-		DD	PP1_DELETE		;TYPE 7 - S_SKIP, IGNORE
-		DD	PP1_W_DELETE		;TYPE 8 - INTERNAL, MEANS DELETE LATER
-		DD	PP1_PASS_THRU		;TYPE 9 - S_OBJNAME, KEEP IT
-		DD	PP1_PASS_ND		;TYPE A - S_ENDARG
-		DD	PP1_PASS_ND		;TYPE B - S_COBOL_UDT
-		DD	PP1_PASS_ND		;TYPE C - S_MANYREG
-		DD	PP1_PASS_ND		;TYPE D - S_RETURN
-		DD	PP1_W_DELETE		;TYPE E - S_ENTRYTHIS
-		DD	PP1_W_DELETE		;TYPE F - S_TDBNAME (error - new format)
-		DD	PP1_PASS_ND		;TYPE 100 - S_BPREL16
-		DD	PP1_LDATA16		;TYPE 101 - S_LDATA16
-		DD	PP1_S_GDATA16		;TYPE 102
-		DD	PP1_W_DELETE		;TYPE 103, LINKER GENERATED ONLY...
-		DD	PP1_PROC16		;TYPE 104 - S_LPROC16, ENTER A 16-BIT PROCEDURE SCOPE
-		DD	PP1_PROC16		;TYPE 105 - S_GPROC16
-		DD	PP1_THUNK16		;TYPE 106 - S_THUNK16
-		DD	PP1_BLOCK16		;TYPE 107 - S_BLOCK16
-		DD	PP1_BLOCK16		;TYPE 108 - S_WITH16
-		DD	PP1_LABEL16		;TYPE 109 - S_LABEL16
-		DD	PP1_CEXMODEL16		;TYPE 10A - S_CEXMODEL16
-		DD	PP1_VFTPATH16		;TYPE 10B - S_VFTPATH16
-		DD	PP1_PASS_ND		;TYPE 10C - S_REGREL16
-		DD	PP1_PASS_ND		;TYPE 200 - S_BPREL32
-		DD	PP1_LDATA32		;TYPE 201 - S_LDATA32
-		DD	PP1_S_GDATA32		;TYPE 202
-		DD	PP1_W_DELETE		;TYPE 203, LINKER GENERATED ONLY...
-		DD	PP1_PROC32		;TYPE 204 - S_LPROC32, ENTER A 32-BIT PROCEDURE SCOPE
-		DD	PP1_PROC32		;TYPE 205 - S_GPROC32
-		DD	PP1_THUNK32		;TYPE 206 - S_THUNK32
-		DD	PP1_BLOCK32		;TYPE 207 - S_BLOCK32
-		DD	PP1_BLOCK32		;TYPE 208 - S_WITH32
-		DD	PP1_LABEL32		;TYPE 209 - S_LABEL32
-		DD	PP1_CEXMODEL32		;TYPE 20A - S_CEXMODEL32
-		DD	PP1_VFTPATH32		;TYPE 20B - S_VFTPATH32
-		DD	PP1_PASS_ND		;TYPE 20C - S_REGREL32
-		DD	PP1_LDATA32		;TYPE 20D - S_LTHREAD32
-		DD	PP1_S_GDATA32		;TYPE 20E - S_GTHREAD32
+INSTALL_SSYM    ENDP
 
 
-		ALIGN	4
+                .DATA
 
-PROCSYM_PASS2	LABEL	DWORD
+                ALIGN   4
 
-		DD	PP2_ERROR		;TYPE 0 - UNDEFINED, CAN'T PASS 2
-		DD	PP2_RETT		;TYPE 1 - S_COMPILE
-		DD	PP2_TYPE_4		;TYPE 2 - S_REGISTER, TYPE AT 4
-		DD	PP2_TYPE_4		;TYPE 3 - S_CONSTANT, TYPE AT 4
-		DD	PP2_TYPE_4		;TYPE 4 - S_UDT, TYPE AT 4
-		DD	PP2_ERROR		;TYPE 5 - S_SSEARCH, ILLEGAL
-		DD	PP2_S_END		;TYPE 6 - UNNEST SCOPES
-		DD	PP2_ERROR		;TYPE 7 - S_SKIP, CAN'T PASS 2
-		DD	PP2_RETT		;TYPE 8 - INTERNAL, MEANS DELETE LATER
-		DD	PP2_RETT		;TYPE 9 - S_OBJNAME, KEEP IT
-		DD	PP2_RETT		;TYPE A - S_ENDARG
-		DD	PP2_TYPE_4		;TYPE B - S_COBOL_UDT
-		DD	PP2_TYPE_4		;TYPE C - S_MANYREG
-		DD	PP2_RETT		;TYPE D - S_RETURN
-		DD	PP2_ERROR		;TYPE E - S_ENTRYTHIS
-		DD	PP2_ERROR		;TYPE F - S_TDBNAME
-		DD	PP2_TYPE_6		;TYPE 100 - S_BPREL16
-		DD	PP2_DATA16		;TYPE 101 - S_LDATA16
-		DD	PP2_DATA16		;TYPE 102 - S_GDATA16
-		DD	PP2_ERROR		;TYPE 103, LINKER GENERATED ONLY...
-		DD	PP2_PROC16		;TYPE 104 - S_LPROC16, ENTER A 16-BIT PROCEDURE SCOPE
-		DD	PP2_PROC16		;TYPE 105 - S_GPROC16
-		DD	PP2_THUNK16		;TYPE 106 - S_THUNK16
-		DD	PP2_BLOCK16		;TYPE 107 - S_BLOCK16
-		DD	PP2_BLOCK16		;TYPE 108 - S_WITH16
-		DD	PP2_RETT		;TYPE 109 - S_LABEL16
-		DD	PP2_RETT		;TYPE 10A - S_CEXMODEL16
-		DD	PP2_VFTPATH16		;TYPE 10B - S_VFTPATH16
-		DD	PP2_TYPE_8		;TYPE 10C - S_REGREL16
-		DD	PP2_TYPE_8		;TYPE 200 - S_BPREL32
-		DD	PP2_DATA32		;TYPE 201 - S_LDATA32
-		DD	PP2_DATA32		;TYPE 202 - S_GDATA32
-		DD	PP2_ERROR		;TYPE 203, LINKER GENERATED ONLY...
-		DD	PP2_PROC32		;TYPE 204 - S_LPROC32, ENTER A 32-BIT PROCEDURE SCOPE
-		DD	PP2_PROC32		;TYPE 205 - S_GPROC32
-		DD	PP2_THUNK32		;TYPE 206 - S_THUNK32
-		DD	PP2_BLOCK32		;TYPE 207 - S_BLOCK32
-		DD	PP2_BLOCK32		;TYPE 208 - S_WITH32
-		DD	PP2_RETT		;TYPE 209 - S_LABEL32
-		DD	PP2_RETT		;TYPE 20A - S_CEXMODEL32
-		DD	PP2_VFTPATH32		;TYPE 20B - S_VFTPATH32
-		DD	PP2_TYPE_10		;TYPE 20C - S_REGREL32
-		DD	PP2_DATA32		;TYPE 20D - S_LTHREAD32
-		DD	PP2_DATA32		;TYPE 20E - S_GTHREAD32
+PROCSYM_PASS1   LABEL   DWORD
 
-ZERO_ONE	DD	1
-
-I2S_TBL		DD	0,1,2,3,4,5,6,7,8,9,0AH,0BH,0CH,0DH,0EH,0FH
-		DD	100H,101H,102H,103H,104H,105H,106H,107H,108H,109H,10AH,10BH,10CH
-		DD	200H,201H,202H,203H,204H,205H,206H,207H,208H,209H,20AH,20BH,20CH,20DH,20EH
-		DD	300H,301H
-		DD	400H,401H,402H
-
-CV_REFSYM	DB	SIZE CV_GLOBALSYM_STRUCT - 4 + SIZE CVG_REF_STRUCT DUP(?)
+                DD      PP1_W_DELETE            ;TYPE 0 - UNDEFINED, WARN AND DELETE
+                DD      PP1_PASS_THRU           ;TYPE 1 - S_COMPILE
+                DD      PP1_PASS_ND             ;TYPE 2 - S_REGISTER, PASS THRU IF NOT DELETING THIS SCOPE
+                DD      PP1_CONSTANT            ;TYPE 3 - S_CONSTANT, GLOBALIZE IF LEVEL 0
+                DD      PP1_UDT                 ;TYPE 4 - S_UDT
+                DD      PP1_W_DELETE            ;TYPE 5 - S_SSEARCH, ILLEGAL
+                DD      PP1_S_END               ;TYPE 6 - UNNEST SCOPES
+                DD      PP1_DELETE              ;TYPE 7 - S_SKIP, IGNORE
+                DD      PP1_W_DELETE            ;TYPE 8 - INTERNAL, MEANS DELETE LATER
+                DD      PP1_PASS_THRU           ;TYPE 9 - S_OBJNAME, KEEP IT
+                DD      PP1_PASS_ND             ;TYPE A - S_ENDARG
+                DD      PP1_PASS_ND             ;TYPE B - S_COBOL_UDT
+                DD      PP1_PASS_ND             ;TYPE C - S_MANYREG
+                DD      PP1_PASS_ND             ;TYPE D - S_RETURN
+                DD      PP1_W_DELETE            ;TYPE E - S_ENTRYTHIS
+                DD      PP1_W_DELETE            ;TYPE F - S_TDBNAME (error - new format)
+                DD      PP1_PASS_ND             ;TYPE 100 - S_BPREL16
+                DD      PP1_LDATA16             ;TYPE 101 - S_LDATA16
+                DD      PP1_S_GDATA16           ;TYPE 102
+                DD      PP1_W_DELETE            ;TYPE 103, LINKER GENERATED ONLY...
+                DD      PP1_PROC16              ;TYPE 104 - S_LPROC16, ENTER A 16-BIT PROCEDURE SCOPE
+                DD      PP1_PROC16              ;TYPE 105 - S_GPROC16
+                DD      PP1_THUNK16             ;TYPE 106 - S_THUNK16
+                DD      PP1_BLOCK16             ;TYPE 107 - S_BLOCK16
+                DD      PP1_BLOCK16             ;TYPE 108 - S_WITH16
+                DD      PP1_LABEL16             ;TYPE 109 - S_LABEL16
+                DD      PP1_CEXMODEL16          ;TYPE 10A - S_CEXMODEL16
+                DD      PP1_VFTPATH16           ;TYPE 10B - S_VFTPATH16
+                DD      PP1_PASS_ND             ;TYPE 10C - S_REGREL16
+                DD      PP1_PASS_ND             ;TYPE 200 - S_BPREL32
+                DD      PP1_LDATA32             ;TYPE 201 - S_LDATA32
+                DD      PP1_S_GDATA32           ;TYPE 202
+                DD      PP1_W_DELETE            ;TYPE 203, LINKER GENERATED ONLY...
+                DD      PP1_PROC32              ;TYPE 204 - S_LPROC32, ENTER A 32-BIT PROCEDURE SCOPE
+                DD      PP1_PROC32              ;TYPE 205 - S_GPROC32
+                DD      PP1_THUNK32             ;TYPE 206 - S_THUNK32
+                DD      PP1_BLOCK32             ;TYPE 207 - S_BLOCK32
+                DD      PP1_BLOCK32             ;TYPE 208 - S_WITH32
+                DD      PP1_LABEL32             ;TYPE 209 - S_LABEL32
+                DD      PP1_CEXMODEL32          ;TYPE 20A - S_CEXMODEL32
+                DD      PP1_VFTPATH32           ;TYPE 20B - S_VFTPATH32
+                DD      PP1_PASS_ND             ;TYPE 20C - S_REGREL32
+                DD      PP1_LDATA32             ;TYPE 20D - S_LTHREAD32
+                DD      PP1_S_GDATA32           ;TYPE 20E - S_GTHREAD32
 
 
-LEAF_SIZE	LABEL	BYTE
+                ALIGN   4
 
-		DB	1		;8000
-		DB	2		;8001
-		DB	2		;8002
-		DB	4		;8003
-		DB	4		;8004
-		DB	4		;8005
-		DB	8		;8006
-		DB	10		;8007
-		DB	16		;8008
-		DB	8		;8009
-		DB	8		;800A
-		DB	6		;800B
-		DB	8		;800C
-		DB	16		;800D
-		DB	20		;800E
-		DB	32		;800F
+PROCSYM_PASS2   LABEL   DWORD
+
+                DD      PP2_ERROR               ;TYPE 0 - UNDEFINED, CAN'T PASS 2
+                DD      PP2_RETT                ;TYPE 1 - S_COMPILE
+                DD      PP2_TYPE_4              ;TYPE 2 - S_REGISTER, TYPE AT 4
+                DD      PP2_TYPE_4              ;TYPE 3 - S_CONSTANT, TYPE AT 4
+                DD      PP2_TYPE_4              ;TYPE 4 - S_UDT, TYPE AT 4
+                DD      PP2_ERROR               ;TYPE 5 - S_SSEARCH, ILLEGAL
+                DD      PP2_S_END               ;TYPE 6 - UNNEST SCOPES
+                DD      PP2_ERROR               ;TYPE 7 - S_SKIP, CAN'T PASS 2
+                DD      PP2_RETT                ;TYPE 8 - INTERNAL, MEANS DELETE LATER
+                DD      PP2_RETT                ;TYPE 9 - S_OBJNAME, KEEP IT
+                DD      PP2_RETT                ;TYPE A - S_ENDARG
+                DD      PP2_TYPE_4              ;TYPE B - S_COBOL_UDT
+                DD      PP2_TYPE_4              ;TYPE C - S_MANYREG
+                DD      PP2_RETT                ;TYPE D - S_RETURN
+                DD      PP2_ERROR               ;TYPE E - S_ENTRYTHIS
+                DD      PP2_ERROR               ;TYPE F - S_TDBNAME
+                DD      PP2_TYPE_6              ;TYPE 100 - S_BPREL16
+                DD      PP2_DATA16              ;TYPE 101 - S_LDATA16
+                DD      PP2_DATA16              ;TYPE 102 - S_GDATA16
+                DD      PP2_ERROR               ;TYPE 103, LINKER GENERATED ONLY...
+                DD      PP2_PROC16              ;TYPE 104 - S_LPROC16, ENTER A 16-BIT PROCEDURE SCOPE
+                DD      PP2_PROC16              ;TYPE 105 - S_GPROC16
+                DD      PP2_THUNK16             ;TYPE 106 - S_THUNK16
+                DD      PP2_BLOCK16             ;TYPE 107 - S_BLOCK16
+                DD      PP2_BLOCK16             ;TYPE 108 - S_WITH16
+                DD      PP2_RETT                ;TYPE 109 - S_LABEL16
+                DD      PP2_RETT                ;TYPE 10A - S_CEXMODEL16
+                DD      PP2_VFTPATH16           ;TYPE 10B - S_VFTPATH16
+                DD      PP2_TYPE_8              ;TYPE 10C - S_REGREL16
+                DD      PP2_TYPE_8              ;TYPE 200 - S_BPREL32
+                DD      PP2_DATA32              ;TYPE 201 - S_LDATA32
+                DD      PP2_DATA32              ;TYPE 202 - S_GDATA32
+                DD      PP2_ERROR               ;TYPE 203, LINKER GENERATED ONLY...
+                DD      PP2_PROC32              ;TYPE 204 - S_LPROC32, ENTER A 32-BIT PROCEDURE SCOPE
+                DD      PP2_PROC32              ;TYPE 205 - S_GPROC32
+                DD      PP2_THUNK32             ;TYPE 206 - S_THUNK32
+                DD      PP2_BLOCK32             ;TYPE 207 - S_BLOCK32
+                DD      PP2_BLOCK32             ;TYPE 208 - S_WITH32
+                DD      PP2_RETT                ;TYPE 209 - S_LABEL32
+                DD      PP2_RETT                ;TYPE 20A - S_CEXMODEL32
+                DD      PP2_VFTPATH32           ;TYPE 20B - S_VFTPATH32
+                DD      PP2_TYPE_10             ;TYPE 20C - S_REGREL32
+                DD      PP2_DATA32              ;TYPE 20D - S_LTHREAD32
+                DD      PP2_DATA32              ;TYPE 20E - S_GTHREAD32
+
+ZERO_ONE        DD      1
+
+I2S_TBL         DD      0,1,2,3,4,5,6,7,8,9,0AH,0BH,0CH,0DH,0EH,0FH
+                DD      100H,101H,102H,103H,104H,105H,106H,107H,108H,109H,10AH,10BH,10CH
+                DD      200H,201H,202H,203H,204H,205H,206H,207H,208H,209H,20AH,20BH,20CH,20DH,20EH
+                DD      300H,301H
+                DD      400H,401H,402H
+
+CV_REFSYM       DB      SIZE CV_GLOBALSYM_STRUCT - 4 + SIZE CVG_REF_STRUCT DUP(?)
 
 
-		ALIGN	4
+LEAF_SIZE       LABEL   BYTE
 
-CV_SSEARCH_TXT	DW	10,S_SSEARCH,0,0,0,0
+                DB      1               ;8000
+                DB      2               ;8001
+                DB      2               ;8002
+                DB      4               ;8003
+                DB      4               ;8004
+                DB      4               ;8005
+                DB      8               ;8006
+                DB      10              ;8007
+                DB      16              ;8008
+                DB      8               ;8009
+                DB      8               ;800A
+                DB      6               ;800B
+                DB      8               ;800C
+                DB      16              ;800D
+                DB      20              ;800E
+                DB      32              ;800F
 
-CV_SSEARCH_TXT_LEN	EQU	$-CV_SSEARCH_TXT
+
+                ALIGN   4
+
+CV_SSEARCH_TXT  DW      10,S_SSEARCH,0,0,0,0
+
+CV_SSEARCH_TXT_LEN      EQU     $-CV_SSEARCH_TXT
 
 
-		.DATA?
+                .DATA?
 
-		ALIGN	4
+                ALIGN   4
 
-ISSYM_OFFSET		DD	?
-ISSYM_SEGMENT		DW	?
-ISSYM_TYPE		DW	?
-ISSYM_HASH		DD	?
+ISSYM_OFFSET            DD      ?
+ISSYM_SEGMENT           DW      ?
+ISSYM_TYPE              DW      ?
+ISSYM_HASH              DD      ?
 
-		END
+                END
 
 #endif
