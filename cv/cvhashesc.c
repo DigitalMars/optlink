@@ -12,13 +12,13 @@ extern unsigned CVG_SYMBOL_HASH;
 extern unsigned LAST_CVH_SEGMENT;
 extern struct STD_PTR_S CV_HASHES_GARRAY;
 extern struct ALLOCS_STRUCT CV_HASHES_STUFF;
-extern unsigned CV_DWORD_ALIGN;
+extern void (*CV_DWORD_ALIGN)();
 
 unsigned CV_PAGE_BYTES;
 unsigned CV_HASH_COUNT;
 //unsigned CV_TEMP_JUNK;
 unsigned *CVG_PUT_PTR;
-unsigned CVG_PUT_LIMIT;
+unsigned *CVG_PUT_LIMIT;
 unsigned *CVG_PUT_BLK;
 unsigned CV_SECTION_OFFSET;
 unsigned CV_SECTION_HDR_ADDRESS;
@@ -74,51 +74,41 @@ if      fg_cvpack
                 EXTERNDEF       ALLOC_LOCKED:PROC,GET_NEW_LOG_BLK:PROC,MOVE_EAX_TO_FINAL_HIGH_WATER:PROC,RELEASE_LOCKED:PROC
                 EXTERNDEF       MOVE_EAX_TO_EDX_FINAL:PROC,SORT_HASHES_GARRAY:PROC,GET_NAME_HASH32:PROC,CV_HASHES_POOL_GET:PROC
                 EXTERNDEF       RELEASE_GARRAY:PROC,_release_minidata:proc
+#endif
 
+void _init_cv_symbol_hashes()
+{
+	// INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
 
-INIT_CV_SYMBOL_HASHES   PROC
-                ;
-                ;INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
-                ;
-                XOR     EAX,EAX
+	CV_HASH_COUNT = 0;
+	CV_PAGE_BYTES = 0;
 
-                MOV     CV_HASH_COUNT,EAX
-                MOV     CV_PAGE_BYTES,EAX
+	FIRST_CVH = 0;
+	LAST_CVH = 0;
 
-                MOV     FIRST_CVH,EAX
-                MOV     LAST_CVH,EAX
+	CVG_SYMBOL_OFFSET = 0;
 
-                MOV     CVG_SYMBOL_OFFSET,EAX
+	(*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
 
-                CALL    CV_DWORD_ALIGN          ;MAKE SURE OF DWORD ALIGNMENT
+	unsigned EAX = BYTES_SO_FAR;
+	unsigned ECX = FINAL_HIGH_WATER;
+	CV_SECTION_OFFSET = EAX;
+	CV_SECTION_HDR_ADDRESS = ECX;
+	EAX += sizeof(struct CV_HASH_HDR_STRUCT);
+	ECX += sizeof(struct CV_HASH_HDR_STRUCT);
 
-                MOV     EAX,BYTES_SO_FAR
-                MOV     ECX,FINAL_HIGH_WATER
+	BYTES_SO_FAR = EAX;
+	FINAL_HIGH_WATER = ECX;
 
-                MOV     CV_SECTION_OFFSET,EAX
-                MOV     CV_SECTION_HDR_ADDRESS,ECX
+	CV_SYMBOL_BASE_ADDR = ECX;
 
-                ADD     EAX,SIZE CV_HASH_HDR_STRUCT
-                ADD     ECX,SIZE CV_HASH_HDR_STRUCT
+	unsigned *p = _get_new_log_blk();
+	CVG_PUT_BLK = p;
+	CVG_PUT_PTR = p;
+	CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
+}
 
-                MOV     BYTES_SO_FAR,EAX
-                MOV     FINAL_HIGH_WATER,ECX
-
-                MOV     CV_SYMBOL_BASE_ADDR,ECX
-                CALL    GET_NEW_LOG_BLK
-
-                MOV     CVG_PUT_BLK,EAX
-                MOV     CVG_PUT_PTR,EAX
-
-                ADD     EAX,PAGE_SIZE-512
-
-                MOV     CVG_PUT_LIMIT,EAX
-
-                RET
-
-INIT_CV_SYMBOL_HASHES   ENDP
-
-
+#if 0
 STORE_CV_SYMBOL_INFO    PROC
                 ;
                 ;
