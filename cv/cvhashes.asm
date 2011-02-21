@@ -45,6 +45,7 @@ if	fg_cvpack
 		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,SORT_HASHES_GARRAY:PROC,GET_NAME_HASH32:PROC,CV_HASHES_POOL_GET:PROC
 		EXTERNDEF	RELEASE_GARRAY:PROC,_release_minidata:proc
 		externdef	_move_eax_to_edx_final:proc
+		externdef	_move_eax_to_final_high_water:proc
 
 
 INIT_CV_SYMBOL_HASHES	PROC
@@ -281,7 +282,10 @@ FLUSH_CVG_TEMP	PROC	NEAR
 		SUB	ECX,EAX
 		JZ	L9$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 L9$:
 		POP	EAX
@@ -483,7 +487,10 @@ L3$:
 		MOV	EAX,ESI
 
 		SHL	ECX,2
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 		;
 		;NOW WRITE BUCKET COUNTS
 		;
@@ -506,7 +513,10 @@ L4$:
 		MOV	EAX,CVG_BUFFER_LOG
 
 		SUB	ECX,EAX
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 		;
 		;NOW WRITE CHAINS
 		;
@@ -549,7 +559,10 @@ L58$:
 		SUB	ECX,EAX
 		JZ	L59$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L59$:
 		;
 		;STORE BYTE-COUNT FOR SYMBOL HASH STUFF
@@ -579,7 +592,10 @@ L57$:
 		SUB	ECX,EAX
 
 		MOV	EDI,CVG_BUFFER_LOG
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 		POP	EDX
 		JMP	L56$
@@ -790,7 +806,10 @@ L27$:
 		MOV	ECX,PAGE_SIZE
 
 		MOV	ESI,EAX
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 		POPM	EAX,ECX
 
@@ -803,7 +822,10 @@ L29$:
 		SUB	ECX,EAX
 		JZ	L3$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L3$:
 		;
 		;NOW OUTPUT OFFSET COUNTS
@@ -827,7 +849,10 @@ L31$:
 
 		JZ	L33$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L33$:
 		MOV	EAX,[EBX-4]
 		CALL	RELEASE_BLOCK
@@ -877,7 +902,10 @@ L41$:
 		LEA	EAX,[EDI-PAGE_SIZE]
 
 		MOV	EDI,EAX
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 		POP	ECX
 L47$:
@@ -912,7 +940,10 @@ L49$:
 		SUB	ECX,EAX
 		JZ	L5$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L5$:
 		;
 		;STORE BYTE-COUNT FOR ADDRESS HASH STUFF

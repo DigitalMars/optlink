@@ -46,13 +46,17 @@ MOVE_EXEHDR_TO_FINAL	ENDP
 
 
 MOVE_EAX_TO_FINAL_HIGH_WATER	PROC
-		;
-		;
-		;
 		MOV	EDX,FINAL_HIGH_WATER
 		JMP	MOVE_EAX_TO_EDX_FINAL
-
 MOVE_EAX_TO_FINAL_HIGH_WATER	ENDP
+
+		public	_move_eax_to_final_high_water
+_move_eax_to_final_high_water	proc
+		mov	EAX,4[ESP]
+		mov	ECX,8[ESP]
+		mov	EDX,FINAL_HIGH_WATER
+		jmp	MOVE_EAX_TO_EDX_FINAL
+_move_eax_to_final_high_water	endp
 
 
 HELP_RET	PROC
