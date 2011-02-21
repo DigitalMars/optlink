@@ -650,12 +650,7 @@ L00$:
 		RET
 
 L0$:
-		CALL	SORT_HASHES_GARRAY		;SORT IN ADDRESS ORDER
-
-;		MOV	EAX,LAST_CVH_SEGMENT		;ALL CONSTANTS?
-
-;		TEST	EAX,EAX
-;		JZ	L00$
+		call	_sort_hashes_garray		;SORT IN ADDRESS ORDER
 
 		PUSHM	EBP,EDI,ESI,EBX
 
@@ -671,7 +666,12 @@ L0$:
 		;NOW BUILD COUNT TABLE
 		;
 		PUSH	EAX
-		CALL	GET_NEW_LOG_BLK
+
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	CVG_CSEG,ECX			;== # OF SEGMENTS I ALLOW FOR
 		MOV	EDI,EAX
@@ -732,7 +732,12 @@ L16$:
 		PUSHM	EBX,EAX
 
 		MOV	EBX,CV_SEGTBL_PTR
-		CALL	GET_NEW_LOG_BLK
+
+		push	ECX
+		push	EDX
+		call	_get_new_log_blk
+		pop	EDX
+		pop	ECX
 
 		MOV	[EBX],EAX
 		ADD	EBX,4
@@ -810,7 +815,10 @@ L27$:
 		MOV	ECX,PAGE_SIZE
 
 		MOV	ESI,EAX
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 		POPM	EAX,ECX
 
@@ -823,7 +831,10 @@ L29$:
 		SUB	ECX,EAX
 		JZ	L3$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L3$:
 		;
 		;NOW OUTPUT OFFSET COUNTS
@@ -847,10 +858,20 @@ L31$:
 
 		JZ	L33$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L33$:
 		MOV	EAX,[EBX-4]
-		CALL	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		POP	EDX
 
@@ -897,7 +918,10 @@ L41$:
 		LEA	EAX,[EDI-PAGE_SIZE]
 
 		MOV	EDI,EAX
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 
 		POP	ECX
 L47$:
@@ -913,7 +937,14 @@ L47$:
 		XOR	ESI,ESI
 
 		MOV	EAX,[EBX-4]
-		CALL	RELEASE_BLOCK
+
+		push	ECX
+		push	EDX
+		push	EAX
+		call	_release_block
+		add	ESP,4
+		pop	EDX
+		pop	ECX
 
 		MOV	[EBX-4],ESI
 		MOV	ESI,[EBX]
@@ -932,7 +963,10 @@ L49$:
 		SUB	ECX,EAX
 		JZ	L5$
 
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
+		push	ECX
+		push	EAX
+		call	_move_eax_to_final_high_water
+		add	ESP,8
 L5$:
 		;
 		;STORE BYTE-COUNT FOR ADDRESS HASH STUFF

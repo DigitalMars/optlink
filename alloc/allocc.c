@@ -67,6 +67,11 @@ void *_get_new_phys_blk()
     return p;
 }
 
+void *_get_new_log_blk()
+{
+    return _get_new_phys_blk();
+}
+
 void *_get_new_io_log_blk()
 {
     return _get_new_phys_blk();
