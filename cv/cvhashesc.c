@@ -26,8 +26,8 @@ unsigned CV_SYMBOL_BASE_ADDR;
 unsigned CVG_N_HASHES;
 unsigned CVG_BUFFER_LOG;
 unsigned CVG_BUFFER_LIMIT;
-unsigned FIRST_CVH;
-unsigned LAST_CVH;
+struct CV_HASHES_STRUCT *FIRST_CVH;
+struct CV_HASHES_STRUCT *LAST_CVH;
 
 
 unsigned short CV_PRIMES[] =
@@ -108,57 +108,29 @@ void _init_cv_symbol_hashes()
 	CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
 }
 
+void _store_cv_symbol_info()
+{
+    struct CV_HASHES_STRUCT *cvh = (struct CV_HASHES_STRUCT *)_cv_hashes_pool_get(sizeof(struct CV_HASHES_STRUCT));
+
+    ++CV_HASH_COUNT;
+
+    cvh->_SYMBOL_OFFSET = CVG_SYMBOL_OFFSET;
+    cvh->_SYMBOL_HASH = CVG_SYMBOL_HASH;
+    cvh->_SEGMENT_OFFSET = CVG_SEGMENT_OFFSET;
+    cvh->_SEGMENT = CVG_SEGMENT;
+
+    struct CV_HASHES_STRUCT *ECX = LAST_CVH;
+    if (ECX)
+	ECX->_NEXT = cvh;
+    else
+	FIRST_CVH = cvh;
+    cvh->_PREV = ECX;
+    LAST_CVH = cvh;
+    cvh->_NEXT = 0;
+    cvh->_NEXT_HASH = 0;
+}
+
 #if 0
-STORE_CV_SYMBOL_INFO    PROC
-                ;
-                ;
-                ;
-                MOV     EAX,SIZE CV_HASHES_STRUCT
-                CALL    CV_HASHES_POOL_GET
-
-                ASSUME  EAX:PTR CV_HASHES_STRUCT
-
-                MOV     ECX,CVG_SYMBOL_OFFSET
-                MOV     EDX,CV_HASH_COUNT
-
-                MOV     [EAX]._SYMBOL_OFFSET,ECX
-                INC     EDX
-
-                MOV     ECX,CVG_SYMBOL_HASH
-                MOV     CV_HASH_COUNT,EDX
-
-                MOV     [EAX]._SYMBOL_HASH,ECX
-                MOV     ECX,CVG_SEGMENT_OFFSET
-
-                MOV     EDX,CVG_SEGMENT
-                MOV     [EAX]._SEGMENT_OFFSET,ECX
-
-                MOV     [EAX]._SEGMENT,EDX
-                MOV     ECX,LAST_CVH
-
-                TEST    ECX,ECX
-                JZ      L8$
-
-                MOV     [ECX].CV_HASHES_STRUCT._NEXT,EAX
-L7$:
-                MOV     [EAX]._PREV,ECX
-
-                XOR     EDX,EDX
-                MOV     LAST_CVH,EAX
-
-                MOV     [EAX]._NEXT,EDX
-                MOV     [EAX]._NEXT_HASH,EDX
-
-                RET
-
-
-L8$:
-                MOV     FIRST_CVH,EAX
-                JMP     L7$
-
-STORE_CV_SYMBOL_INFO    ENDP
-
-
 OUTPUT_CV_SYMBOL_ALIGN  PROC
                 ;
                 ;EAX IS CV_TEMP_RECORD

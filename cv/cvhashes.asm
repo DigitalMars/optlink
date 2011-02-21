@@ -48,6 +48,7 @@ if	fg_cvpack
 		externdef	_move_eax_to_final_high_water:proc
 		externdef	_do_address_hash:proc
 		externdef	_flush_cvg_temp:proc
+		externdef	_store_cv_symbol_info:proc
 
 
 INIT_CV_SYMBOL_HASHES	PROC
@@ -99,6 +100,8 @@ INIT_CV_SYMBOL_HASHES	ENDP
 
 
 STORE_CV_SYMBOL_INFO	PROC
+		jmp	_store_cv_symbol_info
+
 		;
 		;
 		;
