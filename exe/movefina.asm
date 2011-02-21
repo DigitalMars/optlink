@@ -291,6 +291,14 @@ L6$:
 
 MOVE_EAX_TO_EDX_FINAL	ENDP
 
+		public _move_eax_to_edx_final
+_move_eax_to_edx_final	proc
+		mov	EAX,4[ESP]
+		mov	ECX,8[ESP]
+		mov	EDX,12[ESP]
+		jmp	MOVE_EAX_TO_EDX_FINAL
+_move_eax_to_edx_final	endp
+
 
 FLUSH_EDX	PROC	NEAR
 		;
