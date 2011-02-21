@@ -47,6 +47,7 @@ if	fg_cvpack
 		externdef	_move_eax_to_edx_final:proc
 		externdef	_move_eax_to_final_high_water:proc
 		externdef	_do_address_hash:proc
+		externdef	_flush_cvg_temp:proc
 
 
 INIT_CV_SYMBOL_HASHES	PROC
@@ -234,7 +235,9 @@ L2$:
 		CMP	EDI,EAX
 		JB	L27$
 
-		CALL	FLUSH_CVG_TEMP
+		push	EAX
+		call	_flush_cvg_temp
+		pop	EAX
 L27$:
 		POP	ECX
 
@@ -268,10 +271,14 @@ L3$:
 		POP	ESI
 
 		POP	EDI
-		JAE	FLUSH_CVG_TEMP
+		JAE	L35$
 
 		RET
 
+L35$:		push	EAX
+		call	_flush_cvg_temp
+		pop	EAX
+		ret
 OUTPUT_CV_SYMBOL_ALIGN	ENDP
 
 
@@ -306,7 +313,7 @@ FLUSH_CV_SYMBOL_HASHES	PROC
 		;CLEAN UP THE MESS YOU STARTED...
 		;
 		PUSH	EAX
-		CALL	FLUSH_CVG_TEMP
+		call	_flush_cvg_temp
 
 		MOV	EAX,FINAL_HIGH_WATER
 		MOV	EDX,CV_SYMBOL_BASE_ADDR

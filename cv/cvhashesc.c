@@ -295,31 +295,17 @@ L3$:
 		RET
 
 OUTPUT_CV_SYMBOL_ALIGN	ENDP
+#endif
 
+void _flush_cvg_temp()
+{
+    unsigned ECX = (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
+    CVG_PUT_PTR = CVG_PUT_BLK;
+    if (ECX)
+	_move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
+}
 
-FLUSH_CVG_TEMP	PROC	NEAR
-		;
-		;MUST SAVE EAX
-		;
-		PUSH	EAX
-		MOV	EAX,CVG_PUT_BLK
-
-		MOV	ECX,CVG_PUT_PTR
-		MOV	CVG_PUT_PTR,EAX
-
-		SUB	ECX,EAX
-		JZ	L9$
-
-		CALL	MOVE_EAX_TO_FINAL_HIGH_WATER
-
-L9$:
-		POP	EAX
-
-		RET
-
-FLUSH_CVG_TEMP	ENDP
-
-
+#if 0
 FLUSH_CV_SYMBOL_HASHES	PROC
 		;
 		;CLEAN UP THE MESS YOU STARTED...
