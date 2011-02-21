@@ -29,7 +29,7 @@ endif
 		EXTERNDEF	MOVE_TEXT_TO_OMF:PROC,HANDLE_CV_INDEX:PROC,RELEASE_SEGMENT:PROC,FLUSH_CV_TEMP:PROC
 		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,RELEASE_BLOCK:PROC,QSORT_LINNUMS:PROC,MOVE_LDATA_3:PROC
 		EXTERNDEF	GET_NEW_LOG_BLK:PROC,ALLOC_LOCAL:PROC,INIT_LOCAL_STORAGE:PROC,RELEASE_LOCAL_STORAGE:PROC
-		EXTERNDEF	BIG_XDEBUG_WRITE:PROC,_cv_dword_align_rtn:proc
+		EXTERNDEF	_big_xdebug_write:proc,_cv_dword_align_rtn:proc
 
 
 CVLIN_STRUCT		STRUC
@@ -788,12 +788,19 @@ CHECK_LINHELP:
 		LEA	ECX,CV_LINNUM_BLOCKS
 
 		MOV	EAX,EBX
-		CALL	BIG_XDEBUG_WRITE
+
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		LEA	ECX,CV_OFFSET_BLOCKS
 		LEA	EAX,[EBX*2]
 
-		CALL	BIG_XDEBUG_WRITE
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		MOV	EDI,OFF CV_TEMP_RECORD
 		LEA	ESI,[ESI]._SRC_TEXT
@@ -933,13 +940,21 @@ L69$:
 		LEA	ECX,CV_OFFSET_BLOCKS
 
 		SHL	EAX,3
-		CALL	BIG_XDEBUG_WRITE
+
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		MOV	EAX,CV_M_CSEG_COUNT
 		LEA	ECX,CV_LINNUM_BLOCKS
 
 		ADD	EAX,EAX
-		CALL	BIG_XDEBUG_WRITE
+
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		POP	EBX
 		call	_cv_dword_align_rtn
@@ -1432,13 +1447,21 @@ L19$:
 		PUSH	EAX
 
 		SHL	EAX,2			;4 BYTES PER OFFSET
-		CALL	BIG_XDEBUG_WRITE
+
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		POP	EAX
 		LEA	ECX,CV_LINNUM_BLOCKS
 
 		ADD	EAX,EAX			;2 BYTES PER LINNUM
-		CALL	BIG_XDEBUG_WRITE
+
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
 
 		POPM	ESI,EDI
 

@@ -78,6 +78,9 @@ void _lib_reopen();
 // common.subs
 unsigned char *_cbta16(int n, unsigned char *dest);
 
+// cv.cvhashesc
+void _init_cv_symbol_hashes();
+
 // cv.cvsymbolc
 unsigned _get_name_hash32(unsigned char *EAX);
 unsigned _opti_hash32(unsigned EAX, unsigned char *ESI);

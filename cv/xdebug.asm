@@ -2,23 +2,11 @@
 
 		INCLUDE	MACROS
 
-		PUBLIC	XDEBUG_WRITE,XDEBUG_NORMAL,FLUSH_CV_TEMP,CV_DWORD_ALIGN_RTN,BIG_XDEBUG_WRITE
-
-
-		.DATA
-
-		EXTERNDEF	CV_TEMP_RECORD:BYTE,ZEROS_16:BYTE
-
-		EXTERNDEF	BYTES_SO_FAR:DWORD,CV_HEADER_LOC:DWORD
-
+		PUBLIC	FLUSH_CV_TEMP
 
 		.CODE	PASS2_TEXT
 
-		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,RELEASE_BLOCK:PROC
 		externdef	_flush_cv_temp:proc
-		externdef	_big_xdebug_write:proc
-		externdef	_xdebug_write:proc
-		externdef	_xdebug_normal:proc
 
 
 FLUSH_CV_TEMP	PROC
@@ -27,123 +15,6 @@ FLUSH_CV_TEMP	PROC
 		add	ESP,4
 		ret
 FLUSH_CV_TEMP	ENDP
-
-
-CV_DWORD_ALIGN_RTN	PROC
-		;
-		;
-		;
-		MOV	EAX,BYTES_SO_FAR
-		XOR	ECX,ECX
-
-		SUB	ECX,EAX
-
-		AND	ECX,3
-		JZ	L9$
-
-		MOV	EAX,OFF ZEROS_16
-
-		push	ECX
-		push	EAX
-		call	_xdebug_normal
-		add	ESP,8
-		ret
-
-L9$:
-		RET
-
-CV_DWORD_ALIGN_RTN	ENDP
-
-
-BIG_XDEBUG_WRITE	PROC
-		push	ECX
-		push	EAX
-		call	_big_xdebug_write
-		add	ESP,8
-		ret
-
-		;
-		;ECX IS BLOCK TABLE
-		;EAX IS BYTE COUNT
-		;
-		TEST	EAX,EAX
-		JZ	L9$
-
-		PUSH	EBX
-		MOV	EBX,ECX
-
-		MOV	EDX,EAX
-L1$:
-		XOR	ECX,ECX
-
-		MOV	EAX,[EBX]
-		MOV	[EBX],ECX
-
-		PUSHM	EAX,EDX
-
-		MOV	ECX,PAGE_SIZE
-
-		CMP	EDX,ECX
-		JA	L2$
-
-		MOV	ECX,EDX
-L2$:
-		PUSH	ECX
-
-		push	ECX
-		push	EAX
-		call	_xdebug_normal
-		add	ESP,8
-
-		POPM	EAX,EDX
-
-		SUB	EDX,EAX
-		POP	EAX
-
-		ADD	EBX,4
-		CALL	RELEASE_BLOCK
-
-		TEST	EDX,EDX
-		JNZ	L1$
-
-		POP	EBX
-
-		RET
-
-L9$:
-		XCHG	[ECX],EAX
-
-		TEST	EAX,EAX
-		JNZ	RELEASE_BLOCK
-
-		RET
-
-BIG_XDEBUG_WRITE	ENDP
-
-
-XDEBUG_WRITE	PROC
-		;
-		;MOVE DATA FROM TEMP_RECORD TO FINAL
-		;
-		MOV	EAX,OFF CV_TEMP_RECORD
-		MOV	ECX,EDI
-
-		SUB	ECX,EAX
-
-		push	ECX
-		push	EAX
-		call	_xdebug_normal
-		add	ESP,8
-		ret
-
-XDEBUG_NORMAL	LABEL	PROC
-
-		MOV	EDX,BYTES_SO_FAR
-		ADD	BYTES_SO_FAR,ECX
-		ADD	EDX,CV_HEADER_LOC
-		JMP	MOVE_EAX_TO_EDX_FINAL
-
-XDEBUG_WRITE	ENDP
 
 
 		END
