@@ -91,6 +91,7 @@ unsigned _sort_hashes_garray();
 
 // cv.xdebugc
 void _xdebug_normal(void *EAX, unsigned ECX);
+void _xdebug_write(unsigned char *EDI);
 
 // exe.movefina
 void _move_eax_to_final_high_water(void *EAX, unsigned ECX);
