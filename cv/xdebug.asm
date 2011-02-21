@@ -15,6 +15,7 @@
 		.CODE	PASS2_TEXT
 
 		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,RELEASE_BLOCK:PROC
+		externdef	_xdebug_write:proc
 		externdef	_xdebug_normal:proc
 
 
@@ -25,7 +26,9 @@ FLUSH_CV_TEMP	PROC
 		CMP	EDI,OFF CV_TEMP_RECORD
 		JZ	L9$
 
-		CALL	XDEBUG_WRITE
+		push	EDI
+		call	_xdebug_write
+		add	ESP,4
 
 		MOV	EDI,OFF CV_TEMP_RECORD
 L9$:

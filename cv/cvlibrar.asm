@@ -21,7 +21,7 @@
 
 		.CODE	PASS2_TEXT
 
-		EXTERNDEF	HANDLE_CV_INDEX:PROC,XDEBUG_WRITE:PROC,_move_file_list_gindex_nfn:proc
+		EXTERNDEF	HANDLE_CV_INDEX:PROC,_xdebug_write:proc,_move_file_list_gindex_nfn:proc
 
 
 CV_LIB_VARS	STRUC
@@ -129,7 +129,10 @@ DO_LIBRARY	PROC	NEAR	PRIVATE
 
 		REP	MOVSB
 
-		JMP	XDEBUG_WRITE
+		push	EDI
+		call	_xdebug_write
+		add	ESP,4
+		ret
 
 DO_LIBRARY	ENDP
 
