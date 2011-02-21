@@ -91,6 +91,7 @@ unsigned _sort_hashes_garray();
 
 // cv.xdebugc
 void _flush_cv_temp(unsigned char *EDI);
+void _big_xdebug_write(unsigned EAX, void* *ECX);
 void _xdebug_normal(void *EAX, unsigned ECX);
 void _xdebug_write(unsigned char *EDI);
 

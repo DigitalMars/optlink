@@ -440,7 +440,7 @@ SUBSSRC= \
 X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 
 zip:
-	detab common\all.h $(CVSRCC)
+	tolf common\all.h $(CVSRCC)
 	del $(ZIPFILE)
 	zip32 $(ZIPFILE) $(ALLOCSRC)
 	zip32 $(ZIPFILE) $(APPLOADSRC)

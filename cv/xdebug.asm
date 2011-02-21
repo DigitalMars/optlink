@@ -16,6 +16,7 @@
 
 		EXTERNDEF	MOVE_EAX_TO_EDX_FINAL:PROC,RELEASE_BLOCK:PROC
 		externdef	_flush_cv_temp:proc
+		externdef	_big_xdebug_write:proc
 		externdef	_xdebug_write:proc
 		externdef	_xdebug_normal:proc
 
@@ -55,6 +56,12 @@ CV_DWORD_ALIGN_RTN	ENDP
 
 
 BIG_XDEBUG_WRITE	PROC
+		push	ECX
+		push	EAX
+		call	_big_xdebug_write
+		add	ESP,8
+		ret
+
 		;
 		;ECX IS BLOCK TABLE
 		;EAX IS BYTE COUNT
