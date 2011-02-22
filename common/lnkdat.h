@@ -2201,12 +2201,13 @@ extern unsigned char DOING_tls;
 extern unsigned char GOT_tls_CLASS;
 /*
 endif
+*/
 
-if	fg_cvpack
+#if	fg_cvpack
 extern unsigned char DOING_4K_ALIGN;
 extern unsigned char CV_TYPES_VALID;
-endif
-*/
+#endif
+
 extern unsigned char LOD_SUPPLIED;
 extern unsigned char DUP_NAME_REPORTED;
 extern unsigned char OUTPUT_32BITS;
