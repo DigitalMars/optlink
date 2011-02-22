@@ -53,29 +53,6 @@ unsigned short CV_PRIMES[] =
 struct CV_HASH_HDR_STRUCT CV_HASH_HEADER = { 10,12,0,0,0 };
 
 
-#if 0
-                TITLE   CVHASHES - Copyright (c) SLR Systems 1994
-
-                INCLUDE MACROS
-if      fg_cvpack
-                INCLUDE CVTYPES
-                INCLUDE CVSTUFF
-
-                PUBLIC  INIT_CV_SYMBOL_HASHES,STORE_CV_SYMBOL_INFO,FLUSH_CV_SYMBOL_HASHES,OUTPUT_CV_SYMBOL_ALIGN,FIRST_CVH
-
-
-                .DATA
-
-
-
-                .CODE   CVPACK_TEXT
-
-                EXTERNDEF       MOVE_TEXT_TO_OMF:PROC,HANDLE_CV_INDEX:PROC,FLUSH_CV_TEMP:PROC,RELEASE_BLOCK:PROC
-                EXTERNDEF       ALLOC_LOCKED:PROC,GET_NEW_LOG_BLK:PROC,MOVE_EAX_TO_FINAL_HIGH_WATER:PROC,RELEASE_LOCKED:PROC
-                EXTERNDEF       MOVE_EAX_TO_EDX_FINAL:PROC,SORT_HASHES_GARRAY:PROC,GET_NAME_HASH32:PROC,CV_HASHES_POOL_GET:PROC
-                EXTERNDEF       RELEASE_GARRAY:PROC,_release_minidata:proc
-#endif
-
 void _init_cv_symbol_hashes()
 {
 	// INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
@@ -139,6 +116,8 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
     // RETURN EAX IS OFFSET OF THIS SYMBOL
     // 
 
+    //printf("\nESI = %p, length = %x\n", ESI, ESI->_LENGTH);
+
     unsigned EDX = ESI->_LENGTH;
 
     unsigned char *p = (unsigned char *)ESI + EDX;
@@ -168,10 +147,13 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
 	if (EDX > 8)
 	    goto L29;
 L2:
-	// 
-	// INSERT S_ALIGN SYMBOL FOR PAGE ALIGNMENT
-	// 
-	unsigned *EDI = CVG_PUT_PTR;
+	/* Insert S_ALIGN symbol to ensure that the next symbol will not cross
+	 * a page boundary.
+	 * The format is:
+	 *	word length
+	 *	word S_ALIGN
+	 *	... pad bytes ...
+	 */ 
 
 	unsigned nbytes = 0x1000 - 2;	    // 4K-2
 	nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
@@ -179,13 +161,18 @@ L2:
 	EDX |= nbytes;
 	nbytes -= 2;
 
-	*EDI++ = EDX;
+	unsigned *EDI = CVG_PUT_PTR;
 
-	// BUG: seg faults here with long symbol,
-	//  nbytes apparently went negative.
-	//  Happens when record length is > 0x1000
-	//  Bugzilla 2436
-	memset(EDI, 0, nbytes);
+	// Fix for Bugzilla 2436 where it would seg fault on the memset()
+	if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 2 > 0x4000)
+	{
+	    _flush_cvg_temp();
+	    EDI = CVG_PUT_PTR;
+	}
+
+	*EDI++ = EDX;			    // write length, S_ALIGN
+
+	memset(EDI, 0, nbytes);		    // pad bytes
 	EDI = (unsigned *)((char *)EDI + nbytes);
 
 	CVG_PUT_PTR = EDI;
@@ -224,17 +211,17 @@ void _flush_cvg_temp()
 
 #if 0
 FLUSH_CV_SYMBOL_HASHES  PROC
-                ;
-                ;CLEAN UP THE MESS YOU STARTED...
-                ;
+                // 
+                // CLEAN UP THE MESS YOU STARTED...
+                // 
                 PUSH    EAX
-                CALL    FLUSH_CVG_TEMP
+                _flush_cvg_temp();
 
-                MOV     EAX,FINAL_HIGH_WATER
-                MOV     EDX,CV_SYMBOL_BASE_ADDR
+                EAX = FINAL_HIGH_WATER
+                EDX = CV_SYMBOL_BASE_ADDR
 
                 SUB     EAX,EDX
-                MOV     EDX,BYTES_SO_FAR
+                EDX = BYTES_SO_FAR
 
                 MOV     CV_HASH_HEADER._CVHH_CBSYMBOL,EAX
                 ADD     EDX,EAX
@@ -242,186 +229,161 @@ FLUSH_CV_SYMBOL_HASHES  PROC
                 MOV     BYTES_SO_FAR,EDX
                 CALL    DO_SYMBOL_HASH
 
-                CALL    DO_ADDRESS_HASH
+                _do_address_hash();
 
-                ;
-                ;WRITE OUT CV_HASH_HEADER
-                ;
-                MOV     EAX,OFF CV_HASH_HEADER
-                MOV     EDX,CV_SECTION_HDR_ADDRESS
+                // 
+                // WRITE OUT CV_HASH_HEADER
+                // 
+                EAX = OFF CV_HASH_HEADER
+                EDX = CV_SECTION_HDR_ADDRESS
 
-                MOV     ECX,SIZE CV_HASH_HDR_STRUCT
-                CALL    MOVE_EAX_TO_EDX_FINAL
+                ECX = SIZE CV_HASH_HDR_STRUCT
+                _move_eax_to_edx_final(EAX, ECX, EDX);
 
-                MOV     EAX,CVG_PUT_BLK
+                EAX = CVG_PUT_BLK
                 CALL    RELEASE_BLOCK
 
-                MOV     EAX,OFF CV_HASHES_GARRAY
+                EAX = OFF CV_HASHES_GARRAY
                 CALL    RELEASE_GARRAY
 
-                MOV     EAX,OFF CV_HASHES_STUFF
+                EAX = OFF CV_HASHES_STUFF
 
-                push    EAX
-                call    _release_minidata
-                add     ESP,4
+                _release_minidata(EAX);
 
-                POP     ECX                     ;CV_INDEX
-                MOV     EAX,CV_SECTION_OFFSET
+                POP     ECX                     // CV_INDEX
+                EAX = CV_SECTION_OFFSET
 
-                JMP     HANDLE_CV_INDEX         ;BACKWARDS
+                JMP     HANDLE_CV_INDEX         // BACKWARDS
 
 FLUSH_CV_SYMBOL_HASHES  ENDP
 
 
-DO_SYMBOL_HASH  PROC    NEAR
-                ;
-                ;
-                ;
-                MOV     EAX,CV_HASH_COUNT
+void _do_symbol_hash()
+{
+		if (!CV_HASH_COUNT)
+		{   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
+		    return;
+		}
 
-                TEST    EAX,EAX
-                JNZ     L0$
-
-                MOV     CV_HASH_HEADER._CVHH_CBSYMHASH,EAX
-
-                RET
-
-L0$:
-                PUSHM   EDI,ESI
-
-                PUSH    EBX
-                MOV     EAX,FINAL_HIGH_WATER
+                EAX = FINAL_HIGH_WATER
 
                 PUSH    EAX
-                ;
-                ;CALCULATE # OF HASH BUCKETS
-                ;
-                MOV     EBX,17+16
-                MOV     EAX,CV_HASH_COUNT
-L1$:
-                DEC     EBX
+                // 
+                // CALCULATE # OF HASH BUCKETS
+                // 
+                EBX = 17+16
+                EAX = CV_HASH_COUNT
+L1:
+                --EBX;
 
                 ADD     EAX,EAX
                 JNC     L1$
 
-                CMP     EBX,10
-                JA      L12$
+		if (EBX < 10)
+		    EBX = 10;
+                EAX = CV_HASH_COUNT
+                EBX -= 7;
 
-                MOV     EBX,10
-L12$:
-                MOV     EAX,CV_HASH_COUNT
-                SUB     EBX,7
-
-                XOR     EDX,EDX
-                MOV     ESI,OFF CV_PRIMES
-
-                ASSUME  ESI:PTR WORD
+                EDX = 0;
+                unsigned short *ESI = &CV_PRIMES[0];
 
                 DIV     EBX
-                ;
-                ;HIGH LIMIT IS PAGE_SIZE/8
-                ;
-                CMP     EAX,PAGE_SIZE_8_HASH
-                JB      L14$
+                // 
+                // HIGH LIMIT IS PAGE_SIZE/8
+                // 
+                if (EAX > PAGE_SIZE_8_HASH)
+		    EAX = PAGE_SIZE_8_HASH;
 
-                MOV     EAX,PAGE_SIZE_8_HASH
-L14$:
-                ;
-                ;NOW CONVERT TO NEXT HIGHEST PRIME #
-                ;
-                XOR     ECX,ECX
-L16$:
-                MOV     CX,[ESI]
-                ADD     ESI,2
+                // 
+                // NOW CONVERT TO NEXT HIGHEST PRIME #
+                // 
+                ECX = 0;
+L16:
+                CX = *ESI++;
 
-                CMP     ECX,EAX
-                JB      L16$
+		if (ECX < EAX)
+		    goto L16;
 
-                MOV     CX,[ESI-2]
-                MOV     EDI,CVG_PUT_BLK
+                CX = ESI[-1];
+                EDI = CVG_PUT_BLK;
 
-                MOV     CVG_N_HASHES,ECX
-                MOV     ESI,LAST_CVH
-                ;
-                ;SCAN CV_HASHES, LINK-LIST STUFF PLEASE
-                ;
-                XOR     EAX,EAX
-                ADD     ECX,ECX
+                CVG_N_HASHES = ECX;
+                ESI = LAST_CVH;
+                // 
+                // SCAN CV_HASHES, LINK-LIST STUFF PLEASE
+                //
+		EAX = 0;
+                ECX *= 2;
 
                 REP     STOSD
 
-                MOV     EDI,CVG_PUT_BLK
-                MOV     ECX,ESI
+                EDI = CVG_PUT_BLK
+                ECX = ESI
 
 L2$:
                 CONVERT ESI,ESI,CV_HASHES_GARRAY
                 ASSUME  ESI:PTR CV_HASHES_STRUCT
 
-                MOV     EAX,[ESI]._SYMBOL_HASH
+                EAX = [ESI]._SYMBOL_HASH
                 XOR     EDX,EDX
 
                 DIV     CVG_N_HASHES
 
-                MOV     EAX,[EDI+EDX*8]         ;LINK-LIST TO THIS 'BUCKET'
+                EAX = [EDI+EDX*8]         // LINK-LIST TO THIS 'BUCKET'
                 MOV     [EDI+EDX*8],ECX
 
-                MOV     EBX,[EDI+EDX*8+4]
+                EBX = [EDI+EDX*8+4]
                 MOV     [ESI]._NEXT_HASH,EAX
 
-                INC     EBX                     ;COUNT GUYS IN THIS 'BUCKET'
-                MOV     ESI,[ESI]._PREV
+                INC     EBX                     // COUNT GUYS IN THIS 'BUCKET'
+                ESI = [ESI]._PREV
 
-                MOV     [EDI+EDX*8+4],EBX
-                MOV     ECX,ESI
+                [EDI+EDX*8+4] = EBX;
+                ECX = ESI
 
-                TEST    ESI,ESI
-                JNZ     L2$
+		if (ESI)
+		    goto L2;
 L29$:
-                ;
-                ;NOW START WRITING HASH TABLE OUT
-                ;
-                CALL    GET_NEW_LOG_BLK
+                // 
+                // NOW START WRITING HASH TABLE OUT
+                // 
+                EAX = _get_new_log_blk();
 
-                MOV     ESI,EAX
-                MOV     EBX,CVG_N_HASHES
-                ASSUME  ESI:NOTHING
+                ESI = EAX;
+                EBX = CVG_N_HASHES;
 
-                MOV     CVG_BUFFER_LOG,EAX
-                MOV     [EAX],EBX
+                CVG_BUFFER_LOG = EAX;
+                [EAX] = EBX;
 
-                ADD     EAX,PAGE_SIZE
-                XOR     EDX,EDX
-                ;
-                ;WRITE OFFSET OF EACH CHAIN
-                ;
-                MOV     CVG_BUFFER_LIMIT,EAX
-                XOR     ECX,ECX
-L3$:
-                MOV     EAX,[EDI+ECX*8+4]       ;BUCKET COUNT
-                MOV     [ESI+ECX*4+4],EDX
+                EAX += PAGE_SIZE;
+		EDX = 0;
 
-                INC     ECX
-                DEC     EBX
+                // WRITE OFFSET OF EACH CHAIN
+                CVG_BUFFER_LIMIT = EAX;
+                ECX = 0;
+L3:
+                EAX = EDI[ECX*8+4]       // BUCKET COUNT
+                ESI[ECX*4+4] = EDX;
 
-                LEA     EDX,[EDX+EAX*8]
-                JNZ     L3$
+                ++ECX;
+                --EBX;
 
-                INC     ECX
-                MOV     EAX,ESI
+                EDX += EAX * 8;
+		if (EBX)
+		    goto L3;
 
-                SHL     ECX,2
-                CALL    MOVE_EAX_TO_FINAL_HIGH_WATER
-                ;
-                ;NOW WRITE BUCKET COUNTS
-                ;
-                MOV     ESI,CVG_PUT_BLK
-                MOV     EDI,CVG_BUFFER_LOG
+                _move_eax_to_final_high_water(ESI, (ECX + 1) * 4);
+                // 
+                // NOW WRITE BUCKET COUNTS
+                // 
+                ESI = CVG_PUT_BLK
+                EDI = CVG_BUFFER_LOG
 
-                ADD     ESI,4                   ;LOOK AT COUNT
-                MOV     ECX,CVG_N_HASHES
+                ESI += 4;                   // LOOK AT COUNT
+                ECX = CVG_N_HASHES;
 L4$:
-                MOV     EAX,[ESI]
-                ADD     ESI,8
+                EAX = [ESI]
+                ESI += 8;
 
                 MOV     [EDI],EAX
                 ADD     EDI,4
@@ -429,89 +391,75 @@ L4$:
                 DEC     ECX
                 JNZ     L4$
 
-                MOV     ECX,EDI
-                MOV     EAX,CVG_BUFFER_LOG
+                ECX = EDI
+                EAX = CVG_BUFFER_LOG
 
                 SUB     ECX,EAX
-                CALL    MOVE_EAX_TO_FINAL_HIGH_WATER
-                ;
-                ;NOW WRITE CHAINS
-                ;
-                MOV     EBX,CVG_PUT_BLK
-                MOV     EDI,CVG_BUFFER_LOG
+                _move_eax_to_final_high_water(EAX, ECX);
+                // 
+                // NOW WRITE CHAINS
+                // 
+                EBX = CVG_PUT_BLK
+                EDI = CVG_BUFFER_LOG
 
-                MOV     EDX,CVG_N_HASHES
-L5$:
-                MOV     ESI,[EBX]               ;FIRST ITEM IN CHAIN
-                ADD     EBX,8
-L51$:
-                TEST    ESI,ESI
-                JZ      L58$
+                EDX = CVG_N_HASHES
 
+	do
+	{
+	    ESI = [EBX]               // FIRST ITEM IN CHAIN
+	    EBX += 8;
+
+	    while (ESI)
+	    {
                 CONVERT ESI,ESI,CV_HASHES_GARRAY
                 ASSUME  ESI:PTR CV_HASHES_STRUCT
 
-                MOV     EAX,[ESI]._SYMBOL_OFFSET
-                MOV     ECX,[ESI]._SYMBOL_HASH
+                EAX = ESI->_SYMBOL_OFFSET
+                ECX = ESI->_SYMBOL_HASH
 
-                MOV     [EDI],EAX
-                MOV     [EDI+4],ECX
+                [EDI] = EAX
+                [EDI+4] = ECX
 
-                ADD     EDI,8
-                MOV     EAX,CVG_BUFFER_LIMIT
+                EDI += 8;
+                EAX = CVG_BUFFER_LIMIT
 
-                CMP     EDI,EAX
-                JAE     L57$
-L56$:
-                MOV     ESI,[ESI]._NEXT_HASH
-                JMP     L51$
+		if (EDI >= EAX)
+		{
+		    ECX = EDI
+		    EAX = CVG_BUFFER_LOG
 
-L58$:
-                DEC     EDX
-                JNZ     L5$
+		    PUSH    EDX
 
-                MOV     ECX,EDI
-                MOV     EAX,CVG_BUFFER_LOG
+		    EDI = CVG_BUFFER_LOG
+		    _move_eax_to_final_high_water(EAX, ECX - EAX);
 
-                SUB     ECX,EAX
-                JZ      L59$
+		    POP     EDX
+		}
+                ESI = ESI->_NEXT_HASH
+	    }
+	} while (--EDX);
 
-                CALL    MOVE_EAX_TO_FINAL_HIGH_WATER
-L59$:
-                ;
-                ;STORE BYTE-COUNT FOR SYMBOL HASH STUFF
-                ;
-                POP     ECX
-                MOV     EAX,FINAL_HIGH_WATER
+	ECX = EDI
+	EAX = CVG_BUFFER_LOG
+	ECX -= EAX
+	if (ECX)
+	    _move_eax_to_final_high_water(EAX, ECX);
 
-                SUB     EAX,ECX
-                MOV     ECX,BYTES_SO_FAR
+	// 
+	// STORE BYTE-COUNT FOR SYMBOL HASH STUFF
+	// 
+	POP     ECX
+	EAX = FINAL_HIGH_WATER - ECX;
 
-                MOV     CV_HASH_HEADER._CVHH_CBSYMHASH,EAX
-                ADD     ECX,EAX
+	ECX = BYTES_SO_FAR
 
-                MOV     EAX,CVG_BUFFER_LOG
-                MOV     BYTES_SO_FAR,ECX
+	CV_HASH_HEADER._CVHH_CBSYMHASH = EAX
+	ECX += EAX
 
-                POPM    EBX,ESI
-
-                POP     EDI
-                JMP     RELEASE_BLOCK
-
-L57$:
-                MOV     ECX,EDI
-                MOV     EAX,CVG_BUFFER_LOG
-
-                PUSH    EDX
-                SUB     ECX,EAX
-
-                MOV     EDI,CVG_BUFFER_LOG
-                CALL    MOVE_EAX_TO_FINAL_HIGH_WATER
-
-                POP     EDX
-                JMP     L56$
-
-DO_SYMBOL_HASH  ENDP
+	EAX = CVG_BUFFER_LOG
+	BYTES_SO_FAR = ECX
+	_release_block(EAX);
+}
 
 #endif
 
