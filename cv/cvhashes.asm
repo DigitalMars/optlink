@@ -49,7 +49,7 @@ if	fg_cvpack
 		externdef	_do_address_hash:proc
 		externdef	_flush_cvg_temp:proc
 		externdef	_store_cv_symbol_info:proc
-
+		externdef	_output_cv_symbol_align:proc
 
 INIT_CV_SYMBOL_HASHES	PROC
 		;
@@ -152,6 +152,11 @@ STORE_CV_SYMBOL_INFO	ENDP
 
 
 OUTPUT_CV_SYMBOL_ALIGN	PROC
+		push	EAX
+		call	_output_cv_symbol_align
+		add	ESP,4
+		ret
+
 		;
 		;EAX IS CV_TEMP_RECORD
 		;

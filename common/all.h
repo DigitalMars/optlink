@@ -81,6 +81,9 @@ unsigned char *_cbta16(int n, unsigned char *dest);
 
 // cv.cvhashesc
 void _init_cv_symbol_hashes();
+void _flush_cvg_temp();
+unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */);
+
 
 // cv.cvsymbolc
 unsigned _get_name_hash32(unsigned char *EAX);

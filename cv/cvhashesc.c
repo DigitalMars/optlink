@@ -130,134 +130,89 @@ void _store_cv_symbol_info()
     cvh->_NEXT_HASH = 0;
 }
 
-#if 0
-OUTPUT_CV_SYMBOL_ALIGN  PROC
-                ;
-                ;EAX IS CV_TEMP_RECORD
-                ;
-                ;ALIGN SYMBOL STORED IN CV_TEMP_RECORD
-                ;
-                ;RETURN EAX IS OFFSET OF THIS SYMBOL...
-                ;
-                ASSUME  EAX:PTR CV_SYMBOL_STRUCT
+unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
+{
+    // EAX IS CV_TEMP_RECORD
+    // 
+    // ALIGN SYMBOL STORED IN CV_TEMP_RECORD
+    // 
+    // RETURN EAX IS OFFSET OF THIS SYMBOL
+    // 
 
-                PUSH    EDI
-                MOV     EDX,DPTR [EAX]._LENGTH
+    unsigned EDX = ESI->_LENGTH;
 
-                AND     EDX,0FFFFH
-                XOR     ECX,ECX
+    unsigned char *p = (unsigned char *)ESI + EDX;
+    p[2] = 0;
+    p[3] = 0;
+    p[4] = 0;
 
-                PUSH    ESI
-                MOV     ESI,EAX
+    EDX += (2 - EDX) & 3;              // # OF ZEROS TO ADD AT THE END
 
-                MOV     BPTR [EAX+EDX]._ID,CL
-                MOV     AL,2
+    ESI->_LENGTH = EDX;
+    unsigned ECX = 2 + EDX;
 
-                ASSUME  ESI:PTR CV_SYMBOL_STRUCT,EAX:NOTHING
+    // 
+    // DO 4K ALIGNMENT CALCULATION
+    // 
+    if (DOING_4K_ALIGN)		// STATICSYM doesn't matter
+    {
+	EDX = 0x1000;			// 4K
 
-                SUB     EAX,EDX
-                MOV     BPTR [ESI+EDX+1]._ID,CL
+	unsigned EAX = CV_PAGE_BYTES + ECX;
+	if (EDX < EAX)
+	    goto L2;
+	EDX -= EAX;
+	if (!EDX)
+	    goto L28;
+	// MUST LEAVE 0 OR AT LEAST 8 BYTES
+	if (EDX > 8)
+	    goto L29;
+L2:
+	// 
+	// INSERT S_ALIGN SYMBOL FOR PAGE ALIGNMENT
+	// 
+	unsigned *EDI = CVG_PUT_PTR;
 
-                AND     EAX,3                   ;# OF ZEROS TO ADD AT THE END
-                MOV     BPTR [ESI+EDX+2]._ID,CL
+	unsigned nbytes = 0x1000 - 2;	    // 4K-2
+	nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
+	EDX = S_ALIGN * 0x10000;	    // S_ALIGN*64K
+	EDX |= nbytes;
+	nbytes -= 2;
 
-                ADD     EDX,EAX
-                GETT    AL,DOING_4K_ALIGN       ;STATICSYM DOESN'T MATTER
+	*EDI++ = EDX;
 
-                MOV     [ESI]._LENGTH,DX
-                LEA     ECX,2[EDX]
-                ;
-                ;DO 4K ALIGNMENT CALCULATION
-                ;
-                OR      AL,AL
-                JZ      L3$
+	// BUG: seg faults here with long symbol,
+	//  nbytes apparently went negative.
+	//  Happens when record length is > 0x1000
+	//  Bugzilla 2436
+	memset(EDI, 0, nbytes);
+	EDI = (unsigned *)((char *)EDI + nbytes);
 
-                MOV     EAX,CV_PAGE_BYTES
-                MOV     EDX,4K
+	CVG_PUT_PTR = EDI;
+	if (EDI >= CVG_PUT_LIMIT)
+	    _flush_cvg_temp();
 
-                ADD     EAX,ECX
+	EDX = ECX;
+L28:
+	EAX = EDX;
+L29:
+	CV_PAGE_BYTES = EAX;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+    }
 
-                SUB     EDX,EAX
-                JC      L2$
+    // 
+    // STORE IN BUFFER
+    // 
+    unsigned EAX = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
+    EAX += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
 
-                JZ      L28$                    ;MUST LEAVE 0 OR AT LEAST 8 BYTES
+    memcpy(CVG_PUT_PTR, ESI, ECX);
 
-                CMP     EDX,8
-                JA      L29$
-L2$:
-                ;
-                ;INSERT S_ALIGN SYMBOL FOR PAGE ALIGNMENT
-                ;
-                MOV     EDI,CVG_PUT_PTR
-                PUSH    ECX
+    CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + ECX);
 
-                MOV     ECX,4K-2
-                MOV     EAX,CV_PAGE_BYTES
-
-                SUB     ECX,EAX                 ;# OF BYTES TO FILL
-                MOV     EDX,S_ALIGN*64K
-
-                OR      EDX,ECX
-                SUB     ECX,2
-
-                MOV     [EDI],EDX
-                ADD     EDI,4
-
-                SHR     ECX,2
-                XOR     EAX,EAX
-
-                ;BUG: seg faults here with long symbol,
-                ; ECX apparently went negative.
-                ; Happens when record length is > 0x1000
-                ; Bugzilla 2436
-                REP     STOSD
-
-                MOV     EAX,CVG_PUT_LIMIT
-                MOV     CVG_PUT_PTR,EDI
-
-                CMP     EDI,EAX
-                JB      L27$
-
-                CALL    FLUSH_CVG_TEMP
-L27$:
-                POP     ECX
-
-                MOV     EDX,ECX
-L28$:
-                MOV     EAX,EDX
-L29$:
-                MOV     CV_PAGE_BYTES,EAX       ;# OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT...
-L3$:
-                ;
-                ;STORE IN BUFFER
-                ;
-                MOV     EAX,FINAL_HIGH_WATER
-                MOV     EDX,CV_SYMBOL_BASE_ADDR
-
-                SUB     EAX,EDX
-                MOV     EDI,CVG_PUT_PTR
-
-                ADD     EAX,EDI
-                MOV     EDX,CVG_PUT_BLK
-
-                SHR     ECX,2
-                SUB     EAX,EDX
-
-                REP     MOVSD
-
-                MOV     ECX,CVG_PUT_LIMIT
-                MOV     CVG_PUT_PTR,EDI
-
-                CMP     EDI,ECX
-                POP     ESI
-
-                POP     EDI
-                JAE     FLUSH_CVG_TEMP
-
-                RET
-
-OUTPUT_CV_SYMBOL_ALIGN  ENDP
-#endif
+    if (CVG_PUT_PTR >= CVG_PUT_LIMIT)
+	_flush_cvg_temp();
+    return EAX;
+}
 
 void _flush_cvg_temp()
 {
