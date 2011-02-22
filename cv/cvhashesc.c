@@ -24,8 +24,8 @@ unsigned CV_SECTION_OFFSET;
 unsigned CV_SECTION_HDR_ADDRESS;
 unsigned CV_SYMBOL_BASE_ADDR;
 unsigned CVG_N_HASHES;
-unsigned CVG_BUFFER_LOG;
-unsigned CVG_BUFFER_LIMIT;
+unsigned *CVG_BUFFER_LOG;
+unsigned *CVG_BUFFER_LIMIT;
 struct CV_HASHES_STRUCT *FIRST_CVH;
 struct CV_HASHES_STRUCT *LAST_CVH;
 
@@ -220,7 +220,7 @@ void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
     CV_HASH_HEADER._CVHH_CBSYMBOL = n;
     BYTES_SO_FAR += n;
 
-    DO_SYMBOL_HASH();
+    _do_symbol_hash();
     _do_address_hash();
 
     // WRITE OUT CV_HASH_HEADER
@@ -235,211 +235,139 @@ void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
     _handle_cv_index(CV_SECTION_OFFSET, EAX);	// backwards
 }
 
-#if 0
 void _do_symbol_hash()
 {
-		if (!CV_HASH_COUNT)
-		{   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
-		    return;
-		}
+	if (!CV_HASH_COUNT)
+	{   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
+	    return;
+	}
 
-                EAX = FINAL_HIGH_WATER
+	unsigned final_high_water_save = FINAL_HIGH_WATER;
 
-                PUSH    EAX
-                // 
-                // CALCULATE # OF HASH BUCKETS
-                // 
-                EBX = 17+16
-                EAX = CV_HASH_COUNT
-L1:
-                --EBX;
+	// CALCULATE # OF HASH BUCKETS
+	unsigned EBX = 17 + 16;
+	unsigned EAX = CV_HASH_COUNT;
 
-                ADD     EAX,EAX
-                JNC     L1$
+	while (1)
+	{
+	    --EBX;
+	    if ((int)EAX < 0)
+		break;
+	    EAX *= 2;
+	}
 
-		if (EBX < 10)
-		    EBX = 10;
-                EAX = CV_HASH_COUNT
-                EBX -= 7;
+	if (EBX < 10)
+	    EBX = 10;
+	EAX = CV_HASH_COUNT;
+	EBX -= 7;
 
-                EDX = 0;
-                unsigned short *ESI = &CV_PRIMES[0];
+	unsigned short *pprim = &CV_PRIMES[0];
 
-                DIV     EBX
-                // 
-                // HIGH LIMIT IS PAGE_SIZE/8
-                // 
-                if (EAX > PAGE_SIZE_8_HASH)
-		    EAX = PAGE_SIZE_8_HASH;
+	EAX /= EBX;
 
-                // 
-                // NOW CONVERT TO NEXT HIGHEST PRIME #
-                // 
-                ECX = 0;
-L16:
-                CX = *ESI++;
+	// HIGH LIMIT IS PAGE_SIZE/8
 
-		if (ECX < EAX)
-		    goto L16;
+	if (EAX > PAGE_SIZE_8_HASH)
+	    EAX = PAGE_SIZE_8_HASH;
 
-                CX = ESI[-1];
-                EDI = CVG_PUT_BLK;
+	// Convert to next highest prime #
+	while (*pprim++ < EAX)
+	    ;
 
-                CVG_N_HASHES = ECX;
-                ESI = LAST_CVH;
-                // 
-                // SCAN CV_HASHES, LINK-LIST STUFF PLEASE
-                //
-		EAX = 0;
-                ECX *= 2;
+	CVG_N_HASHES = pprim[-1];
+	struct CV_HASHES_STRUCT *esi2 = LAST_CVH;
 
-                REP     STOSD
+	// SCAN CV_HASHES, LINK-LIST STUFF
+	memset(CVG_PUT_BLK, 0, CVG_N_HASHES * 8);
 
-                EDI = CVG_PUT_BLK
-                ECX = ESI
-
-L2$:
-                CONVERT ESI,ESI,CV_HASHES_GARRAY
-                ASSUME  ESI:PTR CV_HASHES_STRUCT
-
-                EAX = [ESI]._SYMBOL_HASH
-                XOR     EDX,EDX
-
-                DIV     CVG_N_HASHES
-
-                EAX = [EDI+EDX*8]         // LINK-LIST TO THIS 'BUCKET'
-                MOV     [EDI+EDX*8],ECX
-
-                EBX = [EDI+EDX*8+4]
-                MOV     [ESI]._NEXT_HASH,EAX
-
-                INC     EBX                     // COUNT GUYS IN THIS 'BUCKET'
-                ESI = [ESI]._PREV
-
-                [EDI+EDX*8+4] = EBX;
-                ECX = ESI
-
-		if (ESI)
-		    goto L2;
-L29$:
-                // 
-                // NOW START WRITING HASH TABLE OUT
-                // 
-                EAX = _get_new_log_blk();
-
-                ESI = EAX;
-                EBX = CVG_N_HASHES;
-
-                CVG_BUFFER_LOG = EAX;
-                [EAX] = EBX;
-
-                EAX += PAGE_SIZE;
-		EDX = 0;
-
-                // WRITE OFFSET OF EACH CHAIN
-                CVG_BUFFER_LIMIT = EAX;
-                ECX = 0;
-L3:
-                EAX = EDI[ECX*8+4]       // BUCKET COUNT
-                ESI[ECX*4+4] = EDX;
-
-                ++ECX;
-                --EBX;
-
-                EDX += EAX * 8;
-		if (EBX)
-		    goto L3;
-
-                _move_eax_to_final_high_water(ESI, (ECX + 1) * 4);
-                // 
-                // NOW WRITE BUCKET COUNTS
-                // 
-                ESI = CVG_PUT_BLK
-                EDI = CVG_BUFFER_LOG
-
-                ESI += 4;                   // LOOK AT COUNT
-                ECX = CVG_N_HASHES;
-L4$:
-                EAX = [ESI]
-                ESI += 8;
-
-                MOV     [EDI],EAX
-                ADD     EDI,4
-
-                DEC     ECX
-                JNZ     L4$
-
-                ECX = EDI
-                EAX = CVG_BUFFER_LOG
-
-                SUB     ECX,EAX
-                _move_eax_to_final_high_water(EAX, ECX);
-                // 
-                // NOW WRITE CHAINS
-                // 
-                EBX = CVG_PUT_BLK
-                EDI = CVG_BUFFER_LOG
-
-                EDX = CVG_N_HASHES
+	unsigned *EDI = CVG_PUT_BLK;
 
 	do
 	{
-	    ESI = [EBX]               // FIRST ITEM IN CHAIN
-	    EBX += 8;
+	    unsigned EDX = esi2->_SYMBOL_HASH % CVG_N_HASHES;
+
+	    esi2->_NEXT_HASH = (struct CV_HASHES_STRUCT *)EDI[EDX*2]; // LINK-LIST TO THIS 'BUCKET'
+	    EDI[EDX*2] = (unsigned)esi2;
+	    ++EDI[EDX*2 + 1];	// count guys in this bucket
+	    esi2 = esi2->_PREV;
+	} while (esi2);
+
+	// Start writing hash table out
+	unsigned *pu = (unsigned *)_get_new_log_blk();
+
+	unsigned nhashes = CVG_N_HASHES;
+
+	CVG_BUFFER_LOG = pu;
+	*pu = nhashes;
+
+	unsigned EDX = 0;
+
+	// WRITE OFFSET OF EACH CHAIN
+	CVG_BUFFER_LIMIT = pu + PAGE_SIZE / sizeof(*pu);
+	unsigned ECX = 0;
+
+	do
+	{
+	    unsigned EAX = EDI[ECX*2 + 1];       // BUCKET COUNT
+	    pu[ECX + 1] = EDX;
+
+	    ++ECX;
+	    --nhashes;
+
+	    EDX += EAX * 8;
+	} while (nhashes);
+
+	_move_eax_to_final_high_water(pu, (ECX + 1) * 4);
+
+	// Write bucket counts
+	unsigned *psi = CVG_PUT_BLK;
+	psi++;                   // LOOK AT COUNT
+	EDI = CVG_BUFFER_LOG;
+	unsigned nhashes2 = CVG_N_HASHES;
+	do
+	{
+	    *EDI++ = *psi;
+	    psi += 2;
+	} while (--nhashes2);
+
+	_move_eax_to_final_high_water(CVG_BUFFER_LOG, (char *)EDI - (char *)CVG_BUFFER_LOG);
+
+	// Write chains
+
+	struct CV_HASHES_STRUCT **ebx2 = (struct CV_HASHES_STRUCT **)CVG_PUT_BLK;
+	EDI = CVG_BUFFER_LOG;
+	EDX = CVG_N_HASHES;
+	do
+	{
+	    struct CV_HASHES_STRUCT *ESI = *ebx2; // first item in chain
+	    ebx2 += 2;
 
 	    while (ESI)
 	    {
-                CONVERT ESI,ESI,CV_HASHES_GARRAY
-                ASSUME  ESI:PTR CV_HASHES_STRUCT
+                EDI[0] = ESI->_SYMBOL_OFFSET;
+                EDI[1] = ESI->_SYMBOL_HASH;
+                EDI += 2;
 
-                EAX = ESI->_SYMBOL_OFFSET
-                ECX = ESI->_SYMBOL_HASH
-
-                [EDI] = EAX
-                [EDI+4] = ECX
-
-                EDI += 8;
-                EAX = CVG_BUFFER_LIMIT
-
-		if (EDI >= EAX)
+		if (EDI >= CVG_BUFFER_LIMIT)
 		{
-		    ECX = EDI
-		    EAX = CVG_BUFFER_LOG
-
-		    PUSH    EDX
-
-		    EDI = CVG_BUFFER_LOG
-		    _move_eax_to_final_high_water(EAX, ECX - EAX);
-
-		    POP     EDX
+		    unsigned bufcount = (char *)EDI - (char *)CVG_BUFFER_LOG;
+		    EDI = CVG_BUFFER_LOG;
+		    _move_eax_to_final_high_water(EDI, bufcount);
 		}
-                ESI = ESI->_NEXT_HASH
+                ESI = ESI->_NEXT_HASH;
 	    }
 	} while (--EDX);
 
-	ECX = EDI
-	EAX = CVG_BUFFER_LOG
-	ECX -= EAX
-	if (ECX)
-	    _move_eax_to_final_high_water(EAX, ECX);
+	unsigned bufcount = (char *)EDI - (char *)CVG_BUFFER_LOG;
+	if (bufcount)
+	    _move_eax_to_final_high_water(CVG_BUFFER_LOG, bufcount);
 
-	// 
 	// STORE BYTE-COUNT FOR SYMBOL HASH STUFF
-	// 
-	POP     ECX
-	EAX = FINAL_HIGH_WATER - ECX;
-
-	ECX = BYTES_SO_FAR
-
-	CV_HASH_HEADER._CVHH_CBSYMHASH = EAX
-	ECX += EAX
-
-	EAX = CVG_BUFFER_LOG
-	BYTES_SO_FAR = ECX
-	_release_block(EAX);
+	unsigned count = FINAL_HIGH_WATER - final_high_water_save;
+	CV_HASH_HEADER._CVHH_CBSYMHASH = count;
+	BYTES_SO_FAR += count;
+	_release_block(CVG_BUFFER_LOG);
 }
-
-#endif
 
 
 void _do_address_hash()
