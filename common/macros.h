@@ -137,6 +137,22 @@ typedef struct CMDLINE_STRUCT
 #endif
 } CMDLINE_STRUCT;
 
+#if PAGE_SIZE == 16 * 1024
+#define PAGE_SIZE_4_HASH	0xFFD
+#define PAGE_SIZE_8_HASH	0x7F7
+#define SMALL_TEXT_HASH 	0xffd	//PRIME?????
+#define SMALL_SYM_HASH		0xFFD	//1fffh	;0ffdh	;PRIME?????
+#define SMALL_RAINBOW_HASH	0xffd	//PRIME?????
+#elif PAGE_SIZE == 8 * 1024
+#define PAGE_SIZE_4_HASH	0x7F7
+#define PAGE_SIZE_8_HASH	0x3FD
+//#define SMALL_TEXT_HASH 	0x7F7
+#define SMALL_SYM_HASH		0xffd	//7F7H
+//#define SMALL_RAINBOW_HASH	0x7F7
+#else
+#error mistake
+#endif
+
 
 typedef struct STD_PTR_S	// USED BY LIBRARIES, SOON MASTER GROUPS, SEGMENTS, CLASSES, POSSIBLY EVEN SYMBOLS, OTHERS
 {
