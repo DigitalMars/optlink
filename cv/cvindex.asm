@@ -22,6 +22,11 @@
 
 		EXTERNDEF	CV_TOO_MANY_ERR:ABS
 
+		public _handle_cv_index
+_handle_cv_index proc
+		mov	ECX,8[ESP]
+		mov	EAX,4[ESP]
+_handle_cv_index endp
 
 HANDLE_CV_INDEX	PROC
 		;

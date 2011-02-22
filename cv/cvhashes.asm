@@ -50,6 +50,7 @@ if	fg_cvpack
 		externdef	_flush_cvg_temp:proc
 		externdef	_store_cv_symbol_info:proc
 		externdef	_output_cv_symbol_align:proc
+		externdef	_flush_cv_symbol_hashes:proc
 
 INIT_CV_SYMBOL_HASHES	PROC
 		;
@@ -317,6 +318,11 @@ FLUSH_CVG_TEMP	ENDP
 
 
 FLUSH_CV_SYMBOL_HASHES	PROC
+		push	EAX
+		call	_flush_cv_symbol_hashes
+		add	ESP,4
+		ret
+
 		;
 		;CLEAN UP THE MESS YOU STARTED...
 		;

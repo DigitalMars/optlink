@@ -209,55 +209,33 @@ void _flush_cvg_temp()
         _move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
 }
 
+extern void DO_SYMBOL_HASH();
+
+void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
+{
+    // CLEAN UP THE MESS YOU STARTED
+    _flush_cvg_temp();
+
+    unsigned n = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
+    CV_HASH_HEADER._CVHH_CBSYMBOL = n;
+    BYTES_SO_FAR += n;
+
+    DO_SYMBOL_HASH();
+    _do_address_hash();
+
+    // WRITE OUT CV_HASH_HEADER
+
+    _move_eax_to_edx_final(&CV_HASH_HEADER, sizeof(struct CV_HASH_HDR_STRUCT), CV_SECTION_HDR_ADDRESS);
+
+    _release_block(CVG_PUT_BLK);
+    _release_garray(&CV_HASHES_GARRAY);
+
+    _release_minidata(&CV_HASHES_STUFF);
+
+    _handle_cv_index(CV_SECTION_OFFSET, EAX);	// backwards
+}
+
 #if 0
-FLUSH_CV_SYMBOL_HASHES  PROC
-                // 
-                // CLEAN UP THE MESS YOU STARTED...
-                // 
-                PUSH    EAX
-                _flush_cvg_temp();
-
-                EAX = FINAL_HIGH_WATER
-                EDX = CV_SYMBOL_BASE_ADDR
-
-                SUB     EAX,EDX
-                EDX = BYTES_SO_FAR
-
-                MOV     CV_HASH_HEADER._CVHH_CBSYMBOL,EAX
-                ADD     EDX,EAX
-
-                MOV     BYTES_SO_FAR,EDX
-                CALL    DO_SYMBOL_HASH
-
-                _do_address_hash();
-
-                // 
-                // WRITE OUT CV_HASH_HEADER
-                // 
-                EAX = OFF CV_HASH_HEADER
-                EDX = CV_SECTION_HDR_ADDRESS
-
-                ECX = SIZE CV_HASH_HDR_STRUCT
-                _move_eax_to_edx_final(EAX, ECX, EDX);
-
-                EAX = CVG_PUT_BLK
-                CALL    RELEASE_BLOCK
-
-                EAX = OFF CV_HASHES_GARRAY
-                CALL    RELEASE_GARRAY
-
-                EAX = OFF CV_HASHES_STUFF
-
-                _release_minidata(EAX);
-
-                POP     ECX                     // CV_INDEX
-                EAX = CV_SECTION_OFFSET
-
-                JMP     HANDLE_CV_INDEX         // BACKWARDS
-
-FLUSH_CV_SYMBOL_HASHES  ENDP
-
-
 void _do_symbol_hash()
 {
 		if (!CV_HASH_COUNT)
