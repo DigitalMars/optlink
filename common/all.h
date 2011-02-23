@@ -12,6 +12,7 @@
 #include "lnkdat.h"
 #include "cvtypes.h"
 #include "cvstuff.h"
+#include "pe_struc.h"
 
 
 // alloc\allocc

@@ -1388,6 +1388,7 @@ MK	DUPUNDECOMATCH_ERR,'Multiple Matches Found for Export/ENTRY - '	;error
 MK	DUPDECOMATCH_ERR,'Matches above Export/ENTRY - '	;error
 
 MK	IMPROBABLE_RES_ERR,'Extension not .RES'		;WARNING
+MK	MISSING_EXPORT,'Missing export from imported variable declaration' ;fatal
 
 		ALIGN	4
 

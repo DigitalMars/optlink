@@ -1941,42 +1941,35 @@ L9$:
 		RET
 
 LOC_DWORD_OFFSET_PE	ENDP
+#endif
 
+void _loc_dword_offset_tls(unsigned EAX, unsigned EBX, unsigned char *EDI)
+{
+    /* EAX: offset within segment
+     * EBX: FIX2_OFFSET
+     * EDI: physical address
+     */
+    // 32-BIT OFFSET
+    unsigned ECX = *(unsigned *)(EDI + EBX) + EAX;
+    if (FIX2_SEG_GINDEX)
+    {
+	PE_OBJECT_STRUCT *EDX = (PE_OBJECT_STRUCT *)FIX2_SEG_GINDEX->_SEG_PEOBJECT_GINDEX;
+	ECX -= PE_BASE;
 
-LOC_DWORD_OFFSET_TLS	PROC	NEAR
-		;
-		;32-BIT OFFSET
-		;
-		MOV	EDX,FIX2_SEG_GINDEX
-		MOV	ECX,[EDI+EBX]
+	/* Bugzilla 4275
+	 * Seg faults with EDX == 0
+	 * Caused by missing 'export' from an imported variable declaration
+	 */
+	if (!EDX)
+	{
+	    _err_abort(MISSING_EXPORT);
+	}
+	ECX -= EDX->_PEOBJECT_RVA;
+    }
+    *(unsigned *)(EDI + EBX) = ECX;
+}
 
-		ADD	ECX,EAX
-		TEST	EDX,EDX
-
-		MOV	EAX,PE_BASE
-		JZ	L4$
-
-		CONVERT	EDX,EDX,SEGMENT_GARRAY
-		ASSUME	EDX:PTR SEGMENT_STRUCT
-
-		MOV	EDX,[EDX]._SEG_PEOBJECT_GINDEX
-		SUB	ECX,EAX
-
-		CONVERT	EDX,EDX,PE_OBJECT_GARRAY
-		ASSUME	EDX:PTR PE_OBJECT_STRUCT
-
-		; Bugzilla 4275
-		; Seg faults with EDX == 0
-		; Caused by missing 'export' from an imported variable declaration
-		MOV	EDX,[EDX]._PEOBJECT_RVA
-
-		SUB	ECX,EDX
-L4$:
-		MOV	[EDI+EBX],ECX
-
-		RET
-
-LOC_DWORD_OFFSET_TLS	ENDP
+#if 0
 
 endif
 
