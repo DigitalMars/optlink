@@ -299,6 +299,7 @@ DUPUNDECOMATCH_ERR      equ     0b5h
 #define COMDAT_CONT_ERR	0x7F
 #define BAD_TYPEINDEX_ERR	0xA2
 #define ILLEGAL_READ_ADDRESS_ERR	0xB1
+#define MISSING_EXPORT	0xB8
 
 extern int _ERR_COUNT;
 extern unsigned char _CRITI_IN_PROGRESS;

@@ -66,6 +66,7 @@ BUGSSRC= bugs\test.c
 
 COMMONSRCC= \
 	common\all.h \
+	common\pe_struc.h \
 	common\fixupp2c.c
 
 COMMONSRC= $(COMMONSRCC) \
