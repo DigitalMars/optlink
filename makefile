@@ -64,7 +64,12 @@ APPLOADSRC= \
 
 BUGSSRC= bugs\test.c
 
-COMMONSRC= common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
+COMMONSRCC= \
+	common\all.h \
+	common\fixupp2c.c
+
+COMMONSRC= $(COMMONSRCC) \
+	common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
 	common\c32quik.asm common\c32moves.asm common\unexe2.asm \
 	common\unexe.sys common\linsym.asm common\c32slr.asm common\cddata \
 	common\unexe.dat common\unexe.asm common\theadr.c common\classes \
@@ -101,7 +106,7 @@ COMMONSRC= common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
 	common\forref.asm common\fixupp.asm common\io_struc.h \
 	common\macrosc.c common\errors.asm common\macros.h common\pass1.asm \
 	common\obj_mod.asm common\extdef.asm common\symbols.h \
-	common\common.mak common\all.h common\library.h common\optlink.h \
+	common\common.mak common\library.h common\optlink.h \
 	common\lnkdat.h common\newlib.asm common\newlibc.c \
 	common\cvtypes.h common\cvstuff.h
 
@@ -440,7 +445,7 @@ SUBSSRC= \
 X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 
 zip:
-	tolf common\all.h $(CVSRCC)
+	tolf common\all.h $(COMMONSRCC) $(CVSRCC)
 	del $(ZIPFILE)
 	zip32 $(ZIPFILE) $(ALLOCSRC)
 	zip32 $(ZIPFILE) $(APPLOADSRC)

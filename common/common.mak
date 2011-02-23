@@ -20,7 +20,7 @@ $(LIB)\COMMON.LIB : $(OBJ)\THEADR.OBJ $(OBJ)\LNAMES.OBJ $(OBJ)\SEGDEF.OBJ $(OBJ)
 	$(OBJ)\FORREF2.OBJ $(OBJ)\REXEPACK.OBJ $(OBJ)\UNEXE2.OBJ $(OBJ)\EXEPACK.OBJ $(OBJ)\C32.OBJ $(OBJ)\CSUBS.OBJ \
 	$(OBJ)\C32QUIK.OBJ $(OBJ)\QUIKRELO.OBJ $(OBJ)\C32MOVES.OBJ $(OBJ)\INIPROC.OBJ \
 	$(OBJ)\cmdsubsc.obj $(OBJ)\optlnkc.obj $(OBJ)\lnkinitc.obj $(OBJ)\pass2c.obj \
-	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj
+	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj $(OBJ)\fixupp2c.obj
   del $(LIB)\common.lib
   OPTLIB /OKMULTI /PA:32 $(LIB)\COMMON ~+ $(OBJ)\*;
 
@@ -216,6 +216,9 @@ $(OBJ)\C32MOVES.OBJ : C32MOVES.ASM MACROS SECTS SLR32
 
 $(OBJ)\cmdsubsc.obj : cmdsubsc.c
 	dmc -c cmdsubsc -NTFILEPARSE_TEXT $(CFLAGS) -o$(OBJ)\cmdsubsc.obj
+
+$(OBJ)\fixupp2c.obj : fixupp2c.c
+	dmc -c fixupp2c -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\fixupp2c.obj
 
 $(OBJ)\lnkinitc.obj : lnkinitc.c
 	dmc -c lnkinitc -NTSTARTUP_TEXT $(CFLAGS) -o$(OBJ)\lnkinitc.obj
