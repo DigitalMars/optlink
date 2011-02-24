@@ -1731,21 +1731,21 @@ int _find_earliest_selected_module()
 void _verify_block_loaded()
 {
 	// Set up stuff for reading this module
-	LIBRARY_STRUCT *ECX2 = CURNLIB_GINDEX;
+	LIBRARY_STRUCT *ECX = CURNLIB_GINDEX;
 
-	void *EAX2 = *_conv_axesdicx_to_module_ptr_dssi(CURN_LIB_MODULE, ECX2);	// library struct in ECX2, MODULE_PTR in EAX2
+	void *EAX2 = *_conv_axesdicx_to_module_ptr_dssi(CURN_LIB_MODULE, ECX);	// library struct in ECX, MODULE_PTR in EAX2
 
 	unsigned EDX = (unsigned)EAX2;
 	EAX2 = (void *)(EDX & PAGE_SIZE-1);
 	EDX &= 0x7FFFFFFF;
 	EDX >>= PAGE_BITS;
 	OBJ_DEVICE->MYI_PTRA = EAX2;
-	unsigned EDI = ECX2->_LS_BLOCKS;
-	void *ESI = ECX2->_LS_BLOCK_TABLE[0];
+	unsigned EDI = ECX->_LS_BLOCKS;
+	void *ESI = ECX->_LS_BLOCK_TABLE[0];
 	if (EDI >= PAGE_SIZE/8/2)
 	    goto L4;
 
-	LIBRARY_STRUCT *ECX = ((LIBRARY_STRUCT **)ESI)[EDX*2];
+	ECX = ((LIBRARY_STRUCT **)ESI)[EDX*2];
 	void **EAX = (void **)((char *)ESI + EDX*8);
 	void **EBX = (void **)((char *)ESI + PAGE_SIZE);
 L49:
