@@ -202,76 +202,46 @@ UNEXP_EOF:
 		call	_err_abort
 
 GET_RECORD	ENDP
-
-
-CHECK_CHECKSUM	PROC
-		;
-		;RECALC. THE CHECKSUM FROM THE DATA AND COMPARE TO THE
-		;CHECKSUM READ IN FROM BUFFER
-		;
-		MOV	ECX,RECORD_LENGTH
-		MOV	EBX,ESI
-		LEA	EAX,[ESI+ECX-1]
-		DEC	ECX
-		CMP	BPTR [EAX],0	;DON'T BOTHER IF NOT THERE...
-		JZ	DO_RET1
-		CALL	CHECKSUM
-		SUB	DL,BPTR RECORD_TYPE	;ALSO PART OF RECORDS CHECK SUM	
-		SUB	DL,BPTR RECORD_LENGTH
-		SUB	DL,BPTR RECORD_LENGTH+1
-
-		CMP	[EBX],DL
-		JNZ	CC_1
-		RET
-
-CC_1:
-		MOV	AL,BAD_CHKSUM_ERR
-		CALL	WARN_RET
-DO_RET1:
-		RET
-
-CHECK_CHECKSUM	ENDP
-
-
-		ASSUME	EBX:NOTHING
-
-CHECKSUM	PROC
-		;
-		;EBX IS START OF RECORD
-		;ECX IS RECORD LENGTH
-		;
-		XOR	EDX,EDX
-		;
-		;CALCULATE CHECKSUM
-		;
-		PUSH	ECX
-		SHR	ECX,2		;DIVIDE LENGTH BY 4
-		JZ	SMALL		;JUMP IF LESS THAN 4 BYTES
-L1:
-		MOV	EAX,[EBX]
-		ADD	EBX,4
-		ADD	DL,AL
-		ADD	DH,AH
-		SHR	EAX,16
-		ADD	DH,DL
-		ADD	DL,AL
-		ADD	DH,AH
-		DEC	ECX
-		JNZ	L1
-		ADD	DL,DH
-SMALL:
-		POP	ECX		;NOW SLOW LOOP FOR MOD 8 BYTES
-		AND	ECX,7
-		JZ	AQW
-LOOPT:
-		ADD	DL,[EBX]
-		INC	EBX
-		DEC	ECX
-		JNZ	LOOPT
-AQW:
-		NEG	DL		;DL IS DESIRED CHECKSUM
-		RET
-
-CHECKSUM	ENDP
-
 #endif
+
+
+void _check_checksum(unsigned char *ESI)
+{
+    // RECALC. THE CHECKSUM FROM THE DATA AND COMPARE TO THE
+    // CHECKSUM READ IN FROM BUFFER
+    unsigned ECX = RECORD_LENGTH;
+    if (!ESI[ECX - 1])	// don't bother if not there
+	return;
+    unsigned char DL = RECORD_TYPE;	// also part of records check sum	
+    while (1)
+    {
+	switch (ECX)
+	{
+	    case 0:
+		break;
+	    case 1:
+		DL += ESI[0];
+		break;
+	    case 2:
+		DL += ESI[0] + ESI[1];
+		break;
+	    case 3:
+		DL += ESI[0] + ESI[1] + ESI[2];
+		break;
+	    default:
+		do
+		{   DL += ESI[0] + ESI[1] + ESI[2] + ESI[3];
+		    ESI += 4;
+		    ECX -= 4;
+		} while (ECX >= 4);
+		continue;
+	}
+	break;
+    }
+
+    DL += RECORD_LENGTH & 0xFF;
+    DL += (RECORD_LENGTH >> 8) & 0xFF;
+
+    if (DL)
+	_warn_ret(BAD_CHKSUM_ERR);
+}
