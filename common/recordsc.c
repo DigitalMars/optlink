@@ -25,7 +25,6 @@ endif
 
 		EXTERNDEF	BAD_CHKSUM_ERR:ABS,UNEXP_EOF_ERR:ABS,REC_TOO_LONG_ERR:ABS,INVALID_OBJ_ERR:ABS
 
-
 GET_FIRST_RECORD	PROC
 		;
 		;RETURN LENGTH IN BX, REST OF RECORD IN DS:SI
@@ -203,6 +202,27 @@ UNEXP_EOF:
 
 GET_RECORD	ENDP
 #endif
+
+void _print_obj_device()
+{
+    MYI_STRUCT *ms = OBJ_DEVICE;
+    printf("ms = %p\n", ms);
+    printf("MYI_COUNT  = %x\n", ms->MYI_COUNT);
+    printf("MYI_HANDLE = %p\n", ms->MYI_HANDLE);
+    printf("MYI_PTRA   = %p\n", ms->MYI_PTRA);
+    printf("MYI_BLOCK  = %p\n", ms->MYI_BLOCK);
+    printf("MYI_FILE_LENGTH = %x\n", ms->MYI_FILE_LENGTH);
+    printf("MYI_BYTE_OFFSET = %x\n", ms->MYI_BYTE_OFFSET);
+    printf("MYI_PHYS_ADDR = %x\n", ms->MYI_PHYS_ADDR);
+    printf("MYI_FILLBUF   = %x\n", ms->MYI_FILLBUF);
+    printf("MYI_FILE_LIST_GINDEX = %p\n", ms->MYI_FILE_LIST_GINDEX);
+    printf("MYI_BUSY = %x\n", ms->MYI_BUSY);
+    printf("MYI_TIME = %x\n", ms->MYI_TIME);
+    printf("MYI_DATE = %x\n", ms->MYI_DATE);
+    printf("MYI_CURRENT_TYPE = %x\n", ms->MYI_CURRENT_TYPE);
+    printf("MYI_BUFCNT = %x\n", ms->MYI_BUFCNT);
+    printf("reserved   = %x\n", ms->reserved);
+}
 
 
 void _check_checksum(unsigned char *ESI)
