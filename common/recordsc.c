@@ -1,3 +1,6 @@
+#include "all.h"
+
+#if 0
 		TITLE	RECORDS - Copyright (c) SLR Systems 1994
 
 		INCLUDE	MACROS
@@ -271,6 +274,4 @@ AQW:
 
 CHECKSUM	ENDP
 
-
-		END
-
+#endif

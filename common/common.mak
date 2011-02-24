@@ -20,7 +20,7 @@ $(LIB)\COMMON.LIB : $(OBJ)\THEADR.OBJ $(OBJ)\LNAMES.OBJ $(OBJ)\SEGDEF.OBJ $(OBJ)
 	$(OBJ)\FORREF2.OBJ $(OBJ)\REXEPACK.OBJ $(OBJ)\UNEXE2.OBJ $(OBJ)\EXEPACK.OBJ $(OBJ)\C32.OBJ $(OBJ)\CSUBS.OBJ \
 	$(OBJ)\C32QUIK.OBJ $(OBJ)\QUIKRELO.OBJ $(OBJ)\C32MOVES.OBJ $(OBJ)\INIPROC.OBJ \
 	$(OBJ)\cmdsubsc.obj $(OBJ)\optlnkc.obj $(OBJ)\lnkinitc.obj $(OBJ)\pass2c.obj \
-	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj $(OBJ)\fixupp2c.obj
+	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj $(OBJ)\fixupp2c.obj $(OBJ)\recordsc.obj
   del $(LIB)\common.lib
   OPTLIB /OKMULTI /PA:32 $(LIB)\COMMON ~+ $(OBJ)\*;
 
@@ -234,5 +234,8 @@ $(OBJ)\optlnkc.obj : optlnkc.c
 
 $(OBJ)\pass2c.obj : pass2c.c
 	dmc -c pass2c -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\pass2c.obj
+
+$(OBJ)\recordsc.obj : recordsc.c
+	dmc -c recordsc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\recordsc.obj
 
 

@@ -67,7 +67,8 @@ BUGSSRC= bugs\test.c
 COMMONSRCC= \
 	common\all.h \
 	common\pe_struc.h \
-	common\fixupp2c.c
+	common\fixupp2c.c \
+	common\recordsc.c
 
 COMMONSRC= $(COMMONSRCC) \
 	common\opreadt.asm common\nbkpat.asm common\cextdef.asm \
