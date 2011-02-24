@@ -103,6 +103,7 @@ void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 unsigned _sort_hashes_garray();
 
 // cv.recordsc
+void _print_obj_device();
 void _check_checksum(unsigned char *ESI);
 
 // cv.xdebugc

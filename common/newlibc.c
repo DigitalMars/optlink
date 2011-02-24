@@ -1676,6 +1676,8 @@ void _obj_mod();
 
 void _process_lib()
 {
+	//printf("_process_lib() OBJ_DEVICE = %p\n", OBJ_DEVICE);
+
 	// Here is where it all happens
 	_select_library(FIRST_REQUEST_LIB_GINDEX);	// becomes FIRST_LIBRARY & LIB_PTR
 L1:
@@ -1766,11 +1768,13 @@ L4:
 	unsigned EBX3 = EDX >> (PAGE_BITS - 3);
 	unsigned ESI2 = EDX & ((PAGE_SIZE - 1) >> 3);
 
+	char *EAX4 = ECX->_LS_BLOCK_TABLE[EBX3];
+
 	CURN_LS_BLOCK_TABLE_PTR = &ECX->_LS_BLOCK_TABLE[EBX3];
 
-	EBX = (void **)((char *)ECX->_LS_BLOCK_TABLE[EBX3] + PAGE_SIZE);
-	ECX = ((LIBRARY_STRUCT **)EAX)[ESI2*2];
-	EAX = (void**)((char *)EAX + ESI2*8);
+	EBX = (void **)((char *)EAX4 + PAGE_SIZE);
+	ECX = ((LIBRARY_STRUCT **)EAX4)[ESI2*2];
+	EAX = (void**)((char *)EAX4 + ESI2*8);
 	goto L49;
 
 L6:
