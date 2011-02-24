@@ -102,6 +102,9 @@ void _install_globalsym(unsigned hash, char *ECX, CV_SYMBOL_STRUCT *ESI);
 // cv.qsortadrc
 unsigned _sort_hashes_garray();
 
+// cv.recordsc
+void _check_checksum(unsigned char *ESI);
+
 // cv.xdebugc
 void _flush_cv_temp(unsigned char *EDI);
 void _big_xdebug_write(unsigned EAX, void* *ECX);
