@@ -102,11 +102,13 @@ typedef struct ALLOCS_STRUCT
     void *ALLO_BLK_LIST[8];	// LIST OF UP TO 8 ALLOCATED BLOCKS
 } ALLOCS_STRUCT;
 
+#define SEQ_TABLE_MAX	(16*32*1024/PAGE_SIZE*4)
+
 typedef struct SEQ_STRUCT
 {
 
     unsigned _SEQ_PTR;		// NEXT ADDRESS TO WRITE TO
-    unsigned _SEQ_TABLE[(16*32*1024)/PAGE_SIZE*4]; // 256K MAX DATA THIS TYPE
+    unsigned _SEQ_TABLE[SEQ_TABLE_MAX]; // 256K MAX DATA THIS TYPE, checked in subs/storeseq.asm
     unsigned _SEQ_TARGET;		// PTR TO NEXEHEADER OFFSET OF OFFSET...
     unsigned _SEQ_NEXT_TARGET;
 } SEQ_STRUCT;

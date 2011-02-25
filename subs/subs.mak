@@ -4,6 +4,10 @@ FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\SUBS
 CFLAGS=-I..\common -r
 
+HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
+	..\common\exes.h ..\common\library.h ..\common\symbols.h ..\common\groups.h \
+	..\common\segments.h ..\common\segmsyms.h ..\common\lnkdat.h ..\common\cvtypes.h \
+	..\common\cvstuff.h ..\common\pe_struc.h
 
 
 ALL : $(LIB)\SUBS.LIB
@@ -70,13 +74,13 @@ $(OBJ)\UNMANGLE.OBJ : UNMANGLE.ASM ..\COMMON\MACROS ..\COMMON\IO_STRUC
   ML $(FLAGS) $(SRC)\UNMANGLE.ASM
 
 
-$(OBJ)\eoindc.obj : eoindc.c
+$(OBJ)\eoindc.obj : eoindc.c $(HEADERS)
 	dmc -N_ -c eoindc -NTPHASE1_TEXT $(CFLAGS) -o$(OBJ)\eoindc.obj
 
-$(OBJ)\getnamec.obj : getnamec.c
+$(OBJ)\getnamec.obj : getnamec.c $(HEADERS)
 	dmc -N_ -c getnamec -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\getnamec.obj
 
-$(OBJ)\myisc.obj : myisc.c
+$(OBJ)\myisc.obj : myisc.c $(HEADERS)
 	dmc -N_ -c myisc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\myisc.obj
 
 

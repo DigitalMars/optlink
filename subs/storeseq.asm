@@ -52,7 +52,7 @@ STORE_EAXECX_EDX_SEQ	PROC
 		;
 		;EAX IS SOURCE STRING
 		;ECX IS BYTE COUNT TO WRITE
-		;EDX IS DATA-TYPE STRUCTURE TO USE
+		;EDX IS DATA-TYPE STRUCTURE TO USE, SEQ_STRUCT*
 		;
 		PUSHM	EDI,EBX
 
@@ -72,7 +72,8 @@ SDBS_1::
 		MOV	ESI,EAX
 		MOV	EAX,PAGE_SIZE
 
-cmp EDI,(16*32*1024)/PAGE_SIZE*4
+; The size is set by the size of _SEQ_TABLE[] in common/macros.h and common/macros
+cmp EDI,SEQ_TABLE_MAX
 jb L100$
 push EDI
 call _checkpoint
