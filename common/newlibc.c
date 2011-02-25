@@ -392,11 +392,18 @@ void _fix_unref_communal(void *EDX, SYMBOL_STRUCT *EDI)
 void _fix_undefined(void *EDX, SYMBOL_STRUCT *EDI, SYMBOL_STRUCT *ESI)
 {
 	// DX:DI IS UNDEFINED DEFAULT TO BE HARD REFERENCED
-	CURNMOD_GINDEX = ESI->_S_REF_MOD_GINDEX;
+	/* Set this to 0 because sometimes it has _S_LIB_MODULE's contents.
+	 * I do not understand this fix. Perhaps it's related to why
+	 * weak externs fail in optlink.
+	 * Happens with 2nd example from Bugzilla 3372
+	 */
+	//CURNMOD_GINDEX = ESI->_S_REF_MOD_GINDEX;
+	CURNMOD_GINDEX = 0;
+	//printf("3ESI = %p, CURNMOD_GINDEX = %p, & = %p\n", ESI, ESI->_S_REF_MOD_GINDEX, &ESI->_S_REF_MOD_GINDEX);
+	//printf("type = %d\n", ESI->_S_NSYM_TYPE);
 	EDI->_S_REF_FLAGS |= S_REFERENCED;
 	_add_to_external_list(EDX, EDI);
 }
-
 
 void _fix_unref_weak(void *EDX, SYMBOL_STRUCT *EDI, SYMBOL_STRUCT *ESI)
 {
@@ -877,6 +884,10 @@ L3:
 
 	// CONVERT PAGE # TO MODULE #
 	// EBX->_S_LIB_MODULE is currently page
+
+	/* BUG: sometimes this is setting _S_REF_MOD_GINDEX which later cases
+	 * a crash because a SYMBOL_STRUCT* is expected by _fix_undefined.
+	 */
 	EBX->_S_LIB_MODULE = _binser_module(EBX->_S_LIB_MODULE);
 
 	// Officially request this symbol

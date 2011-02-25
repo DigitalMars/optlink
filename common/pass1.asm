@@ -38,6 +38,7 @@ XSEG		ENDS
 
 		EXTERNDEF	_release_eax:proc
 		EXTERNDEF	_release_eax_bump:proc
+		EXTERNDEF	_close_semaphore:proc
 		EXTERNDEF	SAY_VERBOSE:PROC,OBJ_MOD:PROC,_read_16k_threaded:proc,WARN_NFN_RET:PROC,ERR_NFN_ABORT:PROC
 		EXTERNDEF	MOVE_INTERNAL_DI:PROC,SET_LOC_11_RET:PROC,RELEASE_BLOCK:PROC,PROCESS_LIBRARIES:PROC
 		EXTERNDEF	_end_of_indirect:proc,CLOSE_LIB_FILES:PROC,DECLARE_OVERLAY_SEGMENTS:PROC
@@ -370,22 +371,14 @@ L3$:
 		JZ	L39$
 
 		ASSUME	EDI:PTR MYL2_STRUCT
-		MOV	EAX,[EDI].MYL2_LIB_BLOCK_SEM._SEM_ITSELF
-
-		TEST	EAX,EAX
-		JZ	L32$
-
+		lea	EAX,[EDI].MYL2_LIB_BLOCK_SEM
 		push	EAX
-		call	_close_handle
+		call	_close_semaphore
 		add	ESP,4
 L32$:
-		MOV	EAX,[EDI].MYL2_BLOCK_READ_SEM._SEM_ITSELF
-
-		TEST	EAX,EAX
-		JZ	L33$
-
+		lea	EAX,[EDI].MYL2_BLOCK_READ_SEM
 		push	EAX
-		call	_close_handle
+		call	_close_semaphore
 		add	ESP,4
 L33$:
 		MOV	EAX,EDI
@@ -503,21 +496,14 @@ L2$:
 		ASSUME	EBX:PTR GLOBALSEM_STRUCT
 
 L24$:
-		XOR	EDX,EDX
-		MOV	EAX,[EBX]._SEM_ITSELF
-
-		TEST	EAX,EAX
-		JZ	L25$
-
 		PUSH	ECX
-		MOV	[EBX]._SEM_ITSELF,EDX
 
-		push	EAX
-		call	_close_handle
+		push	EBX
+		call	_close_semaphore
 		add	ESP,4
 
 		POP	ECX
-L25$:
+
 		ADD	EBX,SIZE GLOBALSEM_STRUCT
 
 		DEC	ECX

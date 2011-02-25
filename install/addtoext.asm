@@ -29,7 +29,6 @@
 
 		.CODE	PASS1_TEXT
 
-
 		public _add_to_undecorated_list
 _add_to_undecorated_list	PROC
 		mov	ECX,8[ESP]
@@ -160,7 +159,6 @@ AF_RET::
 		MOV	[ECX]._S_NEXT_SYM_GINDEX,EBX
 		POP	EBX
 		MOV	[ECX]._S_REF_MOD_GINDEX,EDX
-
 		RET
 
 
