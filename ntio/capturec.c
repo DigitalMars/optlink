@@ -5,6 +5,11 @@
 
 void _capture_eax(struct GLOBALSEM_STRUCT *s)
 {
+//if (s == &_SAY_VERBOSE_SEM) return;
+//if (s != &_SAY_VERBOSE_SEM) printf("capture %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("capture %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+//if (s != &_SAY_VERBOSE_SEM /*&& s->_SEM_ITSELF == (HANDLE)0x6C8*/ && s->_SEM_COUNTER == -10)  *(char*)0=0;
+#if 1
     _asm
     {
 	mov	EAX,s
@@ -12,13 +17,15 @@ void _capture_eax(struct GLOBALSEM_STRUCT *s)
 	jz	L1
 	js	L1
     }
-
+#endif
     if (s->_SEM_ITSELF)
     {
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("capturing %p\n", s);
 	if (WaitForSingleObject(s->_SEM_ITSELF, -1) == -1)
 	{
 	    _err_abort(_TIMEOUT_ERR);
 	}
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("captured %p\n", s);
     }
 L1:
     ;
@@ -27,6 +34,10 @@ L1:
 
 void _release_eax(struct GLOBALSEM_STRUCT *s)
 {
+//if (s == &_SAY_VERBOSE_SEM) return;
+//if (s != &_SAY_VERBOSE_SEM) printf("release %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("release %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+#if 1
     _asm
     {
 	mov	EAX,s
@@ -34,10 +45,11 @@ void _release_eax(struct GLOBALSEM_STRUCT *s)
 	jns	L1
     }
     return;
-
+#endif
 L1:
     if (s->_SEM_ITSELF)
     {
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("releasing %p\n", s);
 	ReleaseSemaphore(s->_SEM_ITSELF, 1, 0);
     }
 }
@@ -45,6 +57,10 @@ L1:
 
 void _release_eax_bump(struct GLOBALSEM_STRUCT *s)
 {
+//if (s == &_SAY_VERBOSE_SEM) return;
+//if (s != &_SAY_VERBOSE_SEM) printf("release_bump %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("release_bump %p, h = %p, counter = %d\n", s, s->_SEM_ITSELF, s->_SEM_COUNTER);
+#if 1
     _asm
     {
 	mov	EAX,s
@@ -52,10 +68,11 @@ void _release_eax_bump(struct GLOBALSEM_STRUCT *s)
 	jns	L1
     }
     return;
-
+#endif
 L1:
     if (s->_SEM_ITSELF)
     {
+//if (s != &_SAY_VERBOSE_SEM && s->_SEM_ITSELF == (HANDLE)0x6C8) printf("release_bump %p\n", s);
 	ReleaseSemaphore(s->_SEM_ITSELF, 1, 0);
 	_do_dossleep_0();
     }

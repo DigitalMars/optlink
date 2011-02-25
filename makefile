@@ -91,7 +91,7 @@ COMMONSRC= $(COMMONSRCC) \
 	common\io_struc common\makemacs common\unpack32.asm \
 	common\unquik.asm common\sects.d common\initcode.d common\optlnk.d \
 	common\segments.d common\symbols.d common\groups.d common\cmdsubs.d \
-	common\io_struc.d common\fixupp.d common\semaphor.asm common\macros \
+	common\io_struc.d common\fixupp.d common\macros \
 	common\pe_sect.asm common\strtmap.asm common\symmap.asm \
 	common\lnkdat.asm common\fixupp2.d common\lidata.asm common\initcode \
 	common\align.asm common\comdat.asm common\comdats.asm \

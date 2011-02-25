@@ -53,6 +53,9 @@ void _warn_symbol_text_ret(int errnum);
 void _reference_impsym(void *EAX, SYMBOL_STRUCT *ECX);
 void _reference_comdat(void *EAX, SYMBOL_STRUCT *ECX);
 
+// common.lnkinit
+void _close_semaphore(GLOBALSEM_STRUCT *s);
+
 // common.modpage
 int _binser_module(int);
 

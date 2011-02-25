@@ -34,6 +34,7 @@ void libread2(MYL2_STRUCT *EBX)
     SetThreadPriority((HANDLE)EBX->MYL2_LIBREAD_THREAD_HANDLE, THREAD_PRIORITY_ABOVE_NORMAL); // was normal
     while (1)
     {
+	// Bugzilla 3372: This call is known to deadlock here on the 2nd example
 	_capture_eax(&EBX->MYL2_LIB_BLOCK_SEM);	// wait till a block is requested
 	if (LIBS_DONE)
 	    break;
