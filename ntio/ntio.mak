@@ -5,6 +5,11 @@ SRC = $(BASE)\NTIO
 FLAGS = $(MASMFLAGS)
 CFLAGS=-I..\common -r -N_
 
+HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
+	..\common\exes.h ..\common\library.h ..\common\symbols.h ..\common\groups.h \
+	..\common\segments.h ..\common\segmsyms.h ..\common\lnkdat.h ..\common\cvtypes.h \
+	..\common\cvstuff.h ..\common\pe_struc.h
+
 OBJS= \
 	$(OBJ)\fancyc.obj \
 	$(OBJ)\findfirsc.obj \
@@ -95,67 +100,67 @@ $(OBJ)\LIBREADT.OBJ : LIBREADT.ASM ..\COMMON\MACROS ..\COMMON\WIN32DEF ..\COMMON
 $(OBJ)\TERRORS.OBJ : TERRORS.ASM ..\COMMON\MACROS ..\COMMON\IO_STRUC ..\COMMON\SYMCMACS ..\COMMON\WIN32DEF
   ML $(FLAGS) $(SRC)\TERRORS.ASM
 
-$(OBJ)\capturec.obj : capturec.c
+$(OBJ)\capturec.obj : capturec.c $(HEADERS)
 	dmc -c capturec -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\capturec.obj
 
-$(OBJ)\dosioc.obj : dosioc.c
+$(OBJ)\dosioc.obj : dosioc.c $(HEADERS)
 	dmc -c dosioc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\dosioc.obj
 
-$(OBJ)\dosposac.obj : dosposac.c
+$(OBJ)\dosposac.obj : dosposac.c $(HEADERS)
 	dmc -c dosposac -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\dosposac.obj
 
-$(OBJ)\doswritec.obj : doswritec.c
+$(OBJ)\doswritec.obj : doswritec.c $(HEADERS)
 	dmc -c doswritec -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\doswritec.obj
 
-$(OBJ)\dotc.obj : dotc.c
+$(OBJ)\dotc.obj : dotc.c $(HEADERS)
 	dmc -c dotc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\dotc.obj
 
-$(OBJ)\fancyc.obj : fancyc.c
+$(OBJ)\fancyc.obj : fancyc.c $(HEADERS)
 	dmc -c fancyc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\fancyc.obj
 
-$(OBJ)\findfirsc.obj : findfirsc.c
+$(OBJ)\findfirsc.obj : findfirsc.c $(HEADERS)
 	dmc -c findfirsc -NTPHASE1_TEXT $(CFLAGS) -o$(OBJ)\findfirsc.obj
 
-$(OBJ)\flushesc.obj : flushesc.c
+$(OBJ)\flushesc.obj : flushesc.c $(HEADERS)
 	dmc -c flushesc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\flushesc.obj
 
-$(OBJ)\gettimec.obj : gettimec.c
+$(OBJ)\gettimec.obj : gettimec.c $(HEADERS)
 	dmc -c gettimec -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\gettimec.obj
 
-$(OBJ)\libreadtc.obj : libreadtc.c
+$(OBJ)\libreadtc.obj : libreadtc.c $(HEADERS)
 	dmc -o -c libreadtc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\libreadtc.obj
 
-$(OBJ)\libstuffc.obj : libstuffc.c
+$(OBJ)\libstuffc.obj : libstuffc.c $(HEADERS)
 	dmc -c libstuffc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\libstuffc.obj
 
-$(OBJ)\openinc.obj : openinc.c
+$(OBJ)\openinc.obj : openinc.c $(HEADERS)
 	dmc -c openinc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\openinc.obj
 
-$(OBJ)\openoutc.obj : openoutc.c
+$(OBJ)\openoutc.obj : openoutc.c $(HEADERS)
 	dmc -c openoutc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\openoutc.obj
 
-$(OBJ)\openreadc.obj : openreadc.c
+$(OBJ)\openreadc.obj : openreadc.c $(HEADERS)
 	dmc -c openreadc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\openreadc.obj
 
-$(OBJ)\opreadtc.obj : opreadtc.c
+$(OBJ)\opreadtc.obj : opreadtc.c $(HEADERS)
 	dmc -c opreadtc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\opreadtc.obj
 
-$(OBJ)\printf.obj : printf.c
+$(OBJ)\printf.obj : printf.c $(HEADERS)
 	dmc -c printf -NTPASS2_TEXT $(CFLAGS) -I\dm\src\include -o$(OBJ)\printf.obj
 
-$(OBJ)\promptc.obj : promptc.c
+$(OBJ)\promptc.obj : promptc.c $(HEADERS)
 	dmc -c promptc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\promptc.obj
 
-$(OBJ)\recohndlc.obj : recohndlc.c
+$(OBJ)\recohndlc.obj : recohndlc.c $(HEADERS)
 	dmc -c recohndlc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\recohndlc.obj
 
-$(OBJ)\reopenc.obj : reopenc.c
+$(OBJ)\reopenc.obj : reopenc.c $(HEADERS)
 	dmc -c reopenc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\reopenc.obj
 
-$(OBJ)\terrorsc.obj : terrorsc.c
+$(OBJ)\terrorsc.obj : terrorsc.c $(HEADERS)
 	dmc -c terrorsc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\terrorsc.obj
 
-$(OBJ)\xcnotifyc.obj : xcnotifyc.c
+$(OBJ)\xcnotifyc.obj : xcnotifyc.c $(HEADERS)
 	dmc -o -c xcnotifyc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\xcnotifyc.obj
 
 

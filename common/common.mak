@@ -4,6 +4,10 @@ FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\COMMON
 CFLAGS=-I..\common -r -N_ -o
 
+HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
+	..\common\exes.h ..\common\library.h ..\common\symbols.h ..\common\groups.h \
+	..\common\segments.h ..\common\segmsyms.h ..\common\lnkdat.h ..\common\cvtypes.h \
+	..\common\cvstuff.h ..\common\pe_struc.h
 
 
 ALL : $(LIB)\COMMON.LIB
@@ -214,28 +218,28 @@ $(OBJ)\QUIKRELO.OBJ : QUIKRELO.ASM MACROS RELOCSS SEGMSYMS
 $(OBJ)\C32MOVES.OBJ : C32MOVES.ASM MACROS SECTS SLR32
   ML $(FLAGS) $(SRC)\C32MOVES.ASM
 
-$(OBJ)\cmdsubsc.obj : cmdsubsc.c
+$(OBJ)\cmdsubsc.obj : cmdsubsc.c $(HEADERS)
 	dmc -c cmdsubsc -NTFILEPARSE_TEXT $(CFLAGS) -o$(OBJ)\cmdsubsc.obj
 
-$(OBJ)\fixupp2c.obj : fixupp2c.c
+$(OBJ)\fixupp2c.obj : fixupp2c.c $(HEADERS)
 	dmc -c fixupp2c -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\fixupp2c.obj
 
-$(OBJ)\lnkinitc.obj : lnkinitc.c
+$(OBJ)\lnkinitc.obj : lnkinitc.c $(HEADERS)
 	dmc -c lnkinitc -NTSTARTUP_TEXT $(CFLAGS) -o$(OBJ)\lnkinitc.obj
 
-$(OBJ)\macrosc.obj : macrosc.c
+$(OBJ)\macrosc.obj : macrosc.c $(HEADERS)
 	dmc -c macrosc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\macrosc.obj
 
-$(OBJ)\newlibc.obj : newlibc.c
+$(OBJ)\newlibc.obj : newlibc.c $(HEADERS)
 	dmc -c newlibc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\newlibc.obj
 
-$(OBJ)\optlnkc.obj : optlnkc.c
+$(OBJ)\optlnkc.obj : optlnkc.c $(HEADERS)
 	dmc -c optlnkc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\optlnkc.obj
 
-$(OBJ)\pass2c.obj : pass2c.c
+$(OBJ)\pass2c.obj : pass2c.c $(HEADERS)
 	dmc -c pass2c -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\pass2c.obj
 
-$(OBJ)\recordsc.obj : recordsc.c
+$(OBJ)\recordsc.obj : recordsc.c $(HEADERS)
 	dmc -c recordsc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\recordsc.obj
 
 

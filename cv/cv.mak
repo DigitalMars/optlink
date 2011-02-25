@@ -4,6 +4,11 @@ FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\CV
 CFLAGS=-I..\common -r -N_
 
+HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
+	..\common\exes.h ..\common\library.h ..\common\symbols.h ..\common\groups.h \
+	..\common\segments.h ..\common\segmsyms.h ..\common\lnkdat.h ..\common\cvtypes.h \
+	..\common\cvstuff.h ..\common\pe_struc.h
+
 ALL : $(LIB)\CV.LIB
 
 $(LIB)\CV.LIB : $(OBJ)\CVMODALL.OBJ $(OBJ)\XDEBUG.OBJ $(OBJ)\CVMOD4.OBJ $(OBJ)\CVSTUFF.OBJ $(OBJ)\TXTOMF.OBJ $(OBJ)\CVINDEX.OBJ \
@@ -95,16 +100,16 @@ $(OBJ)\CVFILALL.OBJ : CVFILALL.ASM ..\COMMON\MACROS ..\COMMON\MODULES ..\COMMON\
 $(OBJ)\DERIVATE.OBJ : DERIVATE.ASM ..\COMMON\MACROS ..\COMMON\CVTYPES
   ML $(FLAGS) $(SRC)\DERIVATE.ASM
 
-$(OBJ)\cvhashesc.obj : cvhashesc.c
+$(OBJ)\cvhashesc.obj : cvhashesc.c $(HEADERS)
 	dmc -c cvhashesc -NTCVPACK_TEXT $(CFLAGS) -o$(OBJ)\cvhashesc.obj
 
-$(OBJ)\cvsymbolc.obj : cvsymbolc.c
+$(OBJ)\cvsymbolc.obj : cvsymbolc.c $(HEADERS)
 	dmc -c cvsymbolc -NTCVPACK_TEXT $(CFLAGS) -o$(OBJ)\cvsymbolc.obj
 
-$(OBJ)\instgsymc.obj : instgsymc.c
+$(OBJ)\instgsymc.obj : instgsymc.c $(HEADERS)
 	dmc -c instgsymc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\instgsymc.obj
 
-$(OBJ)\xdebugc.obj : xdebugc.c
+$(OBJ)\xdebugc.obj : xdebugc.c $(HEADERS)
 	dmc -c xdebugc -NTPASS2_TEXT $(CFLAGS) -o$(OBJ)\xdebugc.obj
 
 
