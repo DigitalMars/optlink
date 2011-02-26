@@ -24,7 +24,8 @@ $(LIB)\COMMON.LIB : $(OBJ)\THEADR.OBJ $(OBJ)\LNAMES.OBJ $(OBJ)\SEGDEF.OBJ $(OBJ)
 	$(OBJ)\FORREF2.OBJ $(OBJ)\REXEPACK.OBJ $(OBJ)\UNEXE2.OBJ $(OBJ)\EXEPACK.OBJ $(OBJ)\C32.OBJ $(OBJ)\CSUBS.OBJ \
 	$(OBJ)\C32QUIK.OBJ $(OBJ)\QUIKRELO.OBJ $(OBJ)\C32MOVES.OBJ $(OBJ)\INIPROC.OBJ \
 	$(OBJ)\cmdsubsc.obj $(OBJ)\optlnkc.obj $(OBJ)\lnkinitc.obj $(OBJ)\pass2c.obj \
-	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj $(OBJ)\fixupp2c.obj $(OBJ)\recordsc.obj
+	$(OBJ)\newlibc.obj $(OBJ)\macrosc.obj $(OBJ)\fixupp2c.obj $(OBJ)\recordsc.obj \
+	$(OBJ)\mscmdlinc.obj
   del $(LIB)\common.lib
   OPTLIB /OKMULTI /PA:32 $(LIB)\COMMON ~+ $(OBJ)\*;
 
@@ -229,6 +230,9 @@ $(OBJ)\lnkinitc.obj : lnkinitc.c $(HEADERS)
 
 $(OBJ)\macrosc.obj : macrosc.c $(HEADERS)
 	dmc -c macrosc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\macrosc.obj
+
+$(OBJ)\mscmdlinc.obj : mscmdlinc.c $(HEADERS)
+	dmc -c mscmdlinc -NTFILEPARSE_TEXT $(CFLAGS) -o$(OBJ)\mscmdlinc.obj
 
 $(OBJ)\newlibc.obj : newlibc.c $(HEADERS)
 	dmc -c newlibc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\newlibc.obj

@@ -68,6 +68,7 @@ COMMONSRCC= \
 	common\all.h \
 	common\pe_struc.h \
 	common\fixupp2c.c \
+	common\mscmdlinc.c \
 	common\recordsc.c
 
 COMMONSRC= $(COMMONSRCC) \
