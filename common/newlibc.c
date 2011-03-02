@@ -1344,6 +1344,7 @@ unsigned _lib_symbol(unsigned char *ESI)
 
 	pgnum &= 0xFFFF;
 
+//printf("_lib_symbol(ECX = %p, _S_NSYM_TYPE = %d, _S_LIB_MODULE = x%x)\n", ECX, ECX->_S_NSYM_TYPE, ECX->_S_LIB_MODULE);
 	switch (ECX->_S_NSYM_TYPE & NSYM_ANDER)
 	{
 	    case NSYM_UNDEFINED:     goto L1;		// UNDEFINED, ITS MINE
@@ -1412,6 +1413,7 @@ L2:
 	ECX->_S_LIB_MODULE = pgnum;
 	ECX->_S_LIB_GINDEX = (int)CURNLIB_GINDEX;	// LIBRARY_STRUCT*, should use union
 L99:
+//printf("L99: (ECX = %p, _S_NSYM_TYPE = %d, _S_LIB_MODULE = x%x)\n", ECX, ECX->_S_NSYM_TYPE, ECX->_S_LIB_MODULE);
 	return pgnum;
 
 LS_LAZY:
