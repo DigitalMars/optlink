@@ -244,6 +244,7 @@ SWE_3:
 	ECX = ESI;
 	EDI = (SYMBOL_STRUCT *)ESI->_S_WEAK_DEFAULT_GINDEX;	// MY ASSIGNED DEFAULT
 	EDX = EDI;
+//if (CURN_TYPE == NSYM_WEAK_EXTRN) printf("_scan_weak_extrns %p %p\n", ESI, EDI);
 	switch (EDI->_S_NSYM_TYPE)
 	{
 	    case NSYM_UNDEFINED:     goto SWE_UNDEFINED;	// FORCE EXTERNAL - MOVE TO DEFINED LIST
@@ -1434,6 +1435,7 @@ L9:
 
 void _reference_libsym(void *EAX, SYMBOL_STRUCT *ECX)
 {
+	//printf("_reference_libsym(ECX = %p, _S_NSYM_TYPE = %d, _S_LIB_MODULE = x%x)\n", ECX, ECX->_S_NSYM_TYPE, ECX->_S_LIB_MODULE);
 	// EAX is GINDEX, ECX is phys - not currently in any list
 	// Add this to end of EXTRN_LIST for this library, and
 	// request its blocks
@@ -1462,6 +1464,7 @@ void _reference_libsym(void *EAX, SYMBOL_STRUCT *ECX)
 
 void **_conv_axesdicx_to_module_ptr_dssi(int EAX, LIBRARY_STRUCT *ECX)
 {
+//printf("_conv_axesdicx_to_module_ptr_dssi(Module # x%x, LIBRARY_STRUCT *%p)\n", EAX, ECX);
 	/* EAX	MODULE #
 	 * ECX	LIB_GINDEX
 	 *
@@ -1473,14 +1476,20 @@ void **_conv_axesdicx_to_module_ptr_dssi(int EAX, LIBRARY_STRUCT *ECX)
 	unsigned EBX = ECX->_LS_MODULES;
 
 	void **EDX = ECX->_LS_MODULE_PTRS;
+//printf("_LS_MODULES = x%x\n", EBX);
+//printf("_LS_MODULE_PTRS = %p\n", EDX);
 
-	if (EBX < PAGE_SIZE/4/2)
+	if (EBX < PAGE_SIZE/4/2)	// < 0x800
+	{
+//printf("test1 %p + x%x\n", EDX, EAX);
 	    return EDX + EAX;
+	}
 
 	EBX = EAX;
-	EAX &= (PAGE_SIZE-1) >> 2;
-	EBX >>= PAGE_BITS - 2;
+	EAX &= (PAGE_SIZE-1) >> 2;	// &= 0xFFF
+	EBX >>= PAGE_BITS - 2;		// >>= 12
 
+//printf("test2 %p[x%x]=%p + x%x, \n", EDX, EBX, EDX[EBX], EAX);
 	return (void **)EDX[EBX] + EAX;
 }
 
@@ -1570,7 +1579,7 @@ pop ECX	;
 		jmp short	LC08	;
     }
 #else
-	//printf("lib_sym_request(ss = %p)\n", ss);
+	//printf("lib_sym_request(ss = %p, _S_LIB_MODULE = x%x)\n", ss, ss->_S_LIB_MODULE);
 	// This symbol is to be officially requested. It's already linked to the correct library
 	// ss IS SYMBOL, notused IS INDEX
 
@@ -1583,6 +1592,7 @@ pop ECX	;
 	unsigned *EAX = (unsigned *)_conv_axesdicx_to_module_ptr_dssi(EDI, ECX);	// MODULE_PTR IN EDI
 
 	// Fails on next line with EXTDEF for ModuleInfo, EAX has only low 16 bits set to a value
+	// Bugzilla 2436, EAX is 0x119D0
 	if (((signed char *)EAX)[3] < 0)
 	    return;				// module already requested
 
