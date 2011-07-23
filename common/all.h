@@ -144,6 +144,9 @@ void _remove_from_external_list(void *EAX, SYMBOL_STRUCT *ECX);
 // install/farinst
 unsigned _far_install(unsigned EDX, SYMBOL_STRUCT **pECX);
 
+// install/finsegat
+SEGMENT_STRUCT *_find_segat_location();
+
 // install/modpage
 void _init_install_module();
 void _install_module_page(int EAX);

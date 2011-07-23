@@ -216,7 +216,7 @@ INSTALLSRC= \
 	install\defclass.asm \
 	install\dsegmod.asm \
 	install\nameinst.asm \
-	install\finsegat.asm \
+	install\finsegatc.c \
 	install\fuzzinst.asm \
 	install\getsegmt.asm \
 	install\go.bat \
@@ -244,7 +244,6 @@ INSTALLSRC= \
 	install\instfile.asm \
 	install\farinst.asm \
 	install\addtoext.asm \
-	install\modpage.asm \
 	install\modpagec.c
 
 MOVESSRC= \

@@ -1,0 +1,24 @@
+
+#include <stddef.h>
+
+#include "all.h"
+
+SEGMENT_STRUCT *_find_segat_location()
+{
+	// SCAN LIST OF ABSOLUTE SEGMENTS FOR PLACE TO PUT THIS ONE
+        // (IN NUMERICAL ORDER FOR ROM-LINK)
+	// RETURN EAX POINTING TO PLACE TO RECEIVE NEW SEGMENT
+
+	SEGMENT_STRUCT *EAX = (SEGMENT_STRUCT *)((char *)&FIRST_FINAL_SEGMENT_GINDEX - offsetof(SEGMENT_STRUCT, _SEG_NEXT_SEG_GINDEX));
+	unsigned ECX = SEG_FRAME;
+L2:
+	SEGMENT_STRUCT *EDX = EAX;
+	EAX = EAX->_SEG_NEXT_SEG_GINDEX;
+	if (!EAX)
+	    goto L9;
+	if (ECX >= EAX->_SEG_OFFSET)
+	    goto L2;
+L9:
+	return EDX;
+}
+
