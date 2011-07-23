@@ -54,7 +54,6 @@ void _reference_impsym(void *EAX, SYMBOL_STRUCT *ECX);
 void _reference_comdat(void *EAX, SYMBOL_STRUCT *ECX);
 
 // common.lnkinit
-void _close_semaphore(GLOBALSEM_STRUCT *s);
 
 // common.modpage
 int _binser_module(int);
@@ -147,6 +146,16 @@ unsigned _far_install(unsigned EDX, SYMBOL_STRUCT **pECX);
 // install/modpage
 void _init_install_module();
 void _install_module_page(int EAX);
+
+// ntio\capturec.c
+void _init_semaphores();
+void _init_eax(struct GLOBALSEM_STRUCT *EAX);
+void _close_semaphore(GLOBALSEM_STRUCT *s);
+void _capture_eax(struct GLOBALSEM_STRUCT *s);
+void _release_eax(struct GLOBALSEM_STRUCT *s);
+void _release_eax_bump(struct GLOBALSEM_STRUCT *s);
+void _capture_stdio();
+void _release_stdio();
 
 // ntio\dotc
 void DOT();

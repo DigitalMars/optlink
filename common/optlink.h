@@ -1,7 +1,4 @@
 
-void _capture_eax(struct GLOBALSEM_STRUCT *s);
-void _release_eax(struct GLOBALSEM_STRUCT *s);
-void _release_eax_bump(struct GLOBALSEM_STRUCT *s);
 void _DELETE_EXE();
 int _err_ret(int errcode);
 
@@ -323,11 +320,6 @@ void _lst_out(void *EAX, unsigned ECX);
 void __exit(int exitcode);
 void _delete_exe();
 void _disable_mapout();
-
-/*********** common/lnkinitc **********/
-
-void _init_semaphores();
-void _init_eax(struct GLOBALSEM_STRUCT *EAX);
 
 /*********** common/exe *************/
 

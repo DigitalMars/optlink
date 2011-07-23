@@ -32,6 +32,18 @@ void _init_eax(GLOBALSEM_STRUCT *EAX)
     //if (EAX != &_SAY_VERBOSE_SEM) printf("sem init %p, %p\n", EAX, h);
 }
 
+void _close_semaphores()
+{
+    if (_HOST_THREADED & 0xFF)
+    {
+	for (int i = 0; i < GLOBAL_SEMAPHORE_COUNT; i++)
+	{
+	    _close_semaphore(&GLOBAL_SEMAPHORE_LIST[i]);
+	}
+    }
+}
+
+
 void _close_semaphore(GLOBALSEM_STRUCT *s)
 {
     void *h = s->_SEM_ITSELF;
@@ -115,3 +127,15 @@ L1:
 	_do_dossleep_0();
     }
 }
+
+
+void _capture_stdio()
+{
+    _capture_eax(&_SAY_VERBOSE_SEM);
+}
+
+void _release_stdio()
+{
+    _release_eax(&_SAY_VERBOSE_SEM);
+}
+

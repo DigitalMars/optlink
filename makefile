@@ -244,7 +244,8 @@ INSTALLSRC= \
 	install\instfile.asm \
 	install\farinst.asm \
 	install\addtoext.asm \
-	install\modpage.asm
+	install\modpage.asm \
+	install\modpagec.c
 
 MOVESSRC= \
 	moves\mvlname.asm \

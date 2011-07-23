@@ -110,10 +110,10 @@ extern HANDLE _STDOUT;
 
 int _loutall_con(unsigned nbytes, char *ptr)
 {
-    _capture_eax(&_SAY_VERBOSE_SEM);
+    _capture_stdio();
     DWORD nwritten = 0;
     int r = WriteFile(_STDOUT, ptr, nbytes, &nwritten, NULL);
-    _release_eax(&_SAY_VERBOSE_SEM);
+    _release_stdio();
     if (r == 0)
 	__exit(r);
     return nwritten;
