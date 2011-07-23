@@ -70,9 +70,9 @@ static int __cdecl _putc_nlock(int c,void *p)
 int vprintf(const char *format,va_list args)
 {   int status;
 
-    _capture_eax(&_SAY_VERBOSE_SEM);
+    _capture_stdio();
     status = _pformat((fp_t)_putc_nlock,NULL,format,args);
-    _release_eax(&_SAY_VERBOSE_SEM);
+    _release_stdio();
     //if (stdout->_flag & _IOLBF)
             //fflush(stdout);
     return status;
