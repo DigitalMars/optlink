@@ -2,7 +2,7 @@
 
 		INCLUDE	MACROS
 
-		PUBLIC	INIT_INSTALL_MODULE,INSTALL_MODULE_PAGE,BINSER_MODULE
+		PUBLIC	INSTALL_MODULE_PAGE,BINSER_MODULE
 
 
 		.DATA
@@ -19,33 +19,6 @@
 
 		EXTERNDEF	TOO_MANY_SYMBOLS_ERR:ABS
 
-
-		public	_init_install_module
-_init_install_module	proc
-_init_install_module	endp
-
-INIT_INSTALL_MODULE	PROC
-		;
-		;BUILD A BIT TABLE
-		;
-		CALL	GET_NEW_LOG_BLK 	;LEAVE IN FASTER MEMORY
-
-		PUSH	EDI
-		MOV	EDI,EAX
-
-		MOV	FSYMBEG,EAX
-		XOR	EAX,EAX
-
-		MOV	ECX,8K/4		;ZERO OUT 8K BYTES OF BITS
-		MOV	MAX_PAGEDWORD,EAX
-
-		REP	STOSD
-
-		POP	EDI
-
-		RET
-
-INIT_INSTALL_MODULE	ENDP
 
 		public	_install_module_page
 _install_module_page	proc

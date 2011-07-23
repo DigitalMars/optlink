@@ -1,6 +1,19 @@
+
+#include "all.h"
+
+void _init_install_module()
+{
+    // build a bit table
+
+    void *p = _get_new_log_blk(); 	// leave in faster memory
+    FSYMBEG = p;
+    memset(p, 0, 8 * 1024);
+    MAX_PAGEDWORD = 0;
+}
+
 /*
 
-		PUBLIC	INIT_INSTALL_MODULE,INSTALL_MODULE_PAGE,BINSER_MODULE
+		PUBLIC	INSTALL_MODULE_PAGE,BINSER_MODULE
 
 
 		.DATA
@@ -17,33 +30,6 @@
 
 		EXTERNDEF	TOO_MANY_SYMBOLS_ERR:ABS
 
-
-		public	_init_install_module
-_init_install_module	proc
-_init_install_module	endp
-
-INIT_INSTALL_MODULE	PROC
-		;
-		;BUILD A BIT TABLE
-		;
-		CALL	GET_NEW_LOG_BLK 	;LEAVE IN FASTER MEMORY
-
-		PUSH	EDI
-		MOV	EDI,EAX
-
-		MOV	FSYMBEG,EAX
-		XOR	EAX,EAX
-
-		MOV	ECX,8K/4		;ZERO OUT 8K BYTES OF BITS
-		MOV	MAX_PAGEDWORD,EAX
-
-		REP	STOSD
-
-		POP	EDI
-
-		RET
-
-INIT_INSTALL_MODULE	ENDP
 
 		public	_install_module_page
 _install_module_page	proc
