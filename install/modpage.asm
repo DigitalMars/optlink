@@ -20,10 +20,10 @@
 		EXTERNDEF	TOO_MANY_SYMBOLS_ERR:ABS
 
 
-		public	_binser_module
-_binser_module	proc
-		mov	EAX,4[ESP]
-_binser_module	endp
+;		public	_binser_module
+;_binser_module	proc
+;		mov	EAX,4[ESP]
+;_binser_module	endp
 
 BINSER_MODULE	PROC
 		;

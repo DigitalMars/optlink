@@ -851,7 +851,7 @@ L8:
 
 SYM_LOOP:
 	// CONVERT BEGINNING PAGE # TO MODULE #
-	EBX->_S_LIB_MODULE = _binser_module(EBX->_S_LIB_MODULE);
+	EBX->_S_LIB_MODULE = _binser_module(EBX->_S_LIB_MODULE, EBX);
 	EBX = EBX->_S_PREV_SYM_GINDEX;
 TEST_SYM:
 	if (EBX)
@@ -889,7 +889,7 @@ L3:
 	/* BUG: sometimes this is setting _S_REF_MOD_GINDEX which later cases
 	 * a crash because a SYMBOL_STRUCT* is expected by _fix_undefined.
 	 */
-	EBX->_S_LIB_MODULE = _binser_module(EBX->_S_LIB_MODULE);
+	EBX->_S_LIB_MODULE = _binser_module(EBX->_S_LIB_MODULE, EBX);
 
 	// Officially request this symbol
 	SYMBOL_STRUCT *ECX = EBX;

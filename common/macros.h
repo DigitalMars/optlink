@@ -44,6 +44,8 @@
 #define PAGE_SIZE	(16*1024)
 #define PAGE_SHIFT	2
 #define PAGE_BITS	14
+#define PAGE_POWER	14
+#define PAGE_MASK	0x3FFF
 #define fg_td		0
 
 #define fgh_anythreads	(fgh_inthreads || fgh_outhreads || fgh_mapthread)
