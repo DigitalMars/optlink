@@ -2,7 +2,7 @@
 
 		INCLUDE	MACROS
 
-		PUBLIC	INSTALL_MODULE_PAGE,BINSER_MODULE
+		PUBLIC	BINSER_MODULE
 
 
 		.DATA
@@ -19,45 +19,6 @@
 
 		EXTERNDEF	TOO_MANY_SYMBOLS_ERR:ABS
 
-
-		public	_install_module_page
-_install_module_page	proc
-		mov	EAX,4[ESP]
-_install_module_page	endp
-
-INSTALL_MODULE_PAGE	PROC
-		;
-		;INSTALL MODULE[EAX] IN LIST OF MODULES...
-		;
-		PUSH	EBX
-		MOV	ECX,EAX
-
-		SHR	EAX,5
-		MOV	EBX,FSYMBEG
-
-		MOV	EDX,1
-		AND	CL,1FH
-
-		SHL	EDX,CL
-
-		MOV	ECX,[EAX*4+EBX]
-
-		OR	ECX,EDX
-		MOV	EDX,MAX_PAGEDWORD
-
-		MOV	DPTR [EAX*4+EBX],ECX
-		CMP	EDX,EAX
-
-		POP	EBX
-		JB	L1$
-
-		RET
-
-L1$:
-		MOV	MAX_PAGEDWORD,EAX
-		RET
-
-INSTALL_MODULE_PAGE	ENDP
 
 		public	_binser_module
 _binser_module	proc

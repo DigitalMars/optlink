@@ -11,6 +11,18 @@ void _init_install_module()
     MAX_PAGEDWORD = 0;
 }
 
+void _install_module_page(int EAX)
+{
+    // Install module[EAX] in list of modules
+
+    int EDX = 1 << (EAX & 0x1F);
+    EAX >>= 5;
+    int *EBX = (int *)FSYMBEG;
+    EBX[EAX] |= EDX;
+    if (MAX_PAGEDWORD < EAX)
+	MAX_PAGEDWORD = EAX;
+}
+
 /*
 
 		PUBLIC	INSTALL_MODULE_PAGE,BINSER_MODULE
