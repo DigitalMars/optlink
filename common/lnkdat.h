@@ -64,7 +64,7 @@ extern void *PHYS_TABLE[PAGE_SIZE / sizeof(void *)];
 
 extern unsigned char ASCIZ[NFN_TEXT_SIZE];
 extern unsigned ASZIZ_LEN;
-extern unsigned FIRST_FINAL_SEGMENT_GINDEX;
+extern SEGMENT_STRUCT *FIRST_FINAL_SEGMENT_GINDEX;
 extern unsigned CURN_OUTFILE_BASE_ADDRESS;
 extern unsigned FIRST_MODULE_GINDEX;
 extern unsigned LAST_MODULE_GINDEX;
@@ -772,8 +772,9 @@ SEG_COMBINE		DB	?
 SEG_ALIGN		DB	?
 SEG32_FLAGS		DB	?
 			DB	?
-
-SEG_FRAME		DD	?
+*/
+extern unsigned SEG_FRAME;
+/*
 SEG_LEN			DD	?
 SEG_NAME_LINDEX		DD	?
 CLASS_NAME_LINDEX	DD	?
