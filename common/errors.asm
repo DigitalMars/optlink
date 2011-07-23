@@ -404,8 +404,12 @@ ERROR_PHASE3	ENDP
 
 
 
-		PUBLIC	LIBRARY_ERROR
+		public _library_error
+_library_error	proc
+		mov	EAX,4[ESP]
+_library_error	endp
 
+		PUBLIC	LIBRARY_ERROR
 LIBRARY_ERROR:
 		LEA	ECX,[EAX].SYMBOL_STRUCT._S_NAME_TEXT
 		MOV	AL,LIB1_ERR

@@ -48,6 +48,7 @@ void _warn_nfn_ret(int errnum, NFN_STRUCT *n);
 void _err_nfn_abort(int errnum, NFN_STRUCT *n);
 void _warn_ret(int errnum);
 void _warn_symbol_text_ret(int errnum);
+void _library_error(SYMBOL_STRUCT *);
 
 // common.extdef
 void _reference_impsym(void *EAX, SYMBOL_STRUCT *ECX);
@@ -56,7 +57,7 @@ void _reference_comdat(void *EAX, SYMBOL_STRUCT *ECX);
 // common.lnkinit
 
 // common.modpage
-int _binser_module(int);
+int _binser_module(int EAX, SYMBOL_STRUCT *EBX);
 
 // common\newlib
 void _dec_lib_block();

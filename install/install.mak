@@ -11,7 +11,7 @@ HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_stru
 	..\common\cvstuff.h ..\common\pe_struc.h
 
 OBJS= \
-	$(OBJ)\MODNAME.OBJ $(OBJ)\MODPAGE.OBJ $(OBJ)\FARINST.OBJ $(OBJ)\DEFCLASS.OBJ \
+	$(OBJ)\MODNAME.OBJ $(OBJ)\FARINST.OBJ $(OBJ)\DEFCLASS.OBJ \
 	$(OBJ)\INSTOUT.OBJ $(OBJ)\PUTGROUP.OBJ $(OBJ)\SENTRYNM.OBJ $(OBJ)\FINSEGAT.OBJ \
 	$(OBJ)\SENTRY.OBJ $(OBJ)\INSTSOFT.OBJ $(OBJ)\INSTNMSP.OBJ \
 	$(OBJ)\INSTFILE.OBJ $(OBJ)\SOFTPENT.OBJ $(OBJ)\NAMEINST.OBJ \
