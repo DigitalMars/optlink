@@ -225,6 +225,7 @@ INSTALLSRC= \
 	install\install.mak \
 	install\mycomdat.asm \
 	install\instcomm.asm \
+	install\instcommc.c \
 	install\modname.asm \
 	install\modinst.asm \
 	install\instflnm.asm \

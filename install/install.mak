@@ -23,6 +23,7 @@ OBJS= \
 	$(OBJ)\INSTFLNM.OBJ $(OBJ)\SRCINST.OBJ $(OBJ)\IRESTYPE.OBJ \
 	$(OBJ)\INSTPENT.OBJ $(OBJ)\FUZZINST.OBJ \
 	$(OBJ)\finsegatc.obj \
+	$(OBJ)\instcommc.obj \
 	$(OBJ)\modpagec.obj
 
 ALL : $(LIB)\INSTALL.LIB
@@ -133,6 +134,9 @@ $(OBJ)\INSTFLNM.OBJ : INSTFLNM.ASM ..\COMMON\MACROS ..\COMMON\CVSTUFF
 
 $(OBJ)\finsegatc.obj : finsegatc.c $(HEADERS)
 	dmc -o -c finsegatc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\finsegatc.obj
+
+$(OBJ)\instcommc.obj : instcommc.c $(HEADERS)
+	dmc -o -c instcommc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\instcommc.obj
 
 $(OBJ)\modpagec.obj : modpagec.c $(HEADERS)
 	dmc -o -c modpagec -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\modpagec.obj
