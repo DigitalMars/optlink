@@ -445,6 +445,10 @@ BAD_RECORD	PROC
 BAD_RECORD	ENDP
 
 
+		public	_index_range
+_index_range	proc
+_index_range	endp
+
 INDEX_RANGE	PROC
 		;
 		;
