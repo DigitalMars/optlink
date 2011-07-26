@@ -13,7 +13,7 @@
 #include "cvtypes.h"
 #include "cvstuff.h"
 #include "pe_struc.h"
-
+#include "cddata.h"
 
 // alloc\allocc
 void _seg_released();
@@ -49,6 +49,7 @@ void _err_nfn_abort(int errnum, NFN_STRUCT *n);
 void _warn_ret(int errnum);
 void _warn_symbol_text_ret(int errnum);
 void _library_error(SYMBOL_STRUCT *);
+void _index_range();
 
 // common.extdef
 void _reference_impsym(void *EAX, SYMBOL_STRUCT *ECX);
@@ -142,6 +143,7 @@ void _remove_from_aliased_list(void *EAX, SYMBOL_STRUCT *ECX);
 void _remove_from_external_list(void *EAX, SYMBOL_STRUCT *ECX);
 
 // install/farinst
+unsigned _comdat_install(unsigned EAX, SYMBOL_STRUCT **pECX);
 unsigned _far_install(unsigned EDX, SYMBOL_STRUCT **pECX);
 
 // install/finsegat

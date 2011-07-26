@@ -22,6 +22,7 @@ OBJS= \
 	$(OBJ)\IENTRY.OBJ $(OBJ)\INSTIMPN.OBJ $(OBJ)\IRESNAME.OBJ \
 	$(OBJ)\INSTFLNM.OBJ $(OBJ)\SRCINST.OBJ $(OBJ)\IRESTYPE.OBJ \
 	$(OBJ)\INSTPENT.OBJ $(OBJ)\FUZZINST.OBJ \
+	$(OBJ)\farinstc.obj \
 	$(OBJ)\finsegatc.obj \
 	$(OBJ)\instcommc.obj \
 	$(OBJ)\modpagec.obj
@@ -131,6 +132,9 @@ $(OBJ)\IRESTYPE.OBJ : IRESTYPE.ASM ..\COMMON\MACROS ..\COMMON\RESSTRUC
 
 $(OBJ)\INSTFLNM.OBJ : INSTFLNM.ASM ..\COMMON\MACROS ..\COMMON\CVSTUFF
   ML $(FLAGS) $(SRC)\INSTFLNM.ASM
+
+$(OBJ)\farinstc.obj : farinstc.c $(HEADERS)
+	dmc -o -c farinstc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\farinstc.obj
 
 $(OBJ)\finsegatc.obj : finsegatc.c $(HEADERS)
 	dmc -o -c finsegatc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\finsegatc.obj

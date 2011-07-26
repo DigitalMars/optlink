@@ -111,7 +111,7 @@ COMMONSRC= $(COMMONSRCC) \
 	common\obj_mod.asm common\extdef.asm common\symbols.h \
 	common\common.mak common\library.h common\optlink.h \
 	common\lnkdat.h common\newlib.asm common\newlibc.c \
-	common\cvtypes.h common\cvstuff.h
+	common\cvtypes.h common\cvstuff.h common\cddata.h
 
 CVSRCC= \
 	cv\instgsymc.c \
@@ -244,6 +244,7 @@ INSTALLSRC= \
 	install\instclas.asm \
 	install\instfile.asm \
 	install\farinst.asm \
+	install\farinstc.c \
 	install\addtoext.asm \
 	install\modpagec.c
 
