@@ -41,6 +41,7 @@ void **_p1only_pool_get(unsigned nbytes);
 void **_cv_gsym_pool_get(unsigned nbytes);
 void **_cv_ssym_pool_get(unsigned nbytes);
 void **_cv_hashes_pool_get(unsigned nbytes);
+void **_tillmiddle_pool_get(unsigned nbytes);
 
 // common.errors
 extern char *ERR_TABLE[];

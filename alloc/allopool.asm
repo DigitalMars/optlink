@@ -398,6 +398,11 @@ P1ONLY_POOL_GET	PROC
 P1ONLY_POOL_GET	ENDP
 
 
+	public	_tillmiddle_pool_get
+_tillmiddle_pool_get	proc
+	mov	EAX,4[ESP]
+_tillmiddle_pool_get	endp
+
 TILLMIDDLE_POOL_GET	PROC
 	push	ECX
 	push	EDX

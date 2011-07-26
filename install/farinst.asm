@@ -24,6 +24,7 @@
 		.CODE	PASS1_TEXT
 
 		externdef	_comdat_install:proc
+		externdef	_do_near_install:proc
 		EXTERNDEF	ENTRYNAME_POOL_GET:PROC
 
 COMDAT_INSTALL	PROC
@@ -619,6 +620,17 @@ NEAR_INSTALL	ENDP
 
 
 DO_NEAR_INSTALL	PROC
+		push	ECX
+		mov	ECX,ESP
+		push	ECX
+		push	EBX
+		call	_do_near_install
+		add	ESP,8
+		pop	ECX
+		or	DL,DL
+		POPM	ESI,EDI,EBX
+		ret
+
 		;
 		;DS:BX GETS POINTER...
 		;

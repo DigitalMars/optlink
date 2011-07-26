@@ -134,7 +134,7 @@ $(OBJ)\INSTFLNM.OBJ : INSTFLNM.ASM ..\COMMON\MACROS ..\COMMON\CVSTUFF
   ML $(FLAGS) $(SRC)\INSTFLNM.ASM
 
 $(OBJ)\farinstc.obj : farinstc.c $(HEADERS)
-	dmc -o -c farinstc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\farinstc.obj
+	dmc -c farinstc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\farinstc.obj
 
 $(OBJ)\finsegatc.obj : finsegatc.c $(HEADERS)
 	dmc -o -c finsegatc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\finsegatc.obj
