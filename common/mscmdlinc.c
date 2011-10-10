@@ -4613,19 +4613,17 @@ LTR_Z		LABEL	BYTE
 
 		DB	0
 
-if	fg_segm
-
-PM_TYPES	DD	PM_STG,300H
-		DD	VIO_STG,200H
-		DD	NOVIO_STG,100H
-
-endif
-
 #endif
-
 char PM_STG[] = "PM";
 char VIO_STG[] = "VIO";
 char NOVIO_STG[] = "NOVIO";
+
+
+void *PM_TYPES[6] = {	PM_STG, (void *)0x300,
+			VIO_STG, (void *)0x200,
+			NOVIO_STG, (void *)0x100
+		};
+
 
 char NT_STG[] = "NT";
 char OS2_STG[] = "OS2";
