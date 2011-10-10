@@ -4619,35 +4619,27 @@ PM_TYPES	DD	PM_STG,300H
 		DD	VIO_STG,200H
 		DD	NOVIO_STG,100H
 
-PM_STG		DB	'PM',0
-VIO_STG		DB	'VIO',0
-NOVIO_STG	DB	'NOVIO',0
-
 endif
-
-if	fg_pe
-NT_STG		DB	'NT',0
-endif
-OS2_STG		DB	'OS2',0
-WINDOWS_STG	DB	'WINDOWS',0
-DOS_STG		DB	'DOS',0
-DOS4_STG	DB	'DOS4',0
-DOSX_STG	DB	'DOSX',0
-UNKNOWN_STG	DB	'UNKNOWN',0
-
-FULL_TEXT	DB	'FULL',0
-ADDRESS_TEXT	DB	'ADDRESS',0
-GROUP_TEXT	DB	'GROUP',0
-NOGROUP_TEXT	DB	'NOGROUP',0
-
-NOEXE_TXT	DB	'NOEXE',0
-
-if	fg_pe
-
-I386_TXT	DB	'I386',0
-
-endif
-
-		END
 
 #endif
+
+char PM_STG[] = "PM";
+char VIO_STG[] = "VIO";
+char NOVIO_STG[] = "NOVIO";
+
+char NT_STG[] = "NT";
+char OS2_STG[] = "OS2";
+char WINDOWS_STG[] = "WINDOWS";
+char DOS_STG[] = "DOS";
+char DOS4_STG[] = "DOS4";
+char DOSX_STG[] = "DOSX";
+char UNKNOWN_STG[] = "UNKNOWN";
+
+char FULL_TEXT[] = "FULL";
+char ADDRESS_TEXT[] = "ADDRESS";
+char GROUP_TEXT[] = "GROUP";
+char NOGROUP_TEXT[] = "NOGROUP";
+
+char NOEXE_TXT[] = "NOEXE";
+char I386_TXT[] = "I386";
+
