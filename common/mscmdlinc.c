@@ -4641,3 +4641,56 @@ char NOGROUP_TEXT[] = "NOGROUP";
 char NOEXE_TXT[] = "NOEXE";
 char I386_TXT[] = "I386";
 
+
+void _switch_help()
+{
+    printf("\
+A[lignment]               BAS[e]                    B[atch]\n\
+BI[nary]                  BYO[rdinal]               CHECKA[bort]\n\
+CHECKE[xe]                CHECKS[um]                CO[deview]\n\
+COM[defsearch]            CP[armaxalloc]            CVV[ersion]\n\
+CVW[arnings]              DEB[ug]                   DEBUGA[pploader]\n\
+DEBUGB[rowser]            DEBUGC[overages]          DEBUGF[iles]\n\
+DEBUGLI[nes]              DEBUGLO[cals]             DEBUGM[odules]\n\
+DEBUGP[ublics]            DEBUGR[eferences]         DEBUGT[ypes]\n\
+DEF[aultlibrarysearch]    DE[lexecutable]           DET[ailedmap]\n\
+DO[sseg]                  EC[hoindirect]            EMSM[axsize]\n\
+EMSP[ageframeio]          EMSU[se40]                EN[try]\n\
+ER[rorflag]               E[xepack]                 EXET[ype]\n\
+F[arcalltranslation]      FI[xds]                   FIXE[d]\n\
+G[roupassociation]        GROUPS[tack]              HEA[p]\n\
+H[elp]                    IG[norecase]              IMPD[ef]\n\
+IMPL[ib]                  IMPLIBC[off]              I[nformation]\n\
+L[inenumbers]             LO[wercase]               MAC[hine]\n\
+M[ap]                     NOB[atch]                 NOCHECKA[bort]\n\
+NOCHECKE[xe]              NOCHECKS[um]              NOCO[deview]\n\
+NOCOM[defsearch]          NOCV[pack]                NODEB[ug]\n\
+NODEBUGA[pploader]        NODEBUGB[rowser]          NODEBUGC[overages]\n\
+NODEBUGLI[nes]            NODEBUGLO[cals]           NODEBUGP[ublics]\n\
+NODEBUGR[eferences]       NODEBUGT[ypes]            NOD[efaultlibrarysearch]\n\
+NODEL[executable]         NODET[ailedmap]           NODO[sseg]\n\
+NOEC[hoindirect]          NOEMSP[ageframeio]        NOEMSU[se40]\n\
+NOER[rorflag]             NOEXE[pack]               NOE[xtdictionary]\n\
+NOF[arcalltranslation]    NOFI[xds]                 NOG[roupassociation]\n\
+NOGROUPS[tack]            NOI[gnorecase]            NOLI[nenumbers]\n\
+NOL[ogo]                  NOM[ap]                   NONA[mes]\n\
+NONT[host]                NON[ullsdosseg]           NOP[ackcode]\n\
+NOPACKD[ata]              NOPACKF[unctions]         NOPACKI[fnosegments]\n\
+NOPAU[se]                 NOPR[ompt]                NOR[elocationcheck]\n\
+NOREO[rdersegments]       NOSCANLIB                 NOSCANLINK\n\
+NOWARND[ups]              NOWI[npack]               NOX[ref]\n\
+NT[host]                  NU[llsdosseg]             ON[error]\n\
+OPT                       PAC[kcode]                PACKD[ata]\n\
+PACKF[unctions]           PACKI[fnosegments]        PACKS[ize]\n\
+PADC[ode]                 PADD[ata]                 PAG[esize]\n\
+PAU[se]                   PM[type]                  PR[ompt]\n\
+RC                        RELOC[ationcheck]         REO[rdersegments]\n\
+SCANLIB                   SCANLINK                  SE[gments]\n\
+SEGP[ack]                 SI[lent]                  ST[ack]\n\
+STU[b]                    SU[bsystem]               T[iny]\n\
+U[ppercase]               VERS[ion]                 W[arnfixup]\n\
+WARND[ups]                WI[npack]                 XM[smaxsize]\n\
+X[ref]                    XN[oignorecase]           XU[ppercase]\n\
+");
+}
+
