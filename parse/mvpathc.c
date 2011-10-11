@@ -48,13 +48,14 @@ void *memmove(void *dst, const void *src, unsigned n)
 
 int memcmp(const void *p1, const void *p2, unsigned n)
 {
+    //printf("memcmp(%p, %p, %d)\n", p1, p2, n);
     int c = 0;
     const char *s1 = (const char *)p1;
     const char *s2 = (const char *)p2;
     while (n--)
     {
 	c = *s1 - *s2;
-	if (c == 0)
+	if (c)
 	    break;
 	s1++;
 	s2++;
