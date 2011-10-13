@@ -2028,12 +2028,12 @@ extern unsigned char OLD_SUPPLIED;
 extern unsigned char ENTRIES_POSSIBLE;
 */
 extern unsigned char OUTPUT_SEGMENTED;
-/*
+
 extern unsigned char OUTPUT_SEGMENTED;
 extern unsigned char IOPL_USED;
 extern unsigned char MOVABLE_USED;
 extern unsigned char IMP_BY_NAME;
-;extern unsigned char INCREMENTAL;
+//extern unsigned char INCREMENTAL;
 extern unsigned char WARNFIXUP;
 extern unsigned char OS2_FLAGS_DIFFERED;
 extern unsigned char MOVE_BYTES;
@@ -2049,10 +2049,11 @@ extern unsigned char EXEPACK_FLUSHING;
 extern unsigned char EXEPACK_USING_NEW;
 extern unsigned char BELOW_100_WARNED;
 extern unsigned char SIGNON_DONE;
-;extern unsigned char DEF_NUMBER_ILLEGAL;
+//extern unsigned char DEF_NUMBER_ILLEGAL;
 extern unsigned char PARSE_IN_OVERLAY;
 extern unsigned char DEBUGGING_THIS;
 extern unsigned char FANCY_DEBUG;
+/*
 if	fg_slrpack
 extern unsigned char SLRPACK_FLAG;		// ACTIVE THIS SECTION
 extern unsigned char SLRPACK_SELECTED;		// REQUESTED AT ALL BY COMMAND
@@ -2067,10 +2068,12 @@ extern unsigned char COMP_FIRST_INPUT;
 extern unsigned char QUIKPACK_FLAG;
 endif
 if	fg_winpack
+*/
 extern unsigned char WINPACK_SELECTED;
 extern unsigned char SEGPACK_SEGMENT;
 extern unsigned char SEGPACK_SELECTED;
 extern unsigned char WINPACK_LICENSED;
+/*
 endif
 extern unsigned char FIRST_REPT_STORED;
 extern unsigned char LONGNAMES_FLAG;
@@ -2160,8 +2163,7 @@ extern unsigned char PCODE_RUN_MPC;
 extern unsigned char PCH_HERE;
 extern unsigned char MAP_FLUSHED;
 extern unsigned char CVPACK_RUNNING;
-/*
-if	fg_td
+//if	fg_td
 extern unsigned char KEEPING_THIS_TDBG;
 extern unsigned char TDBG_F9_FOUND;
 extern unsigned char TD_DEFAULTS_INSTALLED;
@@ -2171,7 +2173,7 @@ extern unsigned char TLINK_SYNTAX;
 extern unsigned char TLINK_X_MAPFILE;
 extern unsigned char TLINK_INIT_SEGMENTS;
 extern unsigned char TLINK_DEFAULT_MODE;
-endif
+//endif
 extern unsigned char TLINK_OUTTYPE_FOUND;
 extern unsigned char ALL_EXPORTS_BY_ORDINAL;
 extern unsigned char NEED_MDB_RECORD;
@@ -2179,29 +2181,27 @@ extern unsigned char DOING_CFG;
 extern unsigned char SLASH_FOUND;
 extern unsigned char DEBUG_ALL;
 extern unsigned char KILL_NONRESIDENT_NAMES;
-if	fgh_dpmi
+//if	fgh_dpmi
 extern unsigned char FAULT_IN_PROGRESS;
 extern unsigned char IO_BLKS_USED_UP;
-endif
-*/
+//endif
 extern unsigned char CTRL_C_FOUND;
 extern unsigned char _NO_CANCEL_FLAG;
 extern unsigned char CANCEL_REQUESTED;
-/*
-if	fg_symc
+//if	fg_symc
 extern unsigned char COMENT_FOUND;
-endif
-if	fg_segm OR fg_pe
+//endif
+//if	fg_segm OR fg_pe
 extern unsigned char HEAP_SIZE_FLAG;
 extern unsigned char OBJECT_FLAGS_DEFINED;
-endif
+//endif
+
 
 extern unsigned char ANY_USE32;
 extern unsigned char NOPACKDATA_FLAG;
 extern unsigned char STORE_DSSICX_USE_ZERO;
 
-if	fg_pe
-*/
+//if	fg_pe
 extern unsigned char PE_SUBSYSTEM_DEFINED;
 extern unsigned char PE_SUBSYS_VERSION_DEFINED;
 extern unsigned char PE_BASE_SPECIFIED;
@@ -2209,9 +2209,9 @@ extern unsigned char PE_BASE_FIXED;
 extern unsigned char OUTPUT_PE;
 extern unsigned char DOING_tls;
 extern unsigned char GOT_tls_CLASS;
-/*
-endif
-*/
+
+//endif
+
 
 #if	fg_cvpack
 extern unsigned char DOING_4K_ALIGN;
