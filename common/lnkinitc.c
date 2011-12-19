@@ -13,6 +13,8 @@ extern void _environ_scan(void *);
 extern void PERSONALITY();
 extern int OBJ_ENVIRONMENT;
 extern struct CMDLINE_STRUCT LOCAL_INFO;
+extern unsigned char *CMDLINE_BLOCK_LOG;
+extern void _fix_inbuf();
 
 void _init_lists(FILE_LISTS *ESI)
 {
@@ -101,117 +103,46 @@ void _lnkinit()
 	_environ_scan(&OBJ_ENVIRONMENT);
 	FORCE_PATH = 0;
 	FILESTUFF_PTR = &LOCAL_INFO;
+
+	_fix_inbuf();
+}
+
+// Set flags base on command line
+
+void _fix_inbuf()
+{
+    int ECX = CURN_COUNT;
+    unsigned char *ESI = CURN_INPTR;
+    while (ECX--)
+    {
+	unsigned char c = *ESI++;
+	if (!(c == ' ' || c == '\t'))
+	{
+	    if (c != '\r')
+		CMDLINE_FINAL = 0xFF;
+	    break;
+	}
+    }
+
+    if ((unsigned)CURN_COUNT >= PAGE_SIZE-4)
+	_err_abort(CMDLINE_ERR);
+
+    unsigned char *p = _get_new_phys_blk();
+    memcpy(p, CURN_INPTR, CURN_COUNT);
+    CMDLINE_BLOCK_LOG = p;
+    CURN_INPTR = p;
+
+    p[CURN_COUNT] = '\r';
+    p[CURN_COUNT + 1] = '\n';
+    CURN_COUNT += 3;
+
+    p = &INBUF[4];
+    INPTR1 = p;
+    p[0] = '\r';
+    p[1] = '\n';
 }
 
 #if 0
-		CALL	SET_CASE_MODE			;SET DEFAULT CASE SIGNIFICANCE MODE
-
-		CALL	PERSONALITY
-
-		SETT	FORCE_PATH
-
-		MOV	EAX,OFF OBJ_ENVIRONMENT
-		CALL	ENVIRON_SCAN
-
-		RESS	FORCE_PATH
-
-if	fg_mscmd
-		MOV	FILESTUFF_PTR,OFF LOCAL_INFO
-endif
-
-		;
-		;SET FLAGS BASE ON COMMAND LINE
-		;
-FIX_INBUF	PROC
-
-		MOV	ECX,CURN_COUNT
-		MOV	ESI,CURN_INPTR
-		JECXZ	L5$
-L1$:
-		LODSB
-		CMP	AL,' '
-		JZ	L19$
-		CMP	AL,9
-		JZ	L19$
-		CMP	AL,0DH
-		JZ	L5$
-		SETT	CMDLINE_FINAL
-		JMP	L5$
-
-L19$:
-		LOOP	L1$
-L5$:
-		MOV	ECX,CURN_COUNT
-		CMP	ECX,PAGE_SIZE-4
-		JB	L7$
-		MOV	CL,CMDLINE_ERR
-		push	EAX
-		call	_err_abort
-
-L7$:
-		push	ECX
-		push	EDX
-		call	_get_new_phys_blk
-		pop	EDX
-		pop	ECX
-
-		MOV	EDI,EAX
-		MOV	ESI,CURN_INPTR
-		MOV	CMDLINE_BLOCK_LOG,EAX
-		MOV	CURN_INPTR,EAX
-		OPTI_MOVSB
-		MOV	WPTR [EDI],0A0DH
-
-		MOV	EAX,OFF INBUF+4
-		ADD	CURN_COUNT,3
-		MOV	INPTR1,EAX
-		MOV	WPTR [EAX],0A0DH
-
-FIX_INBUF	ENDP
-
-if	0
-
-DEBUG_STUFF	PROC
-
-;		jmp	l2$
-;		db	0,0,0
-
-		MOV	EAX,CURN_INPTR
-		MOV	ECX,CURN_COUNT
-
-		DEC	ECX
-		CALL	LOUTALL_CON
-;		jmp	L1$
-;		db	0,0,0
-		;
-		;DUMP ENVIRONMENT
-		;
-		MOV	EDI,ENVIRONMENT_BLOCK
-L1$:
-		XOR	EAX,EAX
-		MOV	ECX,64K
-
-		MOV	EDX,EDI
-
-		REPNE	SCASB
-
-		MOV	EAX,EDX
-		LEA	ECX,[EDI-1]
-
-		SUB	ECX,EDX
-;		CALL	LOUTALL_CON
-		jmp	l3$
-		db	0,0,0
-
-		MOV	EAX,OFF CRLF
-		CALL	MESOUT
-l3$:
-		CMP	BPTR [EDI],0
-		JNZ	L1$
-l2$:
-DEBUG_STUFF	ENDP
-
-endif
 
 		CALL	GET_TIME_AND_DATE
 
