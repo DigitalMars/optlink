@@ -159,8 +159,8 @@ _initcode1	endp
 LNKINIT:
 		call	_lnkinit
 
-		INITSYMHASH
-		INITMULTIHASH
+;		INITSYMHASH
+;		INITMULTIHASH
 
 		INITCODE2
 
