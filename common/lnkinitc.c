@@ -1,9 +1,19 @@
 
+#include <stddef.h>
+
 #include "all.h"
 
 extern void _initcode1();
 extern void _set_case_mode();
 extern void _move_default_flags(void *);
+
+void _init_lists(FILE_LISTS *ESI)
+{
+	FILE_LIST_STRUCT *p = (FILE_LIST_STRUCT *)_text_pool_get(offsetof(FILE_LIST_STRUCT, FILE_LIST_NFN));
+        ESI->FILE_LAST_GINDEX = p;
+        ESI->FILE_FIRST_GINDEX = p;
+	memset(p,0,offsetof(FILE_LIST_STRUCT, FILE_LIST_NFN));
+}
 
 void _lnkinit()
 {
@@ -17,14 +27,19 @@ void _lnkinit()
 	SUPPORT_AT_INDIRECT = 0xFF;
 	_set_case_mode();	     // set default case significance mode
 	_init_semaphores();
+
+	_init_lists(&OBJ_LIST);
+	_init_lists(&LIB_LIST);
+	_init_lists(&LIBPATH_LIST);
+	_init_lists(&OBJPATH_LIST);
+	_init_lists(&STUBPATH_LIST);
+	_init_lists(&STUB_LIST);
+	_init_lists(&OLD_LIST);
+	_init_lists(&RC_LIST);
+	_init_lists(&LOD_LIST);
 }
 
 #if 0
-if	fg_segm OR fg_pe
-		INITLISTS	OBJ,LIB,LIBPATH,OBJPATH,STUBPATH,STUB,OLD,RC,LOD
-else
-		INITLISTS	OBJ,LIB,LIBPATH,OBJPATH
-endif
 
 		INITSYMHASH
 		INITMULTIHASH
