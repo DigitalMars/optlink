@@ -2233,12 +2233,14 @@ extern unsigned char _HOST_THREADED;
 extern unsigned char ASCIZ1_WAITING;
 extern unsigned char ERROR1_WAITING;
 endif
+*/
 extern unsigned char _FINAL_ABORTING;
-extern unsigned char SUPPORT_@_INDIRECT;
+extern unsigned char SUPPORT_AT_INDIRECT;
 extern unsigned char AFTER_DEF_DONE;
 extern unsigned char FUZZY_JUST_CHECK;
 extern unsigned char ANY_PUBLICS;
 extern unsigned char VERBOSE_OMF;
+/*
 
 		ALIGN	4
 

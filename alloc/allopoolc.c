@@ -151,4 +151,9 @@ void **_cv_hashes_pool_get(unsigned nbytes)
     return _allo_pool_get1(nbytes, &CV_HASHES_STUFF);
 }
 
+void **_text_pool_get(unsigned nbytes)
+{
+    return _allo_pool_get1(nbytes, &SEGMENT_STUFF);
+}
+
 

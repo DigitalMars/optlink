@@ -44,12 +44,10 @@ L7: ;
     _abort();
 }
 
-#if 0
-void _optlink_restart()
+void _optlink_restartc()
 {
     _err_abort(FATAL_RESTART_ERR);
 }
-#endif
 
 void CLEAN_UP()
 {
