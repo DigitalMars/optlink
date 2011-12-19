@@ -8,6 +8,11 @@
 extern void _set_case_mode();
 extern void _move_default_flags(void *);
 extern void YY_FILENAME();
+extern void FIND_PROCESS_CFG();
+extern void _environ_scan(void *);
+extern void PERSONALITY();
+extern int OBJ_ENVIRONMENT;
+extern struct CMDLINE_STRUCT LOCAL_INFO;
 
 void _init_lists(FILE_LISTS *ESI)
 {
@@ -82,20 +87,23 @@ void _lnkinit()
 	LOCAL_HASH_TABLE_PTR = (void*)((size_t)LOCAL_HASH_TABLE_PTR + (size_t)p);
 	LOCAL_HASH_TABLE_PTR_OLD = LOCAL_HASH_TABLE_PTR;
 	memset(p, 0, PAGE_SIZE);	// zero out hash table
+
+	FIND_PROCESS_CFG();
+	if (_HOST_THREADED)
+	{
+	    LAST_FILENAME_OPENED = OBJ_LIST.FILE_LAST_GINDEX;
+	    _capture_eax(&_NONRES_LENGTH_SEM);  // 'old' not started
+	}
+
+	_set_case_mode();	     // set default case significance mode
+	PERSONALITY();
+	FORCE_PATH = 0xFF;
+	_environ_scan(&OBJ_ENVIRONMENT);
+	FORCE_PATH = 0;
+	FILESTUFF_PTR = &LOCAL_INFO;
 }
 
 #if 0
-
-		CALL	FIND_PROCESS_CFG
-
-		BITT	_HOST_THREADED
-		JZ	CFG_H2
-
-		MOV	EAX,OBJ_LIST.FILE_LAST_GINDEX
-		MOV	LAST_FILENAME_OPENED,EAX
-
-		CAPTURE	_NONRES_LENGTH_SEM		;'OLD' NOT STARTED
-CFG_H2:
 		CALL	SET_CASE_MODE			;SET DEFAULT CASE SIGNIFICANCE MODE
 
 		CALL	PERSONALITY
