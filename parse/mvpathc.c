@@ -63,6 +63,17 @@ int memcmp(const void *p1, const void *p2, unsigned n)
     return c;
 }
 
+char *memchr(char *p, char c, unsigned n)
+{
+    while (n)
+    {	n--;
+	if (*p == c)
+	    return p;
+	p++;
+    }
+    return (char*)0;
+}
+
 NFN_STRUCT *_move_ecxpath_eax(NFN_STRUCT* EAX, NFN_STRUCT* ECX)
 {
 	// MOVE PATH FROM ECX TO EAX, PRESERVE EAX

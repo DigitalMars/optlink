@@ -317,9 +317,9 @@ extern int LAST_PUBDEF_GINDEX;
 
 extern int ENTRYPOINT_GINDEX;
 extern int ENTRYPOINT_TXT;
+extern char *ME_PTR;			// MY FILENAME IN ENVIRONMENT
+extern int ME_PATH_LEN;
 /*
-ME_PTR			DD	?	;MY FILENAME IN ENVIRONMENT
-ME_PATH_LEN		DD	?
 DOSX_HDR_SIZE		DD	?
 
 GROUP_PTRS		DD	20 DUP(?)
@@ -680,7 +680,7 @@ extern void *SYM_HASH_LOG;
 extern void *SYM_HASH_PHYS;
 extern int SYM_HASH_BLK;
 extern int SYM_HASH_MOD;
-extern int INPTR1;
+extern unsigned char *INPTR1;
 extern int LISTTYPE;
 extern FILE_LISTS LIB_LIST;
 extern FILE_LISTS LIBPATH_LIST;
@@ -694,8 +694,8 @@ extern FILE_LISTS OLD_LIST;
 extern FILE_LISTS RC_LIST;
 extern int DEFFILE;
 #endif
+extern unsigned char *ENVIRONMENT_BLOCK;
 /*
-ENVIRONMENT_BLOCK	DD	?
 FILENAME_HASH_TABLE	DD	FILENAME_HASH_SIZE DUP(?)
 VIRDEF_MCD_HASH_TABLE	DD	VIRDEF_MCD_HASH_SIZE DUP(?)
 THEADR_HASH_TABLE	DD	THEADR_HASH_SIZE DUP(?)
@@ -2515,11 +2515,10 @@ END_DATA	ENDS
 extern void *_STDOUT;
 extern void *STDIN;
 
-/*
-		.DATA?
+extern char ME_TEXT[256];
+extern char ERROR_ASCIZ[256];
 
-ME_TEXT		DB	256 DUP(?)
-ERROR_ASCIZ	DB	256 DUP(?)
+/*
 
 endif
 
