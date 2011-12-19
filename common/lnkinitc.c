@@ -1,11 +1,13 @@
 
+#include <windows.h>
+
 #include <stddef.h>
 
 #include "all.h"
 
-extern void _initcode1();
 extern void _set_case_mode();
 extern void _move_default_flags(void *);
+extern void YY_FILENAME();
 
 void _init_lists(FILE_LISTS *ESI)
 {
@@ -15,10 +17,36 @@ void _init_lists(FILE_LISTS *ESI)
 	memset(p,0,offsetof(FILE_LIST_STRUCT, FILE_LIST_NFN));
 }
 
+void _initcodex()
+{
+	int EAX = GetVersion();	// high bit 0 means NT, high two bits on means Chicago
+	if (EAX >= 0 || (EAX & 0xC0000000) == 0xC0000000)
+	    _HOST_THREADED = 0xFF;
+
+	ME_PTR = &ME_TEXT[0];
+	// Get executable file name
+	GetModuleFileName(0, &ME_TEXT[0], sizeof(ME_TEXT));
+
+	INPTR1 = (unsigned char *)GetCommandLine();
+
+	YY_FILENAME();		// skip my filename
+
+	INPTR1[0] = 0;
+	CMDLINE_PTR = INPTR1 + 1;
+	char *p = memchr(CMDLINE_PTR, 0, ~0);
+	CMDLINE_LENGTH = p - (char *)CMDLINE_PTR;
+	ENVIRONMENT_BLOCK = (unsigned char *)GetEnvironmentStrings();
+
+	SetHandleCount(255);		// this should work
+	SetHandleCount(0x800);		// this might
+
+	_STDOUT = GetStdHandle(STD_OUTPUT_HANDLE);
+}
+
 void _lnkinit()
 {
 
-	_initcode1();
+	_initcodex();
 
 	_move_default_flags(&CFLAGS);
 
@@ -39,13 +67,13 @@ void _lnkinit()
 	_init_lists(&LOD_LIST);
 
 	// INITSYMHASH
-        void *p = _get_new_log_blk();                 // this table use to hash symbols
+        void *p = _get_new_log_blk();                 // this table used to hash symbols
         SYM_HASH_LOG = p;
         SYM_HASH_PHYS = p;
 	memset(p,0,SYM_HASH * 4);
 
 	// INITMULTIHASH
-	p = _get_new_log_blk();		// this table use to hash classes, segments, groups, etc
+	p = _get_new_log_blk();		// this table used to hash classes, segments, groups, etc
 	MULTI_HASH_LOG = p;
 	SEGMENT_HASH_TABLE_PTR = (void*)((size_t)SEGMENT_HASH_TABLE_PTR + (size_t)p);
 	GROUP_HASH_TABLE_PTR = (void*)((size_t)GROUP_HASH_TABLE_PTR + (size_t)p);
@@ -57,25 +85,9 @@ void _lnkinit()
 }
 
 #if 0
-		INITMULTIHASH
-
-		INITCODE2
-
-if	fgh_win
-;		SETT	CMDLINE_FINAL			;NO PROMPTING FOR COMMANDS
-endif
-
-if	fg_cfg
-
-CFG_H1		PROC
 
 		CALL	FIND_PROCESS_CFG
 
-CFG_H1		ENDP
-
-endif
-
-if	fgh_inthreads
 		BITT	_HOST_THREADED
 		JZ	CFG_H2
 
@@ -84,7 +96,6 @@ if	fgh_inthreads
 
 		CAPTURE	_NONRES_LENGTH_SEM		;'OLD' NOT STARTED
 CFG_H2:
-endif
 		CALL	SET_CASE_MODE			;SET DEFAULT CASE SIGNIFICANCE MODE
 
 		CALL	PERSONALITY
