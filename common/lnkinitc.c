@@ -15,6 +15,8 @@ extern int OBJ_ENVIRONMENT;
 extern struct CMDLINE_STRUCT LOCAL_INFO;
 extern unsigned char *CMDLINE_BLOCK_LOG;
 extern void _fix_inbuf();
+extern void GET_TIME_AND_DATE();
+void _fix_mscmdlin();
 
 void _init_lists(FILE_LISTS *ESI)
 {
@@ -105,9 +107,11 @@ void _lnkinit()
 	FILESTUFF_PTR = &LOCAL_INFO;
 
 	_fix_inbuf();
+	GET_TIME_AND_DATE();
+	_fix_mscmdlin();
 }
 
-// Set flags base on command line
+// Set flags based on command line
 
 void _fix_inbuf()
 {
@@ -142,69 +146,56 @@ void _fix_inbuf()
     p[1] = '\n';
 }
 
+
+void _fix_mscmdlin()
+{
+	// ACCOUNT FOR CL'S  @"\"TOM\"
+	unsigned char c;
+	unsigned char *EDI = CURN_INPTR;
+	int ECX = CURN_COUNT;
+	unsigned char *ESI = EDI;
+	if (--ECX == 0)
+	    goto L9;
+
+	// SCAN FOR OPENING "
+L1:
+	c = *ESI++;
+	*EDI++ = c;
+	if (c == '"')
+	    goto L5;
+L2:
+	if (--ECX)
+	    goto L1;
+	goto L9;		// SKIP IT
+
+	// LEADING " FOUND, DELETE ANY \" UNTIL PLAIN "
+L3:
+	c = *ESI++;
+L4:
+	*EDI++ = c;
+	if (c == '\\')
+	    goto L6;		// YES, GO LOOK FOR "
+	if (c == '"')
+	    goto L2;		// PLAIN ", LOOK FOR " AGAIN
+L5:
+	if (--ECX)
+	    goto L3;
+	goto L9;
+
+L6:
+	if (--ECX == 0)
+	    goto L9;
+	c = *ESI++;
+	if (c != '"')
+	    goto L4;
+	--EDI;		// DON'T COUNT \"
+	goto L5;
+
+L9:
+	CURN_COUNT = (EDI - CURN_INPTR) + 1;
+}
+
 #if 0
-
-		CALL	GET_TIME_AND_DATE
-
-FIX_MSCMDLIN	PROC
-		;
-		;ACCOUNT FOR CL'S  @"\"TOM\"
-		;
-		MOV	EDI,CURN_INPTR
-		MOV	ECX,CURN_COUNT
-		MOV	ESI,EDI
-		DEC	ECX
-		JZ	L9$
-		;
-		;SCAN FOR OPENING "
-		;
-L1$:
-		MOV	AL,[ESI]
-		INC	ESI
-		MOV	[EDI],AL
-		INC	EDI
-		CMP	AL,'"'
-		JZ	L5$
-L2$:
-		DEC	ECX
-		JNZ	L1$
-		JMP	L9$		;SKIP IT...
-
-		;
-		;LEADING " FOUND, DELETE ANY \" UNTIL PLAIN "
-		;
-L3$:
-		MOV	AL,[ESI]
-		INC	ESI
-L4$:
-		MOV	[EDI],AL
-		INC	EDI
-		CMP	AL,"\"
-		JZ	L6$		;YES, GO LOOK FOR "
-		CMP	AL,'"'
-		JZ	L2$		;PLAIN ", LOOK FOR " AGAIN
-L5$:
-		DEC	ECX
-		JNZ	L3$
-		JMP	L9$
-
-L6$:
-		DEC	ECX
-		JZ	L9$
-		MOV	AL,[ESI]
-		INC	ESI
-		CMP	AL,'"'
-		JNZ	L4$
-		DEC	EDI		;DON'T COUNT \"
-		JMP	L5$
-
-L9$:
-		SUB	EDI,CURN_INPTR
-		INC	EDI
-		MOV	CURN_COUNT,EDI
-
-FIX_MSCMDLIN	ENDP
-
 
 if	any_overlays
 		SETT	OVERLAY_CLASS_DEFINED
