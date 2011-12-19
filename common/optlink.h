@@ -137,8 +137,10 @@ DOS_READ_ERR    equ     03ch
 CVHASHES_EQU    equ     01dh
 CVP_SSEARCH_ERR equ     0a4h
 BAD_CD_ALLOC_ERR        equ     080h
+*/
 
-CMDLINE_ERR     equ     01ah
+#define CMDLINE_ERR     0x1a
+/*
 DOS_POS_ERR     equ     03dh
 DUP_STUB_ERR    equ     067h
 OOPS_ERR        equ     00h
