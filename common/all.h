@@ -1,3 +1,5 @@
+typedef unsigned size_t;
+#define offsetof(t,i)  ((size_t)((char *)&((t *)0)->i - (char *)0))
 
 #include "macros.h"
 #include "optlink.h"
@@ -42,6 +44,7 @@ void **_cv_gsym_pool_get(unsigned nbytes);
 void **_cv_ssym_pool_get(unsigned nbytes);
 void **_cv_hashes_pool_get(unsigned nbytes);
 void **_tillmiddle_pool_get(unsigned nbytes);
+void **_text_pool_get(unsigned nbytes);
 
 // common.errors
 extern char *ERR_TABLE[];
@@ -57,6 +60,7 @@ void _reference_impsym(void *EAX, SYMBOL_STRUCT *ECX);
 void _reference_comdat(void *EAX, SYMBOL_STRUCT *ECX);
 
 // common.lnkinit
+void _lnkinit();
 
 // common.modpage
 int _binser_module(int EAX, SYMBOL_STRUCT *EBX);
@@ -291,3 +295,5 @@ NFN_STRUCT *_move_ecxpath_eax(NFN_STRUCT* EAX, NFN_STRUCT* ECX);
 void _move_srcprim_to_eax(NFN_STRUCT* EAX);
 void _move_srcprim_to_eax_clean(NFN_STRUCT* EAX);
 
+// os2link.src.first
+extern char CFLAGS;

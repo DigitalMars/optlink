@@ -1221,23 +1221,17 @@ public DOSSEG_PROC()
 	// ENABLE DOSSEG ORDERING SCHEME IN DGROUP
 	DOSSEG_FLAG = -1;
 }
+*/
 
-
-public NFN_STRUCT* STORE_FILNAM(NFN_STRUCT* EAX)
+struct NFN_STRUCT *_store_filnam(struct NFN_STRUCT *EAX)
 {
-	// EAX IS FILENAME TO STORE
-	PUSH	EAX
-	EAX = [EAX].NFN_TOTAL_LENGTH;
-	EAX += NFN_STRUCT.NFN_TEXT+1;
-	TEXT_POOL_ALLOC
-	POP	ECX
-	PUSH	EAX
-	MOVE_NFN();
-	POP	EAX
-	return EAX;
+	// EAX is filename to store
+	void *p = _text_pool_get(EAX->NFN_TOTAL_LENGTH + offsetof(NFN_STRUCT, NFN_TEXT) + 1);
+	_move_nfn(p, EAX);
+	return p;
 }
 
-
+/*
 public SET_ECHO_IND()
 {
 	ECHO_INDIRECT = -1;
