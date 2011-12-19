@@ -37,11 +37,26 @@ void _lnkinit()
 	_init_lists(&OLD_LIST);
 	_init_lists(&RC_LIST);
 	_init_lists(&LOD_LIST);
+
+	// INITSYMHASH
+        void *p = _get_new_log_blk();                 // this table use to hash symbols
+        SYM_HASH_LOG = p;
+        SYM_HASH_PHYS = p;
+	memset(p,0,SYM_HASH * 4);
+
+	// INITMULTIHASH
+	p = _get_new_log_blk();		// this table use to hash classes, segments, groups, etc
+	MULTI_HASH_LOG = p;
+	SEGMENT_HASH_TABLE_PTR = (void*)((size_t)SEGMENT_HASH_TABLE_PTR + (size_t)p);
+	GROUP_HASH_TABLE_PTR = (void*)((size_t)GROUP_HASH_TABLE_PTR + (size_t)p);
+	CLASS_HASH_TABLE_PTR = (void*)((size_t)CLASS_HASH_TABLE_PTR + (size_t)p);
+	MODULE_HASH_TABLE_PTR = (void*)((size_t)MODULE_HASH_TABLE_PTR + (size_t)p);
+	LOCAL_HASH_TABLE_PTR = (void*)((size_t)LOCAL_HASH_TABLE_PTR + (size_t)p);
+	LOCAL_HASH_TABLE_PTR_OLD = LOCAL_HASH_TABLE_PTR;
+	memset(p, 0, PAGE_SIZE);	// zero out hash table
 }
 
 #if 0
-
-		INITSYMHASH
 		INITMULTIHASH
 
 		INITCODE2
