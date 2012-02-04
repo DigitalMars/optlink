@@ -1,2 +1,2 @@
-unzip -o ../optlinkcsrc
+unzip -o ~/cbx/optlinkcsrc
 git commit -a -m "more"
