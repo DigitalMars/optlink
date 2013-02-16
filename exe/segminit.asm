@@ -322,7 +322,7 @@ endif
 		JMP	L8$
 
 L9$:
-		MOV	AL,BAD_STUB_ERR
+		MOV	AX,BAD_STUB_ERR
 		CALL	ERR_ABORT
 
 
@@ -532,7 +532,7 @@ L3$:
 
 		SHL	AL,CL		;THAT BIT...
 
-		MOV	AH,[ESI+EBX]
+		MOV	AH,BYTE PTR[ESI+EBX]
 		POP	ECX
 
 		TEST	AH,AL
@@ -566,7 +566,7 @@ L3$:
 
 		SHL	AL,CL		;THAT BIT...
 
-		OR	[ESI+EBX],AL
+		OR	BYTE PTR[ESI+EBX],AL
 		JMP	L3$
 
 L9$:
