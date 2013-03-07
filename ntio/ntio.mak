@@ -30,12 +30,12 @@ OBJS= \
 	$(OBJ)\promptc.obj \
 	$(OBJ)\dosposac.obj $(OBJ)\dosioc.obj $(OBJ)\capturec.obj $(OBJ)\recohndlc.obj
 
-ALL : $(LIB)\NTIO.LIB $(LIB)\LOADX.EXE
+ALL : $(LIB)\NTIO.LIB 
+# $(LIB)\LOADX.EXE
 
 $(LIB)\NTIO.LIB : $(OBJS)
   del $(LIB)\ntio.lib
-  OPTLIB /OKMULTI $(LIB)\NTIO ~+ $(OBJ)\*.obj;
-#  $(DMD) -lib -of$(LIB)\NTIO $(OBJS)
+  $(BUILD_LIB)
 
 $(LIB)\LOADX.EXE : $(OBJ)\LOADX.OBJ
   OPTLINK $(OBJ)\LOADX,$(LIB)\LOADX;
@@ -146,7 +146,7 @@ $(OBJ)\opreadtc.obj : opreadtc.c $(HEADERS)
 	dmc -c opreadtc -NTPASS1_TEXT $(CFLAGS) -o$(OBJ)\opreadtc.obj
 
 $(OBJ)\printf.obj : printf.c $(HEADERS)
-	dmc -c printf -NTPASS2_TEXT $(CFLAGS) -I\dm\src\include -o$(OBJ)\printf.obj
+	dmc -c printf -NTPASS2_TEXT $(CFLAGS) -I$(DM)\src\include -o$(OBJ)\printf.obj
 
 $(OBJ)\promptc.obj : promptc.c $(HEADERS)
 	dmc -c promptc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\promptc.obj

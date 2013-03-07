@@ -1,6 +1,15 @@
 BASE = ..
 #D:\P386
 
+!IFNDEF DM
+DM = \dm
+!ENDIF
+
+# SLR tools:
+# BUILD_LIB = OPTLIB /OKMULTI /PA:32 $@ ~+ $(OBJ)\*;
+# DM tools:
+BUILD_LIB = $(DM)\bin\lib -c -p32 $@ $**
+
 !IFDEF HOST_WIN32
 
 LST = .\LSTNT
@@ -28,6 +37,8 @@ LIB = $(BASE)\LIBDLL
 !ENDIF
 !ENDIF
 
-MASMFLAGS = $(MASMFLAGS) /c /Cp /Fl$(LST)\ /Sn /Zi /Fo$(OBJ)\ /I$(BASE)\COMMON
-
+# MASM 5:
+# MASMFLAGS = $(MASMFLAGS) /c /Cp /Fl$(LST)\ /Sn /Zi /Fo$(OBJ)\ /I$(BASE)\COMMON
+# MASM 10: problems linking when assembling with debug info
+MASMFLAGS = $(MASMFLAGS) /omf /c /Cp /Fl$(LST)\ /Sn /Fo$(OBJ)\ /I$(BASE)\COMMON
 

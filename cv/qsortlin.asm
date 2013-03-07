@@ -421,7 +421,7 @@ QSORT_INIT	PROC	NEAR	PRIVATE
 		RET
 
 L8$:
-		MOV	AL,CV_TOO_MANY_ERR
+		MOV	AX,CV_TOO_MANY_ERR
 		push	EAX
 		call	_err_abort
 

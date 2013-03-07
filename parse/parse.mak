@@ -17,7 +17,7 @@ $(LIB)\PARSE.LIB : $(OBJ)\mvsrcfilc.obj $(OBJ)\chknulc.obj \
 	$(OBJ)\mvlistnfc.obj \
 	$(OBJ)\mvfnc.obj $(OBJ)\parse_fnc.obj $(OBJ)\get_fnc.obj
   del $(LIB)\PARSE.LIB
-  OPTLIB /OKMULTI $(LIB)\PARSE ~+ $(OBJ)\*;
+  $(BUILD_LIB)
 
 $(OBJ)\MVSRCFIL.OBJ : MVSRCFIL.ASM ..\COMMON\MACROS ..\COMMON\IO_STRUC
   ML $(FLAGS) $(SRC)\MVSRCFIL.ASM

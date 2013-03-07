@@ -397,7 +397,7 @@ L4$:
 
 		XOR	ECX,ECX
 
-		MOV	CL,[ESI]
+		MOV	CL,BYTE PTR[ESI]
 
 		LEA	EAX,[ECX+ESI+4]
 

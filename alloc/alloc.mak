@@ -16,7 +16,7 @@ ALL : $(LIB)\ALLOC.LIB
 $(LIB)\ALLOC.LIB : $(OBJ)\ALLOPOOL.OBJ $(OBJ)\allopoolc.obj $(OBJ)\ldatac.obj \
 	$(OBJ)\ALLOC.OBJ $(OBJ)\allocc.obj \
 	$(OBJ)\comprelec.obj $(OBJ)\minidatac.obj $(OBJ)\compalloc.obj
-  OPTLIB /OKMULTI $(LIB)\ALLOC ~+ $(OBJ)\*;
+  $(BUILD_LIB)
 
 
 $(OBJ)\MINIDATA.OBJ : MINIDATA.ASM ..\COMMON\MACROS
