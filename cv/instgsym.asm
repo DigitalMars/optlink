@@ -250,7 +250,8 @@ L5$:
 		pop	ECX
 		and	ECX,3
 		je	L125
-L123:		rep	movsb
+L123:
+		rep	movsb
 
 L125:		MOV	ESI,EAX
 		POP	EBX
