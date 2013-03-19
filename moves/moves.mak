@@ -3,7 +3,6 @@
 
 FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\MOVES
-DMD = \dmd2\windows\bin\dmd
 CFLAGS=-I..\common -r
 
 

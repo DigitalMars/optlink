@@ -3,7 +3,6 @@
 
 FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\ALLOC
-DMD = \dmd2\windows\bin\dmd
 CFLAGS=-I..\common -r
 
 HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
