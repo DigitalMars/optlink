@@ -3,7 +3,7 @@
 
 FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\MOVES
-CFLAGS=-I..\common -r
+CFLAGS=$(DMCFLAGS)
 
 
 ALL : $(LIB)\MOVES.LIB

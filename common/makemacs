@@ -42,3 +42,4 @@ LIB = $(BASE)\LIBDLL
 # MASM 10: problems linking when assembling with debug info
 MASMFLAGS = $(MASMFLAGS) /omf /c /Cp /Fl$(LST)\ /Sn /Fo$(OBJ)\ /I$(BASE)\COMMON
 
+DMCFLAGS=-I..\common -r

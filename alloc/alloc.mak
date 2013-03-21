@@ -3,7 +3,7 @@
 
 FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\ALLOC
-CFLAGS=-I..\common -r
+CFLAGS=$(DMCFLAGS)
 
 HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_struc.h \
 	..\common\exes.h ..\common\library.h ..\common\symbols.h ..\common\groups.h \
