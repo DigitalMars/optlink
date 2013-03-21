@@ -269,7 +269,6 @@ MOVESSRC= \
 NTIOSRC = \
 	ntio\dosposa.asm \
 	ntio\dot.asm \
-	ntio\prompt.bak \
 	ntio\go.bat \
 	ntio\gettime.asm \
 	ntio\cvpackrn.asm \
@@ -343,7 +342,6 @@ OS2LINKSRC= \
 	os2link\lwindll.bat \
 	os2link\x.def \
 	os2link\go.bat \
-	os2link\slrnt.bak \
 	os2link\build.bat \
 	os2link\slr \
 	os2link\launch.bat \
@@ -358,7 +356,6 @@ OS2LINKSRC= \
 	os2link\src\symc.asm \
 	os2link\src\ressort.asm \
 	os2link\src\prolog.asm \
-	os2link\src\pe_rsrc.bak \
 	os2link\src\pe_debug.asm \
 	os2link\src\realpers.asm \
 	os2link\src\impexp.asm \
