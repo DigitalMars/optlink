@@ -123,79 +123,75 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *symbol /* EAX */)
 
     //printf("\nsymbol = %p, length = %x\n", symbol, symbol->_LENGTH);
 
-    unsigned length = symbol->_LENGTH;
+    const unsigned originLength = symbol->_LENGTH;
 
-    unsigned char *p = (unsigned char *)symbol + length;
-    p[2] = 0;
-    p[3] = 0;
-    p[4] = 0;
+    memset((unsigned char *)symbol + originLength + 2, 0, 3);
 
-    length += (2 - length) & 3;              // # OF ZEROS TO ADD AT THE END
+    const unsigned newLength = originLength + ((2 - originLength) & 3); // # OF ZEROS TO ADD AT THE END
 
-    symbol->_LENGTH = length;
-    unsigned count = 2 + length;
+    symbol->_LENGTH = newLength;
+    const unsigned count = 2 + newLength;
+
+    const unsigned _16K = 0x4000;
 
     //
     // DO 4K ALIGNMENT CALCULATION
     //
     if (DOING_4K_ALIGN)         // STATICSYM doesn't matter
     {
-        unsigned n1 = 0x1000;                   // 4K
+        const unsigned _4K = 0x1000;                   // 4K
 
-        unsigned pageBytes = CV_PAGE_BYTES + count;
-        if (n1 < pageBytes)
-            goto L2;
-        n1 -= pageBytes;
-        if (!n1)
-            goto L28;
+        const unsigned pageBytes = CV_PAGE_BYTES + count;
         // MUST LEAVE 0 OR AT LEAST 8 BYTES
-        if (n1 > 8)
-            goto L29;
-L2:
-        /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
-         * a page boundary.
-         * The format is:
-         *      word length
-         *      word S_ALIGN
-         *      ... pad bytes ...
-         */
-
-        unsigned nbytes = 0x1000 - 2;       // 4K-2
-        nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
-        n1 = S_ALIGN * 0x10000;            // S_ALIGN*64K
-        n1 |= nbytes;
-        nbytes -= 2;
-
-        unsigned *putPtr = CVG_PUT_PTR;
-
-        // Fix for Bugzilla 2436 where it would seg fault on the memset()
-        if ((char *)putPtr - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
+        if (pageBytes == _4K)
         {
-            _flush_cvg_temp();
-            putPtr = CVG_PUT_PTR;
+            CV_PAGE_BYTES = 0;
         }
+        else if (pageBytes < _4K - 8)
+        {
+            CV_PAGE_BYTES = pageBytes;
+        }
+        else
+        {
+            /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
+             * a page boundary.
+             * The format is:
+             *      word length
+             *      word S_ALIGN
+             *      ... pad bytes ...
+             */
 
-        *putPtr++ = n1;                       // write length, S_ALIGN
+            const unsigned _64K = 0x10000;
+            const unsigned nbytes = _4K - 2 - CV_PAGE_BYTES - 2; // 4K - 2 - # OF BYTES TO FILL - 2
+            const unsigned n = (S_ALIGN * _64K) | (nbytes + 2);
 
-        memset(putPtr, 0, nbytes);             // pad bytes
-        putPtr = (unsigned *)((char *)putPtr + nbytes);
+            unsigned *putPtr = CVG_PUT_PTR;
 
-        CVG_PUT_PTR = putPtr;
-        if (putPtr >= CVG_PUT_LIMIT)
-            _flush_cvg_temp();
+            // Fix for Bugzilla 2436 where it would seg fault on the memset()
+            if ((char *)putPtr - (char *)CVG_PUT_BLK + nbytes + 4 > _16K)
+            {
+                _flush_cvg_temp();
+                putPtr = CVG_PUT_PTR;
+            }
 
-        n1 = count;
-L28:
-        pageBytes = n1;
-L29:
-        CV_PAGE_BYTES = pageBytes;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+            *putPtr++ = n;                       // write length, S_ALIGN
+
+            memset(putPtr, 0, nbytes);             // pad bytes
+            putPtr = (unsigned *)((char *)putPtr + nbytes);
+
+            CVG_PUT_PTR = putPtr;
+            if (putPtr >= CVG_PUT_LIMIT)
+                _flush_cvg_temp();
+
+            CV_PAGE_BYTES = count;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+        }
     }
 
     //
     // STORE IN BUFFER
     //
 
-    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + count > 0x4000)
+    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + count > _16K)
         _flush_cvg_temp();
 
     unsigned offset = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
