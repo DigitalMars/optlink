@@ -112,7 +112,7 @@ void _store_cv_symbol_info()
     cvh->_NEXT_HASH = 0;
 }
 
-unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
+unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *symbol /* EAX */)
 {
     // EAX IS CV_TEMP_RECORD
     //
@@ -121,35 +121,35 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
     // RETURN EAX IS OFFSET OF THIS SYMBOL
     //
 
-    //printf("\nESI = %p, length = %x\n", ESI, ESI->_LENGTH);
+    //printf("\nsymbol = %p, length = %x\n", symbol, symbol->_LENGTH);
 
-    unsigned EDX = ESI->_LENGTH;
+    unsigned length = symbol->_LENGTH;
 
-    unsigned char *p = (unsigned char *)ESI + EDX;
+    unsigned char *p = (unsigned char *)symbol + length;
     p[2] = 0;
     p[3] = 0;
     p[4] = 0;
 
-    EDX += (2 - EDX) & 3;              // # OF ZEROS TO ADD AT THE END
+    length += (2 - length) & 3;              // # OF ZEROS TO ADD AT THE END
 
-    ESI->_LENGTH = EDX;
-    unsigned ECX = 2 + EDX;
+    symbol->_LENGTH = length;
+    unsigned count = 2 + length;
 
     //
     // DO 4K ALIGNMENT CALCULATION
     //
     if (DOING_4K_ALIGN)         // STATICSYM doesn't matter
     {
-        EDX = 0x1000;                   // 4K
+        unsigned n1 = 0x1000;                   // 4K
 
-        unsigned EAX = CV_PAGE_BYTES + ECX;
-        if (EDX < EAX)
+        unsigned pageBytes = CV_PAGE_BYTES + count;
+        if (n1 < pageBytes)
             goto L2;
-        EDX -= EAX;
-        if (!EDX)
+        n1 -= pageBytes;
+        if (!n1)
             goto L28;
         // MUST LEAVE 0 OR AT LEAST 8 BYTES
-        if (EDX > 8)
+        if (n1 > 8)
             goto L29;
 L2:
         /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
@@ -162,52 +162,52 @@ L2:
 
         unsigned nbytes = 0x1000 - 2;       // 4K-2
         nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
-        EDX = S_ALIGN * 0x10000;            // S_ALIGN*64K
-        EDX |= nbytes;
+        n1 = S_ALIGN * 0x10000;            // S_ALIGN*64K
+        n1 |= nbytes;
         nbytes -= 2;
 
-        unsigned *EDI = CVG_PUT_PTR;
+        unsigned *putPtr = CVG_PUT_PTR;
 
         // Fix for Bugzilla 2436 where it would seg fault on the memset()
-        if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
+        if ((char *)putPtr - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
         {
             _flush_cvg_temp();
-            EDI = CVG_PUT_PTR;
+            putPtr = CVG_PUT_PTR;
         }
 
-        *EDI++ = EDX;                       // write length, S_ALIGN
+        *putPtr++ = n1;                       // write length, S_ALIGN
 
-        memset(EDI, 0, nbytes);             // pad bytes
-        EDI = (unsigned *)((char *)EDI + nbytes);
+        memset(putPtr, 0, nbytes);             // pad bytes
+        putPtr = (unsigned *)((char *)putPtr + nbytes);
 
-        CVG_PUT_PTR = EDI;
-        if (EDI >= CVG_PUT_LIMIT)
+        CVG_PUT_PTR = putPtr;
+        if (putPtr >= CVG_PUT_LIMIT)
             _flush_cvg_temp();
 
-        EDX = ECX;
+        n1 = count;
 L28:
-        EAX = EDX;
+        pageBytes = n1;
 L29:
-        CV_PAGE_BYTES = EAX;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+        CV_PAGE_BYTES = pageBytes;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
     }
 
     //
     // STORE IN BUFFER
     //
 
-    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + ECX > 0x4000)
+    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + count > 0x4000)
         _flush_cvg_temp();
 
-    unsigned EAX = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
-    EAX += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
+    unsigned offset = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
+    offset += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
 
-    memcpy(CVG_PUT_PTR, ESI, ECX);
+    memcpy(CVG_PUT_PTR, symbol, count);
 
-    CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + ECX);
+    CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + count);
 
     if (CVG_PUT_PTR >= CVG_PUT_LIMIT)
         _flush_cvg_temp();
-    return EAX;
+    return offset;
 }
 
 void _flush_cvg_temp()
