@@ -55,39 +55,39 @@ struct CV_HASH_HDR_STRUCT CV_HASH_HEADER = { 10,12,0,0,0 };
 
 void _init_cv_symbol_hashes()
 {
-        // INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
+    // INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
 
-        CV_HASH_COUNT = 0;
-        CV_PAGE_BYTES = 0;
+    CV_HASH_COUNT = 0;
+    CV_PAGE_BYTES = 0;
 
-        FIRST_CVH = 0;
-        LAST_CVH = 0;
+    FIRST_CVH = 0;
+    LAST_CVH = 0;
 
-        CVG_SYMBOL_OFFSET = 0;
+    CVG_SYMBOL_OFFSET = 0;
 
-        (*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
+    (*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
 
-        unsigned EAX = BYTES_SO_FAR;
-        unsigned ECX = FINAL_HIGH_WATER;
-        CV_SECTION_OFFSET = EAX;
-        CV_SECTION_HDR_ADDRESS = ECX;
-        EAX += sizeof(struct CV_HASH_HDR_STRUCT);
-        ECX += sizeof(struct CV_HASH_HDR_STRUCT);
+    unsigned EAX = BYTES_SO_FAR;
+    unsigned ECX = FINAL_HIGH_WATER;
+    CV_SECTION_OFFSET = EAX;
+    CV_SECTION_HDR_ADDRESS = ECX;
+    EAX += sizeof(struct CV_HASH_HDR_STRUCT);
+    ECX += sizeof(struct CV_HASH_HDR_STRUCT);
 
-        BYTES_SO_FAR = EAX;
-        FINAL_HIGH_WATER = ECX;
+    BYTES_SO_FAR = EAX;
+    FINAL_HIGH_WATER = ECX;
 
-        CV_SYMBOL_BASE_ADDR = ECX;
+    CV_SYMBOL_BASE_ADDR = ECX;
 
-        unsigned *p = _get_new_log_blk();       // allocate PAGE_SIZE (16K) block
-        CVG_PUT_BLK = p;
-        CVG_PUT_PTR = p;
+    unsigned *p = _get_new_log_blk();       // allocate PAGE_SIZE (16K) block
+    CVG_PUT_BLK = p;
+    CVG_PUT_PTR = p;
 
-        /* Set limit to 512 bytes from the end. This assumes that no symbols will
-         * be larger than 512 bytes, which turns out to be false.
-         * This has been the cause of some overflow bugs, so we add more checking.
-         */
-        CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
+    /* Set limit to 512 bytes from the end. This assumes that no symbols will
+     * be larger than 512 bytes, which turns out to be false.
+     * This has been the cause of some overflow bugs, so we add more checking.
+     */
+    CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
 }
 
 void _store_cv_symbol_info()
@@ -248,7 +248,7 @@ void _do_symbol_hash()
 {
     if (!CV_HASH_COUNT)
     {   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
-        return;
+    return;
     }
 
     unsigned final_high_water_save = FINAL_HIGH_WATER;
@@ -491,9 +491,9 @@ L17:
     }
 
     {
-    unsigned ECX = (char *)ESI - (char *)CVG_PUT_BLK;
-    if (ECX)
-        _move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
+        unsigned ECX = (char *)ESI - (char *)CVG_PUT_BLK;
+        if (ECX)
+            _move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
     }
 
     // NOW OUTPUT OFFSET COUNTS
