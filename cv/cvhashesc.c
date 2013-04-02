@@ -192,6 +192,15 @@ L29:
     unsigned EAX = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
     EAX += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
 
+    // Fix for Issue 6144 where it would seg fault on `memcpy` call.
+    // I have no idea what happens here but sometimes it works for > 15 KiB distance
+    // (up to 15964 once) and once it failed on ~14 KiB distance (14368 bytes).
+    const unsigned _8K = 0x2000; // Let it be 8 KiB.
+    if ((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK + ECX > _8K)
+    {
+        _flush_cvg_temp();
+    }
+
     memcpy(CVG_PUT_PTR, ESI, ECX);
 
     CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + ECX);
