@@ -23,7 +23,7 @@ if	fg_cvpack
 		.CODE	CVPACK_TEXT
 
 		EXTERNDEF	MOVE_TEXT_TO_OMF:PROC,HANDLE_CV_INDEX:PROC,FLUSH_CV_TEMP:PROC,_store_cv_symbol_info:proc
-		EXTERNDEF	OUTPUT_CV_SYMBOL_ALIGN:PROC,_init_cv_symbol_hashes:proc,_flush_cv_symbol_hashes:proc
+		EXTERNDEF	_output_cv_symbol_align:proc,_init_cv_symbol_hashes:proc,_flush_cv_symbol_hashes:proc
 		EXTERNDEF	_release_minidata:proc,RELEASE_GARRAY:PROC,SAY_VERBOSE:PROC,GET_NAME_HASH32:PROC
 
 
@@ -75,7 +75,9 @@ L1$:
 		CALL	CREATE_STASYM		;RETURNS DX == SEGMENT, CX:BX IS OFFSET
 
 		MOV	EAX,OFF CV_TEMP_RECORD
-		CALL	OUTPUT_CV_SYMBOL_ALIGN	;DO DWORD ALIGN, 4K ALIGN, RETURN OFFSET
+		push	EAX
+		call	_output_cv_symbol_align	;DO DWORD ALIGN, 4K ALIGN, RETURN OFFSET
+		add	ESP,4
 
 		MOV	CVG_SYMBOL_OFFSET,EAX	;STORE SYMBOL OFFSET
 		call	_store_cv_symbol_info	;STORE INFO FOR SYMBOL HASHES
