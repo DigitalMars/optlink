@@ -450,7 +450,8 @@ SUBSSRC= \
 X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 
 scp: makefile
-	tolf makefile $(CVSRC)
+	tolf makefile $(COMMONSRC) $(CVSRC)
+	detab $(CVSRCC)
 	$(SCP) makefile $(SCPDIR)
 	$(SCP) $(COMMONSRC) $(SCPDIR)/common
 	$(SCP) $(CVSRC) $(SCPDIR)/cv

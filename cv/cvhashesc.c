@@ -55,39 +55,39 @@ struct CV_HASH_HDR_STRUCT CV_HASH_HEADER = { 10,12,0,0,0 };
 
 void _init_cv_symbol_hashes()
 {
-	// INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
+        // INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
 
-	CV_HASH_COUNT = 0;
-	CV_PAGE_BYTES = 0;
+        CV_HASH_COUNT = 0;
+        CV_PAGE_BYTES = 0;
 
-	FIRST_CVH = 0;
-	LAST_CVH = 0;
+        FIRST_CVH = 0;
+        LAST_CVH = 0;
 
-	CVG_SYMBOL_OFFSET = 0;
+        CVG_SYMBOL_OFFSET = 0;
 
-	(*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
+        (*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
 
-	unsigned EAX = BYTES_SO_FAR;
-	unsigned ECX = FINAL_HIGH_WATER;
-	CV_SECTION_OFFSET = EAX;
-	CV_SECTION_HDR_ADDRESS = ECX;
-	EAX += sizeof(struct CV_HASH_HDR_STRUCT);
-	ECX += sizeof(struct CV_HASH_HDR_STRUCT);
+        unsigned EAX = BYTES_SO_FAR;
+        unsigned ECX = FINAL_HIGH_WATER;
+        CV_SECTION_OFFSET = EAX;
+        CV_SECTION_HDR_ADDRESS = ECX;
+        EAX += sizeof(struct CV_HASH_HDR_STRUCT);
+        ECX += sizeof(struct CV_HASH_HDR_STRUCT);
 
-	BYTES_SO_FAR = EAX;
-	FINAL_HIGH_WATER = ECX;
+        BYTES_SO_FAR = EAX;
+        FINAL_HIGH_WATER = ECX;
 
-	CV_SYMBOL_BASE_ADDR = ECX;
+        CV_SYMBOL_BASE_ADDR = ECX;
 
-	unsigned *p = _get_new_log_blk();	// allocate PAGE_SIZE (16K) block
-	CVG_PUT_BLK = p;
-	CVG_PUT_PTR = p;
+        unsigned *p = _get_new_log_blk();       // allocate PAGE_SIZE (16K) block
+        CVG_PUT_BLK = p;
+        CVG_PUT_PTR = p;
 
-	/* Set limit to 512 bytes from the end. This assumes that no symbols will
-	 * be larger than 512 bytes, which turns out to be false.
-	 * This has been the cause of some overflow bugs, so we add more checking.
-	 */
-	CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
+        /* Set limit to 512 bytes from the end. This assumes that no symbols will
+         * be larger than 512 bytes, which turns out to be false.
+         * This has been the cause of some overflow bugs, so we add more checking.
+         */
+        CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
 }
 
 void _store_cv_symbol_info()
@@ -103,9 +103,9 @@ void _store_cv_symbol_info()
 
     struct CV_HASHES_STRUCT *ECX = LAST_CVH;
     if (ECX)
-	ECX->_NEXT = cvh;
+        ECX->_NEXT = cvh;
     else
-	FIRST_CVH = cvh;
+        FIRST_CVH = cvh;
     cvh->_PREV = ECX;
     LAST_CVH = cvh;
     cvh->_NEXT = 0;
@@ -115,11 +115,11 @@ void _store_cv_symbol_info()
 unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
 {
     // EAX IS CV_TEMP_RECORD
-    // 
+    //
     // ALIGN SYMBOL STORED IN CV_TEMP_RECORD
-    // 
+    //
     // RETURN EAX IS OFFSET OF THIS SYMBOL
-    // 
+    //
 
     //printf("\nESI = %p, length = %x\n", ESI, ESI->_LENGTH);
 
@@ -135,65 +135,65 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
     ESI->_LENGTH = EDX;
     unsigned ECX = 2 + EDX;
 
-    // 
+    //
     // DO 4K ALIGNMENT CALCULATION
-    // 
-    if (DOING_4K_ALIGN)		// STATICSYM doesn't matter
+    //
+    if (DOING_4K_ALIGN)         // STATICSYM doesn't matter
     {
-	EDX = 0x1000;			// 4K
+        EDX = 0x1000;                   // 4K
 
-	unsigned EAX = CV_PAGE_BYTES + ECX;
-	if (EDX < EAX)
-	    goto L2;
-	EDX -= EAX;
-	if (!EDX)
-	    goto L28;
-	// MUST LEAVE 0 OR AT LEAST 8 BYTES
-	if (EDX > 8)
-	    goto L29;
+        unsigned EAX = CV_PAGE_BYTES + ECX;
+        if (EDX < EAX)
+            goto L2;
+        EDX -= EAX;
+        if (!EDX)
+            goto L28;
+        // MUST LEAVE 0 OR AT LEAST 8 BYTES
+        if (EDX > 8)
+            goto L29;
 L2:
-	/* Insert S_ALIGN symbol to ensure that the next symbol will not cross
-	 * a page boundary.
-	 * The format is:
-	 *	word length
-	 *	word S_ALIGN
-	 *	... pad bytes ...
-	 */ 
+        /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
+         * a page boundary.
+         * The format is:
+         *      word length
+         *      word S_ALIGN
+         *      ... pad bytes ...
+         */
 
-	unsigned nbytes = 0x1000 - 2;	    // 4K-2
-	nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
-	EDX = S_ALIGN * 0x10000;	    // S_ALIGN*64K
-	EDX |= nbytes;
-	nbytes -= 2;
+        unsigned nbytes = 0x1000 - 2;       // 4K-2
+        nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
+        EDX = S_ALIGN * 0x10000;            // S_ALIGN*64K
+        EDX |= nbytes;
+        nbytes -= 2;
 
-	unsigned *EDI = CVG_PUT_PTR;
+        unsigned *EDI = CVG_PUT_PTR;
 
-	// Fix for Bugzilla 2436 where it would seg fault on the memset()
-	if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
-	{
-	    _flush_cvg_temp();
-	    EDI = CVG_PUT_PTR;
-	}
+        // Fix for Bugzilla 2436 where it would seg fault on the memset()
+        if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
+        {
+            _flush_cvg_temp();
+            EDI = CVG_PUT_PTR;
+        }
 
-	*EDI++ = EDX;			    // write length, S_ALIGN
+        *EDI++ = EDX;                       // write length, S_ALIGN
 
-	memset(EDI, 0, nbytes);		    // pad bytes
-	EDI = (unsigned *)((char *)EDI + nbytes);
+        memset(EDI, 0, nbytes);             // pad bytes
+        EDI = (unsigned *)((char *)EDI + nbytes);
 
-	CVG_PUT_PTR = EDI;
-	if (EDI >= CVG_PUT_LIMIT)
-	    _flush_cvg_temp();
+        CVG_PUT_PTR = EDI;
+        if (EDI >= CVG_PUT_LIMIT)
+            _flush_cvg_temp();
 
-	EDX = ECX;
+        EDX = ECX;
 L28:
-	EAX = EDX;
+        EAX = EDX;
 L29:
-	CV_PAGE_BYTES = EAX;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+        CV_PAGE_BYTES = EAX;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
     }
 
-    // 
+    //
     // STORE IN BUFFER
-    // 
+    //
 
     if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + ECX > 0x4000)
         _flush_cvg_temp();
@@ -206,7 +206,7 @@ L29:
     CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + ECX);
 
     if (CVG_PUT_PTR >= CVG_PUT_LIMIT)
-	_flush_cvg_temp();
+        _flush_cvg_temp();
     return EAX;
 }
 
@@ -241,14 +241,14 @@ void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
 
     _release_minidata(&CV_HASHES_STUFF);
 
-    _handle_cv_index(CV_SECTION_OFFSET, EAX);	// backwards
+    _handle_cv_index(CV_SECTION_OFFSET, EAX);   // backwards
 }
 
 void _do_symbol_hash()
 {
     if (!CV_HASH_COUNT)
     {   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
-	return;
+        return;
     }
 
     unsigned final_high_water_save = FINAL_HIGH_WATER;
@@ -259,14 +259,14 @@ void _do_symbol_hash()
 
     while (1)
     {
-	--EBX;
-	if ((int)EAX < 0)
-	    break;
-	EAX *= 2;
+        --EBX;
+        if ((int)EAX < 0)
+            break;
+        EAX *= 2;
     }
 
     if (EBX < 10)
-	EBX = 10;
+        EBX = 10;
     EAX = CV_HASH_COUNT;
     EBX -= 7;
 
@@ -277,11 +277,11 @@ void _do_symbol_hash()
     // HIGH LIMIT IS PAGE_SIZE/8
 
     if (EAX > PAGE_SIZE_8_HASH)
-	EAX = PAGE_SIZE_8_HASH;
+        EAX = PAGE_SIZE_8_HASH;
 
     // Convert to next highest prime #
     while (*pprim++ < EAX)
-	;
+        ;
 
     CVG_N_HASHES = pprim[-1];
     struct CV_HASHES_STRUCT *esi2 = LAST_CVH;
@@ -293,12 +293,12 @@ void _do_symbol_hash()
 
     do
     {
-	unsigned EDX = esi2->_SYMBOL_HASH % CVG_N_HASHES;
+        unsigned EDX = esi2->_SYMBOL_HASH % CVG_N_HASHES;
 
-	esi2->_NEXT_HASH = (struct CV_HASHES_STRUCT *)EDI[EDX*2]; // LINK-LIST TO THIS 'BUCKET'
-	EDI[EDX*2] = (unsigned)esi2;
-	++EDI[EDX*2 + 1];	// count guys in this bucket
-	esi2 = esi2->_PREV;
+        esi2->_NEXT_HASH = (struct CV_HASHES_STRUCT *)EDI[EDX*2]; // LINK-LIST TO THIS 'BUCKET'
+        EDI[EDX*2] = (unsigned)esi2;
+        ++EDI[EDX*2 + 1];       // count guys in this bucket
+        esi2 = esi2->_PREV;
     } while (esi2);
 
     // Start writing hash table out
@@ -317,13 +317,13 @@ void _do_symbol_hash()
 
     do
     {
-	unsigned EAX = EDI[ECX*2 + 1];       // BUCKET COUNT
-	pu[ECX + 1] = EDX;
+        unsigned EAX = EDI[ECX*2 + 1];       // BUCKET COUNT
+        pu[ECX + 1] = EDX;
 
-	++ECX;
-	--nhashes;
+        ++ECX;
+        --nhashes;
 
-	EDX += EAX * 8;
+        EDX += EAX * 8;
     } while (nhashes);
 
     _move_eax_to_final_high_water(pu, (ECX + 1) * 4);
@@ -335,8 +335,8 @@ void _do_symbol_hash()
     unsigned nhashes2 = CVG_N_HASHES;
     do
     {
-	*EDI++ = *psi;
-	psi += 2;
+        *EDI++ = *psi;
+        psi += 2;
     } while (--nhashes2);
 
     _move_eax_to_final_high_water(CVG_BUFFER_LOG, (char *)EDI - (char *)CVG_BUFFER_LOG);
@@ -348,28 +348,28 @@ void _do_symbol_hash()
     EDX = CVG_N_HASHES;
     do
     {
-	struct CV_HASHES_STRUCT *ESI = *ebx2; // first item in chain
-	ebx2 += 2;
+        struct CV_HASHES_STRUCT *ESI = *ebx2; // first item in chain
+        ebx2 += 2;
 
-	while (ESI)
-	{
-	    EDI[0] = ESI->_SYMBOL_OFFSET;
-	    EDI[1] = ESI->_SYMBOL_HASH;
-	    EDI += 2;
+        while (ESI)
+        {
+            EDI[0] = ESI->_SYMBOL_OFFSET;
+            EDI[1] = ESI->_SYMBOL_HASH;
+            EDI += 2;
 
-	    if (EDI >= CVG_BUFFER_LIMIT)
-	    {
-		unsigned bufcount = (char *)EDI - (char *)CVG_BUFFER_LOG;
-		EDI = CVG_BUFFER_LOG;
-		_move_eax_to_final_high_water(EDI, bufcount);
-	    }
-	    ESI = ESI->_NEXT_HASH;
-	}
+            if (EDI >= CVG_BUFFER_LIMIT)
+            {
+                unsigned bufcount = (char *)EDI - (char *)CVG_BUFFER_LOG;
+                EDI = CVG_BUFFER_LOG;
+                _move_eax_to_final_high_water(EDI, bufcount);
+            }
+            ESI = ESI->_NEXT_HASH;
+        }
     } while (--EDX);
 
     unsigned bufcount = (char *)EDI - (char *)CVG_BUFFER_LOG;
     if (bufcount)
-	_move_eax_to_final_high_water(CVG_BUFFER_LOG, bufcount);
+        _move_eax_to_final_high_water(CVG_BUFFER_LOG, bufcount);
 
     // STORE BYTE-COUNT FOR SYMBOL HASH STUFF
     unsigned count = FINAL_HIGH_WATER - final_high_water_save;
