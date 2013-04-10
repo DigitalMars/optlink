@@ -79,9 +79,14 @@ void _init_cv_symbol_hashes()
 
 	CV_SYMBOL_BASE_ADDR = ECX;
 
-	unsigned *p = _get_new_log_blk();
+	unsigned *p = _get_new_log_blk();	// allocate PAGE_SIZE (16K) block
 	CVG_PUT_BLK = p;
 	CVG_PUT_PTR = p;
+
+	/* Set limit to 512 bytes from the end. This assumes that no symbols will
+	 * be larger than 512 bytes, which turns out to be false.
+	 * This has been the cause of some overflow bugs, so we add more checking.
+	 */
 	CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
 }
 
@@ -164,7 +169,7 @@ L2:
 	unsigned *EDI = CVG_PUT_PTR;
 
 	// Fix for Bugzilla 2436 where it would seg fault on the memset()
-	if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 2 > 0x4000)
+	if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
 	{
 	    _flush_cvg_temp();
 	    EDI = CVG_PUT_PTR;
@@ -189,6 +194,10 @@ L29:
     // 
     // STORE IN BUFFER
     // 
+
+    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + ECX > 0x4000)
+        _flush_cvg_temp();
+
     unsigned EAX = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
     EAX += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
 
