@@ -21,3 +21,7 @@ parse/LSTNT/
 parse/OBJNT/
 subs/LSTNT/
 subs/OBJNT/
+/vsdir
+*.suo
+*.ncb
+*.user
