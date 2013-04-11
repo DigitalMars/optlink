@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <scio.h>
+//#include <scio.h>
 #include <dos.h>
-#include <sctchar.h>
+//#include <sctchar.h>
 
 #include <windows.h>
 
@@ -42,10 +42,23 @@ size_t __CLIB __far _inline_fstrlen(const char __far *);
 #endif
 
 /***********************
+ Definitions from scio.h and/or sctchar.h
+ */
+#define _NFILE 60
+
+#define EOF (-1)
+
+#ifndef _UNICODE
+typedef int (__cdecl *fp_t)(int, void *);
+int _pformat(fp_t,void *,const char *,va_list);
+#endif
+
+/***********************
  */
 
 int printf(const char *format,...)
 {
+        int vprintf(const char *format,va_list args);
         return vprintf(format,(va_list)&(format) + sizeof(format));
 }
 
@@ -114,6 +127,7 @@ static int __cdecl _sprintf(int c,void *s)
 
 int sprintf(char *s,const char *format,...)
 {
+	int vsprintf(char *s,const char *format,va_list args);
 	return vsprintf(s,format,(va_list)&(format) + sizeof(format));
 }
 
@@ -145,6 +159,7 @@ static int __cdecl __snprintf(int c,void *pvsn)
 
 int __CLIB _snprintf(char *s,size_t count,const char *format,...)
 {
+	int __CLIB vsnprintf(char *s,size_t count,const char *format,va_list args);
 	return vsnprintf(s,count,format,(va_list)&(format) + sizeof(format));
 }
 
