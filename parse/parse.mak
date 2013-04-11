@@ -3,7 +3,7 @@
 
 FLAGS = $(MASMFLAGS)
 SRC = $(BASE)\PARSE
-CFLAGS=-I..\common -r -N_
+CFLAGS=$(DMCFLAGS) -N_
 
 
 ALL : $(LIB)\PARSE.LIB
