@@ -146,7 +146,6 @@ CVSRC= $(CVSRCC) \
 	cv\qsortadr.asm \
 	cv\qsortlin.asm \
 	cv\cvglball.asm \
-	cv\cvhashes.asm \
 	cv\cvsegtbl.asm \
 	cv\cvstaall.asm \
 	cv\cvtypall.asm \
