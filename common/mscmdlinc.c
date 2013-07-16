@@ -1499,6 +1499,11 @@ void _res_extdictionary()
     //EXTDICTIONARY_FLAG = 0;
 }
 
+void _set_largeaddressaware()
+{
+    PE_LARGE_ADDRESS_AWARE = 0xFF;
+}
+
 void _set_linenumbers()
 {
     MAPFILE_SELECTED = 0xFF;
@@ -2556,6 +2561,7 @@ fp_t _getcmd(char *cmd)
 	{   10,7, &SET_IMPLIB_COFF, "IMPLIBCOFF" },
 	{   11,1, &VERBOSE_PROC, "INFORMATION" },
 	//{    4,3, &INTO_PROC, "INTO" },
+	{   17,2, &_set_largeaddressaware, "LARGEADDRESSAWARE" },
 	{   11,1, &_set_linenumbers, "LINENUMBERS" },
 	{    9,2, &LOWERCASE_PROC, "LOWERCASE" },
 	{    7,3, &SET_MACHINE, "MACHINE" },
@@ -2730,36 +2736,37 @@ F[arcalltranslation]      FI[xds]                   FIXE[d]\n\
 G[roupassociation]        GROUPS[tack]              HEA[p]\n\
 H[elp]                    IG[norecase]              IMPD[ef]\n\
 IMPL[ib]                  IMPLIBC[off]              I[nformation]\n\
-L[inenumbers]             LO[wercase]               MAC[hine]\n\
-M[ap]                     NOB[atch]                 NOCHECKA[bort]\n\
-NOCHECKE[xe]              NOCHECKS[um]              NOCO[deview]\n\
-NOCOM[defsearch]          NOCV[pack]                NODEB[ug]\n\
-NODEBUGA[pploader]        NODEBUGB[rowser]          NODEBUGC[overages]\n\
-NODEBUGLI[nes]            NODEBUGLO[cals]           NODEBUGP[ublics]\n\
-NODEBUGR[eferences]       NODEBUGT[ypes]            NOD[efaultlibrarysearch]\n\
-NODEL[executable]         NODET[ailedmap]           NODO[sseg]\n\
-NOEC[hoindirect]          NOEMSP[ageframeio]        NOEMSU[se40]\n\
-NOER[rorflag]             NOEXE[pack]               NOE[xtdictionary]\n\
-NOF[arcalltranslation]    NOFI[xds]                 NOG[roupassociation]\n\
-NOGROUPS[tack]            NOI[gnorecase]            NOLI[nenumbers]\n\
-NOL[ogo]                  NOM[ap]                   NONA[mes]\n\
-NONT[host]                NON[ullsdosseg]           NOP[ackcode]\n\
-NOPACKD[ata]              NOPACKF[unctions]         NOPACKI[fnosegments]\n\
-NOPAU[se]                 NOPR[ompt]                NOR[elocationcheck]\n\
-NOREO[rdersegments]       NOSCANLIB                 NOSCANLINK\n\
-NOWARND[ups]              NOWI[npack]               NOX[ref]\n\
-NT[host]                  NU[llsdosseg]             ON[error]\n\
-OPT                       PAC[kcode]                PACKD[ata]\n\
-PACKF[unctions]           PACKI[fnosegments]        PACKS[ize]\n\
-PADC[ode]                 PADD[ata]                 PAG[esize]\n\
-PAU[se]                   PM[type]                  PR[ompt]\n\
-RC                        RELOC[ationcheck]         REO[rdersegments]\n\
-SCANLIB                   SCANLINK                  SE[gments]\n\
-SEGP[ack]                 SI[lent]                  ST[ack]\n\
-STU[b]                    SU[bsystem]               T[iny]\n\
-U[ppercase]               VERS[ion]                 W[arnfixup]\n\
-WARND[ups]                WI[npack]                 XM[smaxsize]\n\
-X[ref]                    XN[oignorecase]           XU[ppercase]\n\
+LA[RGEADDRESSAWARE]       L[inenumbers]             LO[wercase]\n\
+MAC[hine]                 M[ap]                     NOB[atch]\n\
+NOCHECKA[bort]            NOCHECKE[xe]              NOCHECKS[um]\n\
+NOCO[deview]              NOCOM[defsearch]          NOCV[pack]\n\
+NODEB[ug]                 NODEBUGA[pploader]        NODEBUGB[rowser]\n\
+NODEBUGC[overages]        NODEBUGLI[nes]            NODEBUGLO[cals]\n\
+NODEBUGP[ublics]          NODEBUGR[eferences]       NODEBUGT[ypes]\n\
+NOD[efaultlibrarysearch]  NODEL[executable]         NODET[ailedmap]\n\
+NODO[sseg]                NOEC[hoindirect]          NOEMSP[ageframeio]\n\
+NOEMSU[se40]              NOER[rorflag]             NOEXE[pack]\n\
+NOE[xtdictionary]         NOF[arcalltranslation]    NOFI[xds]\n\
+NOG[roupassociation]      NOGROUPS[tack]            NOI[gnorecase]\n\
+NOLI[nenumbers]           NOL[ogo]                  NOM[ap]\n\
+NONA[mes]                 NONT[host]                NON[ullsdosseg]\n\
+NOP[ackcode]              NOPACKD[ata]              NOPACKF[unctions]\n\
+NOPACKI[fnosegments]      NOPAU[se]                 NOPR[ompt]\n\
+NOR[elocationcheck]       NOREO[rdersegments]       NOSCANLIB\n\
+NOSCANLINK                NOWARND[ups]              NOWI[npack]\n\
+NOX[ref]                  NT[host]                  NU[llsdosseg]\n\
+ON[error]                 OPT                       PAC[kcode]\n\
+PACKD[ata]                PACKF[unctions]           PACKI[fnosegments]\n\
+PACKS[ize]                PADC[ode]                 PADD[ata]\n\
+PAG[esize]                PAU[se]                   PM[type]\n\
+PR[ompt]                  RC                        RELOC[ationcheck]\n\
+REO[rdersegments]         SCANLIB                   SCANLINK\n\
+SE[gments]                SEGP[ack]                 SI[lent]\n\
+ST[ack]                   STU[b]                    SU[bsystem]\n\
+T[iny]                    U[ppercase]               VERS[ion]\n\
+W[arnfixup]               WARND[ups]                WI[npack]\n\
+XM[smaxsize]              X[ref]                    XN[oignorecase]\n\
+XU[ppercase]\n\
 ");
 }
 
