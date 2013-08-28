@@ -2213,6 +2213,7 @@ extern unsigned char PE_SUBSYSTEM_DEFINED;
 extern unsigned char PE_SUBSYS_VERSION_DEFINED;
 extern unsigned char PE_BASE_SPECIFIED;
 extern unsigned char PE_BASE_FIXED;
+extern unsigned char PE_LARGE_ADDRESS_AWARE;
 extern unsigned char OUTPUT_PE;
 extern unsigned char DOING_tls;
 extern unsigned char GOT_tls_CLASS;
