@@ -7,7 +7,10 @@ ZIPFILE=optlinkcsrc.zip
 DOTSRC= build.bat dorel.bat parse.d revert.bat install.bat getlog.bat clean.bat \
 	testall.bat gr.bat makefile
 
-ALLOCSRC = \
+ALLOCCSRC= \
+	alloc\malloc.c
+
+ALLOCSRC = $(ALLOCCSRC) \
 	alloc\go.bat \
 	alloc\initpool.asm \
 	alloc\alloinit.asm \
@@ -69,7 +72,6 @@ BUGSSRC= bugs\test.c
 
 COMMONSRCC= \
 	common\all.h \
-	common\modules.h \
 	common\pe_struc.h \
 	common\fixupp2c.c \
 	common\mscmdlinc.c \
@@ -451,14 +453,15 @@ SUBSSRC= \
 X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 
 scp: makefile
-	tolf makefile $(COMMONSRC) $(CVSRC)
+	tolf makefile $(ALLOCCSRC) $(COMMONSRC) $(CVSRC)
 	detab $(CVSRCC)
 	$(SCP) makefile optlink_vs08.sln optlink_vs08.vcproj $(SCPDIR)
+	$(SCP) $(ALLOCSRC) $(SCPDIR)/alloc
 	$(SCP) $(COMMONSRC) $(SCPDIR)/common
 	$(SCP) $(CVSRC) $(SCPDIR)/cv
 
 zip:
-	tolf common\all.h $(COMMONSRCC) $(CVSRCC)
+	tolf common\all.h $(ALLOCCSRC) $(COMMONSRCC) $(CVSRCC)
 	del $(ZIPFILE)
 	zip32 $(ZIPFILE) $(ALLOCSRC)
 	zip32 $(ZIPFILE) $(APPLOADSRC)

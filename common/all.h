@@ -47,6 +47,12 @@ void **_cv_hashes_pool_get(unsigned nbytes);
 void **_tillmiddle_pool_get(unsigned nbytes);
 void **_text_pool_get(unsigned nbytes);
 
+// alloc\malloc
+void *malloc(unsigned);
+void *calloc(unsigned, unsigned);
+void *realloc(void *, unsigned);
+void free(void *);
+
 // common.errors
 extern char *ERR_TABLE[];
 void _warn_nfn_ret(int errnum, NFN_STRUCT *n);

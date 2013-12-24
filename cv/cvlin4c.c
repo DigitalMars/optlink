@@ -1,4 +1,6 @@
 
+#include <stdlib.h>
+
 #include "all.h"
 
 extern void (*CV_DWORD_ALIGN)();
@@ -125,11 +127,12 @@ void _cv_linnums_4()
 
         BYTES_SO_FAR = BYTES_SO_FAR + ((EAX * 4 + EAX + ECX + 7) & ~3);
 
-        void *p = _get_new_log_blk();   // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
+        //void *p = _get_new_log_blk(); // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
+        void *p = malloc(EBP.CV_M_SRC_COUNT * 2 * 4);   // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
+        //assert(p);
 
         EBP.CV_HELP_PTRS = (int)p;
 
-        //<<>> seg fault here EDI=01C24000, ECX=2
         // 2 DWORDS PER SRC FILE
         memset(p, 0, EBP.CV_M_SRC_COUNT * 2 * 4);
 

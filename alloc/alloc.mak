@@ -13,7 +13,7 @@ HEADERS=..\common\all.h ..\common\optlink.h ..\common\errors.h ..\common\io_stru
 ALL : $(LIB)\ALLOC.LIB
 
 $(LIB)\ALLOC.LIB : $(OBJ)\ALLOPOOL.OBJ $(OBJ)\allopoolc.obj $(OBJ)\ldatac.obj \
-	$(OBJ)\ALLOC.OBJ $(OBJ)\allocc.obj \
+	$(OBJ)\ALLOC.OBJ $(OBJ)\allocc.obj $(OBJ)\malloc.obj \
 	$(OBJ)\comprelec.obj $(OBJ)\minidatac.obj $(OBJ)\compalloc.obj
   $(BUILD_LIB)
 
@@ -57,6 +57,9 @@ $(OBJ)\initpoolc.obj : initpoolc.c $(HEADERS)
 
 $(OBJ)\ldatac.obj : ldatac.c $(HEADERS)
 	dmc -N_ -c ldatac -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\ldatac.obj
+
+$(OBJ)\malloc.obj : malloc.c $(HEADERS)
+	dmc -N_ -c malloc -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\malloc.obj
 
 $(OBJ)\minidatac.obj : minidatac.c $(HEADERS)
 	dmc -N_ -c minidatac -NTROOT_TEXT $(CFLAGS) -o$(OBJ)\minidatac.obj
