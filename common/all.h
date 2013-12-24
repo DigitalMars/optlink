@@ -16,6 +16,7 @@ typedef unsigned size_t;
 #include "cvstuff.h"
 #include "pe_struc.h"
 #include "cddata.h"
+#include "modules.h"
 
 // alloc\allocc
 void _seg_released();

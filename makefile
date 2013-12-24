@@ -69,6 +69,7 @@ BUGSSRC= bugs\test.c
 
 COMMONSRCC= \
 	common\all.h \
+	common\modules.h \
 	common\pe_struc.h \
 	common\fixupp2c.c \
 	common\mscmdlinc.c \
@@ -119,6 +120,7 @@ COMMONSRC= $(COMMONSRCC) \
 CVSRCC= \
 	cv\instgsymc.c \
 	cv\cvhashesc.c \
+	cv\cvlin4c.c \
 	cv\cvsymbolc.c \
 	cv\xdebugc.c
 
@@ -451,7 +453,7 @@ X32SRC= x32\lib\x32v.lib x32\lib\slr.obj x32\lib\zlx.lod
 scp: makefile
 	tolf makefile $(COMMONSRC) $(CVSRC)
 	detab $(CVSRCC)
-	$(SCP) makefile $(SCPDIR)
+	$(SCP) makefile optlink_vs08.sln optlink_vs08.vcproj $(SCPDIR)
 	$(SCP) $(COMMONSRC) $(SCPDIR)/common
 	$(SCP) $(CVSRC) $(SCPDIR)/cv
 

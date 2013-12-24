@@ -252,14 +252,28 @@ CV_LINNUMS_4	PROC
 
 		SHL	ECX,1			;2 DWORDS PER SRC FILE
 
+;<<>> seg fault here EDI=01C24000, ECX=2
 		REP	STOSD
 
 		MOV	CV_SEG_NUMBER,EAX		;FORCE NEW RECORD
 		MOV	CV_LSEG_GINDEX,EAX
 		MOV	CV_SEGMOD_EXPECTED,EAX
 		MOV	HIGH_WATER,EAX
-		MOV	EAX,CV_M_FIRST_CSEGMOD_GINDEX
-		JMP	CHECK_CSEGMOD
+
+		;MOV	EAX,CV_M_FIRST_CSEGMOD_GINDEX
+		;JMP	CHECK_CSEGMOD
+
+		pop	EAX
+		push	EBP
+		push	EAX
+		mov	EAX,CV_M_FIRST_CSEGMOD_GINDEX
+		push	EAX
+		call	_check_csegmod
+		add	ESP,12
+		add	ESP,0E0h
+		;mov	ESP,EBP
+		POPM	EBX,ESI,EDI,EBP
+		ret
 
 L9$:
 		RET
@@ -388,6 +402,18 @@ CHECK_LINNUM:
 		;NO MORE LINES THIS SEGMOD, TRY NEXT
 		;
 		POP	EAX
+		jmp	CHECK_CSEGMOD
+
+		public _check_csegmod
+_check_csegmod	proc
+		mov	EAX,8[ESP]
+		PUSHM	EBP,EDI,ESI,EBX
+		sub	ESP,0E0h
+		push	EAX
+		mov	EAX,0E0h+4*5+4[ESP]
+		mov	EBP,0E0h+4*5+12[ESP]
+_check_csegmod	endp
+
 CHECK_CSEGMOD:
 		TEST	EAX,EAX
 		JNZ	CSEGMOD_LOOP
@@ -412,7 +438,8 @@ CHECK_CSEGMOD:
 
 		CALL	CV_DWORD_ALIGN
 
-		MOV	ESP,EBP
+		add	ESP,0E0h
+		;MOV	ESP,EBP
 
 		POPM	EBX,ESI,EDI,EBP
 
@@ -421,6 +448,11 @@ CHECK_CSEGMOD:
 		RET
 
 CV_LINNUMS_4	ENDP
+
+	public _init_help_counts
+_init_help_counts proc
+		mov	EAX,4[ESP]
+_init_help_counts endp
 
 INIT_HELP_COUNTS	PROC	NEAR PRIVATE
 
