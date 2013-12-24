@@ -10,9 +10,11 @@
 
 
 FLUSH_CV_TEMP	PROC
+		push	ECX	; save
 		push	EDI
 		call	_flush_cv_temp
 		add	ESP,4
+		pop	ECX
 		ret
 FLUSH_CV_TEMP	ENDP
 

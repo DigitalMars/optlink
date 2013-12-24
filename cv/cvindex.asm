@@ -71,6 +71,7 @@ WRITE_CV_INDEX	PROC
 
 L3$:
 		MOV	EBX,CURNMOD_NUMBER
+		; seg fault here <<>>
 		MOV	[EDX+8],ECX
 
 		SHL	EBX,16

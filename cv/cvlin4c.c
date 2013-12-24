@@ -8,6 +8,13 @@ extern void INIT_LOCAL_STORAGE();
 
 extern SRC_STRUCT *_init_help_counts(SRC_STRUCT *EAX);
 
+typedef struct HLP_STRUCT
+{
+    unsigned _HLP_LAST_LINHELP;
+    unsigned _HLP_FIRST_LINHELP;
+} HLP_STRUCT;
+
+
 typedef struct CVLIN_STRUCT
 {
     int CV_OFFSET_BLOCKS[(64 * 1024) / PAGE_SIZE * 4];
@@ -36,7 +43,7 @@ typedef struct CVLIN_STRUCT
     int CV_M_FIRST_CSEGMOD_GINDEX;
     int CV_M_SRC_COUNT;
     int CV_M_CSEG_COUNT;
-    int CV_HELP_PTRS;
+    HLP_STRUCT* CV_HELP_PTRS;
     int CV_SEGMOD_EXPECTED;
     int CV_OFFSET_SIZE;
     int CV_OFFSET_MASK;
@@ -51,13 +58,6 @@ typedef struct CVLIN_STRUCT
 #define CV_LN_SRC_GINDEX        CV_LN_STUFF._LN_SRC_GINDEX
 
 extern void _check_csegmod(int, int, CVLIN_STRUCT*);
-
-struct HLP_STRUCT
-{
-    unsigned _HLP_LAST_LINHELP;
-    unsigned _HLP_FIRST_LINHELP;
-};
-
 
 struct SRC_LIN_HELP
 {
@@ -76,6 +76,10 @@ struct CSEG_DESC_STRUCT
     unsigned _CSD_SEG_GINDEX;
 };
 
+void print_int(int i)
+{
+    printf("i = %d\n", i);
+}
 
 void _cv_linnums_4()
 {
@@ -128,13 +132,11 @@ void _cv_linnums_4()
         BYTES_SO_FAR = BYTES_SO_FAR + ((EAX * 4 + EAX + ECX + 7) & ~3);
 
         //void *p = _get_new_log_blk(); // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
-        void *p = malloc(EBP.CV_M_SRC_COUNT * 2 * 4);   // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
-        //assert(p);
+        // PLACE FOR SRC BEGINNING AND ENDING HELP PTRS
+        EBP.CV_HELP_PTRS = (HLP_STRUCT *)calloc(EBP.CV_M_SRC_COUNT, sizeof(HLP_STRUCT));
+        //assert(EBP.CV_HELP_PTRS);
 
-        EBP.CV_HELP_PTRS = (int)p;
-
-        // 2 DWORDS PER SRC FILE
-        memset(p, 0, EBP.CV_M_SRC_COUNT * 2 * 4);
+        //printf("cv_help_ptrs = %p, count = %d, max = %p\n", EBP.CV_HELP_PTRS, EBP.CV_M_SRC_COUNT, &EBP.CV_HELP_PTRS[EBP.CV_M_SRC_COUNT]);
 
         EBP.CV_SEG_NUMBER = 0;          // FORCE NEW RECORD
         EBP.CV_LSEG_GINDEX = 0;
@@ -717,6 +719,7 @@ CHECK_LINHELP:
                 ;WRITE CX BASESRCFILES
                 ;
 L5$:
+                ; seg fault here <<>>
                 MOV     EAX,[ESI]._HLP_LAST_LINHELP
                 ADD     ESI,SIZE HLP_STRUCT
 
