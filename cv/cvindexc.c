@@ -1,8 +1,9 @@
 
 #include "all.h"
 
-unsigned CV_INDEX_PTR_LIMIT = 0;
-unsigned CV_INDEX_BLOCK_END = 0;
+void *CV_INDEX_PTR_LIMIT = 0;
+void *CV_INDEX_BLOCK_END = 0;
+extern unsigned CV_INDEX_SIZE;
 
 void _write_cv_index(unsigned, unsigned);
 
@@ -121,34 +122,28 @@ L2$:
                 RET
 
 WRITE_CV_INDEX  ENDP
+*/
 
 
-CV_INDEX_ANOTHER_BLOCK  PROC
-                ;
-                ;
-                ;
-                MOV     EDX,CV_INDEX_BLK_PTR
-                CALL    GET_NEW_LOG_BLK         ;LEAVE IN FASTER MEMORY
+void _cv_index_another_block()
+{
+        void **EDX = CV_INDEX_BLK_PTR;
+        void *EAX = _get_new_log_blk(); // LEAVE IN FASTER MEMORY
 
-                MOV     [EDX],EAX
-                ADD     EDX,4
+        *EDX = EAX;
+        ++EDX;
 
-                MOV     EDI,EAX
-                ADD     EAX,PAGE_SIZE
+        void *EDI = EAX;
+        EAX = (void *)((char *)EAX + PAGE_SIZE);
 
-                MOV     CV_INDEX_BLK_PTR,EDX
-                MOV     CV_INDEX_BLOCK_END,EAX
+        CV_INDEX_BLK_PTR = EDX;
+        CV_INDEX_BLOCK_END = EAX;
 
-                SUB     EAX,CV_INDEX_SIZE
-                MOV     CV_INDEX_PTR,EDI
+        CV_INDEX_PTR = EDI;
+        CV_INDEX_PTR_LIMIT = (void *)((char *)EAX - CV_INDEX_SIZE);
+}
 
-                MOV     CV_INDEX_PTR_LIMIT,EAX
-
-                RET
-
-CV_INDEX_ANOTHER_BLOCK  ENDP
-
-
+/*
 FLUSH_CV_INDEXES        PROC
                 ;
                 ;WRITE OUT BUFFERED INDEX ENTRIES
@@ -251,31 +246,16 @@ L5$:
 FLUSH_CV_INDEXES        ENDP
 
 
-WRITE_INDEX_BLOCK       PROC    NEAR
-                ;
-                ;BX POINTS TO BLOCK
-                ;CX IS BLOCK SIZE, WRITE IT OUT
-                ;
-                CALL    CONVERT_SUBBX_TO_EAX
+void _write_index_block(void **EBX, unsigned ECX)
+{
+        // EBX POINTS TO BLOCK
+        // ECX IS BLOCK SIZE, WRITE IT OUT
 
-                push    ECX
-                push    EAX
-                call    _xdebug_normal
-                add     ESP,8
+        _xdebug_normal(_convert_subbx_to_eax(EBX), ECX);
 
-                XOR     ECX,ECX
-                MOV     EAX,[EBX]
-
-                MOV     [EBX],ECX
-                JMP     RELEASE_BLOCK
-
-WRITE_INDEX_BLOCK       ENDP
-
-
-                .DATA?
-
-
-
-                END
+        void *EAX = *EBX;
+        *EBX = 0;
+        _release_block(EAX);
+}
 
 */

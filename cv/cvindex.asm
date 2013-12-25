@@ -20,6 +20,7 @@
 		.CODE	PASS2_TEXT
 
 		externdef	_handle_cv_index:proc
+		externdef	_cv_index_another_block:proc
 
 		EXTERNDEF	RELEASE_BLOCK:PROC,_xdebug_normal:proc,CONVERT_SUBBX_TO_EAX:PROC,GET_NEW_LOG_BLK:PROC,ERR_RET:PROC
 
@@ -172,6 +173,8 @@ WRITE_CV_INDEX	ENDP
 
 
 CV_INDEX_ANOTHER_BLOCK	PROC
+		jmp	_cv_index_another_block
+
 		;
 		;
 		;

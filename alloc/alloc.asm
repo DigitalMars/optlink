@@ -42,6 +42,7 @@ endif
 		externdef	_get_4k_segment:proc
 		externdef	_release_4k_segment:proc
 		externdef	_release_block:proc
+		externdef	_convert_subbx_to_eax:proc
 
 		EXTERNDEF	OOM_ERR:ABS,SEG_ALREADY_RELEASED_ERR:ABS
 
@@ -82,6 +83,16 @@ RELEASE_IO_SEGMENT	EQU	(RELEASE_SEGMENT)
 ;		jmp	_oom_error
 
 CONVERT_SUBBX_TO_EAX	PROC
+		push	ECX
+		push	EDX
+
+		push	EBX
+		call	_convert_subbx_to_eax
+		add	ESP,4
+
+		pop	EDX
+		pop	ECX
+		ret
 		;
 ;		MOV	EAX,[ESP]
 		MOV	EAX,[EBX]

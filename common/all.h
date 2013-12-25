@@ -32,6 +32,7 @@ void _release_segment(void *);
 void *_get_new_phys_blk();
 void *_get_new_log_blk();
 void *_get_new_io_log_blk();
+void *_convert_subbx_to_eax(void **);
 
 // alloc.allopool
 void _ap_fix(unsigned EAX, ALLOCS_STRUCT *EBX, unsigned ECX);

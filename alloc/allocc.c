@@ -125,3 +125,14 @@ void _release_io_block(void *EAX)
 }
 
 
+void *_convert_subbx_to_eax(void **EBX)
+{
+    void *p = *EBX;
+    if (!p)
+    {
+	p = _get_new_phys_blk();
+	*EBX = p;
+	memset(p, 0, PAGE_SIZE);
+    }
+    return p;
+}
