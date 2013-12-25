@@ -1440,10 +1440,10 @@ void **CV_INDEX_BLK_PTR;
 /*
 CV_INDEX_BLK		DD	?
 */
-void *CV_INDEX_PTR;
+extern void *CV_INDEX_PTR;
+extern unsigned CV_INDEX_COUNT;
+extern unsigned char CV_INDEX_TEMP[12];
 /*
-CV_INDEX_COUNT		DD	?
-CV_INDEX_TEMP		DB	12 DUP(?)
 
 ;CV_LIN_PHYS		DW	?
 ;CV_LIN_BLK		DW	?

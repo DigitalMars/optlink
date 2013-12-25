@@ -21,6 +21,8 @@
 
 		externdef	_handle_cv_index:proc
 		externdef	_cv_index_another_block:proc
+		externdef	_write_index_block:proc
+		externdef	_write_cv_index:proc
 
 		EXTERNDEF	RELEASE_BLOCK:PROC,_xdebug_normal:proc,CONVERT_SUBBX_TO_EAX:PROC,GET_NEW_LOG_BLK:PROC,ERR_RET:PROC
 
@@ -33,10 +35,11 @@
 ;_handle_cv_index endp
 
 HANDLE_CV_INDEX	PROC
+		push	EDI
 		push	ECX
 		push	EAX
 		call	_handle_cv_index
-		add	ESP,8
+		add	ESP,12
 		ret
 
 		;
@@ -62,13 +65,21 @@ HANDLE_CV_INDEX	PROC
 
 HANDLE_CV_INDEX	ENDP
 
-		public _write_cv_index
-_write_cv_index proc
-		mov	ECX,8[ESP]
-		mov	EAX,4[ESP]
-_write_cv_index endp
+;		public _write_cv_index
+;_write_cv_index proc
+;		mov	EDI,12[ESP]
+;		mov	ECX,8[ESP]
+;		mov	EAX,4[ESP]
+;_write_cv_index endp
 
 WRITE_CV_INDEX	PROC
+		push	EDI
+		push	ECX
+		push	EAX
+		call	_write_cv_index
+		add	ESP,12
+		ret
+
 		;
 		;EAX IS INDEX TYPE, ECX IS LENGTH
 		;
@@ -173,7 +184,9 @@ WRITE_CV_INDEX	ENDP
 
 
 CV_INDEX_ANOTHER_BLOCK	PROC
-		jmp	_cv_index_another_block
+		call	_cv_index_another_block
+		mov	EDI,EAX
+		ret
 
 		;
 		;
@@ -255,7 +268,11 @@ L2$:
 		TEST	EAX,EAX			;LAST BLOCK?
 		JZ	L3$
 
-		CALL	WRITE_INDEX_BLOCK
+		push	ECX
+		push	EBX
+		call	_write_index_block
+		add	ESP,8
+		;CALL	WRITE_INDEX_BLOCK
 
 		ADD	EBX,4
 		JMP	L2$
@@ -272,7 +289,11 @@ L3$:
 		SUB	ECX,EDX
 		JZ	L4$
 
-		CALL	WRITE_INDEX_BLOCK
+		push	ECX
+		push	EBX
+		call	_write_index_block
+		add	ESP,8
+		;CALL	WRITE_INDEX_BLOCK
 L4$:
 		POP	EBX
 

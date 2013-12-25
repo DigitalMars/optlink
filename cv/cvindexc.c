@@ -5,9 +5,10 @@ void *CV_INDEX_PTR_LIMIT = 0;
 void *CV_INDEX_BLOCK_END = 0;
 extern unsigned CV_INDEX_SIZE;
 
-void _write_cv_index(unsigned, unsigned);
+void _write_cv_index(unsigned, unsigned, void *);
+void *_cv_index_another_block();
 
-void _handle_cv_index(unsigned EAX, unsigned ECX)
+void _handle_cv_index(unsigned EAX, unsigned ECX, void *EDI)
 {
         // EAX IS OLD BYTES_SO_FAR
         // ECX IS INDEX TYPE
@@ -15,117 +16,62 @@ void _handle_cv_index(unsigned EAX, unsigned ECX)
         unsigned EDX = ECX;
         ECX = BYTES_SO_FAR;
         BYTES_SO_FAR = EAX;
-        _write_cv_index(EDX, ECX - EAX);
+        _write_cv_index(EDX, ECX - EAX, EDI);
         BYTES_SO_FAR = ECX;
 }
 
-/*
-WRITE_CV_INDEX  PROC
-                ;
-                ;EAX IS INDEX TYPE, ECX IS LENGTH
-                ;
-                PUSH    EBX
-                MOV     EBX,CV_INDEX_COUNT
+void _write_cv_index(unsigned EAX, unsigned ECX, void *EDI)
+{
+        // EAX IS INDEX TYPE, ECX IS LENGTH
+        int overflow = 0;
+        ++CV_INDEX_COUNT;
 
-                MOV     EDX,CV_INDEX_PTR                ;LOCKED POINTER
-                INC     EBX
+        void *EDX = CV_INDEX_PTR;               // LOCKED POINTER
+        void *EBX = CV_INDEX_PTR_LIMIT;
+        void *EDXsave;
+        if (EBX < EDX)
+        {
+            // WON'T ALL FIT IN BLOCK, SO BUFFER IT IN CV_INDEX_TEMP
+            EDXsave = EDX;
+            EDX = &CV_INDEX_TEMP[0];
+            overflow = 1;
+        }
 
-                MOV     CV_INDEX_COUNT,EBX
-                MOV     EBX,CV_INDEX_PTR_LIMIT
+        ((unsigned *)EDX)[2] = ECX;             // seg fault here <<>>
+        ((unsigned *)EDX)[1] = BYTES_SO_FAR;
+        ((unsigned *)EDX)[0] = EAX | (CURNMOD_NUMBER << 16);
+        EDX = (void *)((unsigned *)EDX + 3);
 
-                CMP     EBX,EDX
-                JB      L1$
+        CV_INDEX_PTR = EDX;
 
-L3$:
-                MOV     EBX,CURNMOD_NUMBER
-                ; seg fault here <<>>
-                MOV     [EDX+8],ECX
+        if (!CV_4_TYPE)
+        {
+            CV_INDEX_PTR = (void *)((char *)EDX - 2);
+            if (((unsigned *)EDX)[-1] >= 64 * 1024)
+                _err_ret(CV_TOO_MANY_ERR);
+        }
+        if (overflow)
+        {
+            // MOVE AS MANY AS WILL FIT TO ORIGINAL BLOCK
+            unsigned words = ((char *)CV_INDEX_BLOCK_END - (char *)EDXsave) >> 1;       // # OF WORDS IN FIRST BLOCK
 
-                SHL     EBX,16
-                MOV     ECX,BYTES_SO_FAR
+            unsigned char *ESI = &CV_INDEX_TEMP[0];             // INDEX TEMP STORAGE
 
-                OR      EAX,EBX
-                MOV     [EDX+4],ECX
+            memcpy(EDI, ESI, words * 2);
+            ESI += words * 2;
 
-                MOV     [EDX],EAX
-                ADD     EDX,12
+            EDI = _cv_index_another_block();
 
-                GETT    AL,CV_4_TYPE
-                MOV     CV_INDEX_PTR,EDX
+            words = (CV_INDEX_SIZE >> 1) - words;       // # OF WORDS IN AN INDEX ENTRY
+                                                    // MINUS WORDS ALREADY MOVED
 
-                OR      AL,AL
-                JZ      L35$
-L36$:
-                POP     EBX
-                RET
-
-L35$:
-                MOV     EAX,[EDX-4]
-                SUB     EDX,2
-
-                CMP     EAX,64K
-                MOV     CV_INDEX_PTR,EDX
-
-                POP     EBX
-                JAE     L37$
-
-                RET
-
-L37$:
-                MOV     AX,CV_TOO_MANY_ERR
-                CALL    ERR_RET
-
-                RET
-
-L1$:
-                ;
-                ;WON'T ALL FIT IN BLOCK, SO BUFFER IT IN CV_INDEX_TEMP
-                ;
-                MOV     EBX,OFF L2$
-                PUSH    EDX
-
-                PUSH    EBX                     ;PUSH THROUGH DI IF NECESSARY
-                PUSH    EBX                     ;GARBAGE TO POP BEFORE RETURN
-
-                MOV     EDX,OFF CV_INDEX_TEMP
-                JMP     L3$
-
-L2$:
-                ;
-                ;MOVE AS MANY AS WILL FIT TO ORIGINAL BLOCK
-                ;
-                POP     EDX
-                MOV     ECX,CV_INDEX_BLOCK_END
-
-                PUSH    EDI
-                SUB     ECX,EDX                 ;# OF BYTES IN FIRST BLOCK
-
-                SHR     ECX,1                   ;# OF WORDS
-                PUSH    ESI
-
-                MOV     ESI,OFF CV_INDEX_TEMP   ;INDEX TEMP STORAGE
-                MOV     EDX,ECX
-
-                REP     MOVSW
-
-                PUSH    EDX
-                CALL    CV_INDEX_ANOTHER_BLOCK
-
-                POP     EDX
-                MOV     ECX,CV_INDEX_SIZE       ;# OF WORDS IN AN INDEX ENTRY
-                SHR     ECX,1
-                SUB     ECX,EDX                 ;MINUS WORDS ALREADY MOVED
-                REP     MOVSW
-                MOV     CV_INDEX_PTR,EDI
-                POPM    ESI,EDI,EBX
-
-                RET
-
-WRITE_CV_INDEX  ENDP
-*/
+            memcpy(EDI, ESI, words * 2);
+            CV_INDEX_PTR = (void *)((char *)EDI + words * 2);
+        }
+}
 
 
-void _cv_index_another_block()
+void *_cv_index_another_block()
 {
         void **EDX = CV_INDEX_BLK_PTR;
         void *EAX = _get_new_log_blk(); // LEAVE IN FASTER MEMORY
@@ -141,6 +87,7 @@ void _cv_index_another_block()
 
         CV_INDEX_PTR = EDI;
         CV_INDEX_PTR_LIMIT = (void *)((char *)EAX - CV_INDEX_SIZE);
+        return EDI;
 }
 
 /*
@@ -244,6 +191,7 @@ L5$:
                 JMP     L6$
 
 FLUSH_CV_INDEXES        ENDP
+*/
 
 
 void _write_index_block(void **EBX, unsigned ECX)
@@ -258,4 +206,3 @@ void _write_index_block(void **EBX, unsigned ECX)
         _release_block(EAX);
 }
 
-*/

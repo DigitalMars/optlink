@@ -173,10 +173,11 @@ L6$:
 		;  3.  WRITE HEADER
 		;  4.  DO CV_INDEX
 		;
+		push	EDI
 		MOV	EAX,012AH
 		push	EAX
 		call	_flush_cv_symbol_hashes
-		add	ESP,4
+		add	ESP,8
 L9$:
 		MOV	ESP,EBP
 		POPM	EBX,ESI,EDI,EBP

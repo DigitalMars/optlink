@@ -14,6 +14,7 @@ FLUSH_CV_TEMP	PROC
 		push	EDI
 		call	_flush_cv_temp
 		add	ESP,4
+		mov	EDI,EAX
 		pop	ECX
 		ret
 FLUSH_CV_TEMP	ENDP

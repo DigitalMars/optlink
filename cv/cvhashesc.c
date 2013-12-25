@@ -220,7 +220,7 @@ void _flush_cvg_temp()
 
 extern void DO_SYMBOL_HASH();
 
-void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
+void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */, void *EDI)
 {
     // CLEAN UP THE MESS YOU STARTED
     _flush_cvg_temp();
@@ -241,7 +241,7 @@ void _flush_cv_symbol_hashes(unsigned EAX /* CV_INDEX */)
 
     _release_minidata(&CV_HASHES_STUFF);
 
-    _handle_cv_index(CV_SECTION_OFFSET, EAX);   // backwards
+    _handle_cv_index(CV_SECTION_OFFSET, EAX, EDI);   // backwards
 }
 
 void _do_symbol_hash()

@@ -102,10 +102,11 @@ L8$:
 		;
 		MOV	CURNMOD_NUMBER,-1
 
+		push	EDI
 		MOV	EAX,0134H
 		push	EAX
 		call	_flush_cv_symbol_hashes
-		add	ESP,4
+		add	ESP,8
 
 		POPM	EBX,ESI,EDI
 

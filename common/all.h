@@ -101,12 +101,12 @@ unsigned char *_cbta16(int n, unsigned char *dest);
 void _init_cv_symbol_hashes();
 void _flush_cvg_temp();
 unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */);
-void _flush_cv_symbol_hashes(unsigned CV_INDEX);
+void _flush_cv_symbol_hashes(unsigned CV_INDEX, void *EDI);
 void _do_symbol_hash();
 void _do_address_hash();
 
 // cv.cvindex
-void _handle_cv_index(unsigned EAX, unsigned ECX);
+void _handle_cv_index(unsigned EAX, unsigned ECX, void *EDI);
 
 // cv.cvsymbolc
 unsigned _get_name_hash32(unsigned char *EAX);
@@ -124,7 +124,7 @@ void _print_obj_device();
 void _check_checksum(unsigned char *ESI);
 
 // cv.xdebugc
-void _flush_cv_temp(unsigned char *EDI);
+void *_flush_cv_temp(unsigned char *EDI);
 void _big_xdebug_write(unsigned EAX, void* *ECX);
 void _xdebug_normal(void *EAX, unsigned ECX);
 void _xdebug_write(unsigned char *EDI);

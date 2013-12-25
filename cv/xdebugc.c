@@ -6,12 +6,13 @@ extern unsigned CV_HEADER_LOC;
 extern unsigned char CV_TEMP_RECORD;
 extern unsigned char ZEROS_16;
 
-void _flush_cv_temp(unsigned char *EDI)
+void *_flush_cv_temp(unsigned char *EDI)
 {
     if (EDI != &CV_TEMP_RECORD)
     {   _xdebug_write(EDI);
         EDI = &CV_TEMP_RECORD;
     }
+    return EDI;
 }
 
 void _cv_dword_align_rtn()

@@ -92,16 +92,16 @@ CANNOT_PACK_ERR equ     044h
 #define INCERR_ERR      0x46
 #define DISK_FULL_ERR   0xa
 #define UNEXP_XEOF_ERR  0x41
-/*
-COM_PC_ERR      equ     02eh
-LIN_NONCODE_ERR equ     04bh
-SEGMENTS_EQU    equ     04h
-LINSYM_BEFORE_COMDAT_ERR        equ     04ch
-RTNLS_EQU       equ     017h
-CV_TOO_MANY_ERR equ     02dh
-CVP_BLOCK_WO_PARENT_ERR equ     09eh
-MISSING_COLON_ERR       equ     0bh
+#define COM_PC_ERR           0x2e
+#define LIN_NONCODE_ERR      0x4b
+#define SEGMENTS_EQU         0x04
+#define LINSYM_BEFORE_COMDAT_ERR     0x4c
+#define RTNLS_EQU            0x17
+#define CV_TOO_MANY_ERR      0x2d
+#define CVP_BLOCK_WO_PARENT_ERR      0x9e
+#define MISSING_COLON_ERR            0x0b
 
+/*
 ONE_DESC_ERR    equ     05dh
 CVLTYPES_EQU    equ     019h
 PUBSYMS_EQU     equ     03h
