@@ -16,7 +16,7 @@ $(LIB)\CV.LIB : $(OBJ)\CVMODALL.OBJ $(OBJ)\XDEBUG.OBJ $(OBJ)\CVMOD4.OBJ $(OBJ)\C
 		$(OBJ)\CVSYMBOL.OBJ $(OBJ)\CVTYPCON.OBJ $(OBJ)\CVGLBALL.OBJ $(OBJ)\CVSTAALL.OBJ $(OBJ)\CVPUBALL.OBJ $(OBJ)\CVTYPALL.OBJ \
 		$(OBJ)\INSTGSYM.OBJ $(OBJ)\CVFILALL.OBJ $(OBJ)\QSORTADR.OBJ $(OBJ)\DERIVATE.OBJ $(OBJ)\CVMOD3.OBJ \
 		$(OBJ)\CVPUBLIC.OBJ $(OBJ)\CVLINNUM.OBJ $(OBJ)\CVSYM1.OBJ \
-		$(OBJ)\cvlin4c.obj \
+		$(OBJ)\cvlin4c.obj $(OBJ)\cvindexc.obj \
 		$(OBJ)\instgsymc.obj $(OBJ)\cvsymbolc.obj $(OBJ)\cvhashesc.obj $(OBJ)\xdebugc.obj
   $(BUILD_LIB)
 
@@ -103,6 +103,9 @@ $(OBJ)\DERIVATE.OBJ : DERIVATE.ASM ..\COMMON\MACROS ..\COMMON\CVTYPES
 
 $(OBJ)\cvhashesc.obj : cvhashesc.c $(HEADERS)
 	dmc -c cvhashesc -NTCVPACK_TEXT $(CFLAGS) -o$(OBJ)\cvhashesc.obj
+
+$(OBJ)\cvindexc.obj : cvindexc.c $(HEADERS)
+	dmc -c cvindexc -NTCVPACK_TEXT $(CFLAGS) -o$(OBJ)\cvindexc.obj
 
 $(OBJ)\cvlin4c.obj : cvlin4c.c $(HEADERS)
 	dmc -c cvlin4c -NTCVPACK_TEXT $(CFLAGS) -o$(OBJ)\cvlin4c.obj

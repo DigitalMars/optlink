@@ -122,6 +122,7 @@ COMMONSRC= $(COMMONSRCC) \
 CVSRCC= \
 	cv\instgsymc.c \
 	cv\cvhashesc.c \
+	cv\cvindexc.c \
 	cv\cvlin4c.c \
 	cv\cvsymbolc.c \
 	cv\xdebugc.c

@@ -8,6 +8,7 @@
 		.DATA
 
 		EXTERNDEF	CV_INDEX_TEMP:BYTE,CV_HEADER:BYTE
+		externdef	CV_INDEX_PTR_LIMIT:DWORD,CV_INDEX_BLOCK_END:DWORD
 
 		EXTERNDEF	CURNMOD_GINDEX:DWORD,CV_INDEX_BLK:DWORD,CV_INDEX_BLK_PTR:DWORD,CV_INDEX_TABLE:DWORD
 		EXTERNDEF	CV_INDEX_SIZE:DWORD,CV_INDEX_HDR_SIZE:DWORD,CV_INDEX_COUNT:DWORD,CV_INDEX_PTR:DWORD
@@ -18,17 +19,25 @@
 
 		.CODE	PASS2_TEXT
 
+		externdef	_handle_cv_index:proc
+
 		EXTERNDEF	RELEASE_BLOCK:PROC,_xdebug_normal:proc,CONVERT_SUBBX_TO_EAX:PROC,GET_NEW_LOG_BLK:PROC,ERR_RET:PROC
 
 		EXTERNDEF	CV_TOO_MANY_ERR:ABS
 
-		public _handle_cv_index
-_handle_cv_index proc
-		mov	ECX,8[ESP]
-		mov	EAX,4[ESP]
-_handle_cv_index endp
+;		public _handle_cv_index
+;_handle_cv_index proc
+;		mov	ECX,8[ESP]
+;		mov	EAX,4[ESP]
+;_handle_cv_index endp
 
 HANDLE_CV_INDEX	PROC
+		push	ECX
+		push	EAX
+		call	_handle_cv_index
+		add	ESP,8
+		ret
+
 		;
 		;EAX IS OLD BYTES_SO_FAR
 		;ECX IS INDEX TYPE
@@ -52,6 +61,11 @@ HANDLE_CV_INDEX	PROC
 
 HANDLE_CV_INDEX	ENDP
 
+		public _write_cv_index
+_write_cv_index proc
+		mov	ECX,8[ESP]
+		mov	EAX,4[ESP]
+_write_cv_index endp
 
 WRITE_CV_INDEX	PROC
 		;
@@ -304,12 +318,6 @@ WRITE_INDEX_BLOCK	PROC	NEAR
 		JMP	RELEASE_BLOCK
 
 WRITE_INDEX_BLOCK	ENDP
-
-
-		.DATA?
-
-CV_INDEX_PTR_LIMIT	DD	?
-CV_INDEX_BLOCK_END	DD	?
 
 
 		END
