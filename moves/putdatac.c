@@ -24,6 +24,7 @@ void _put_data(void *ps, unsigned count, MYO_STRUCT* pm)
 	    {
 		memcpy(pm->MYO_PTR, ps, pm->MYO_COUNT);
 		pm->MYO_PTR += pm->MYO_COUNT;
+		ps = (char*) ps + pm->MYO_COUNT;
 		count -= pm->MYO_COUNT;
 		pm->MYO_COUNT = 0;
 	    }
