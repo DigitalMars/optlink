@@ -57,7 +57,7 @@ void _write_cv_index(unsigned EAX, unsigned ECX, void *EDI)
 
             unsigned char *ESI = &CV_INDEX_TEMP[0];             // INDEX TEMP STORAGE
 
-            memcpy(EDI, ESI, words * 2);
+            memcpy(EDXsave, ESI, words * 2);
             ESI += words * 2;
 
             EDI = _cv_index_another_block();
