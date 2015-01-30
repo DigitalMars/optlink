@@ -40,19 +40,21 @@ L1:
 		goto L1;
 	}
 
-	
-	if(AL == '+') {
-L2:
-		// Skip until the end of this filename so this function returns the start of the next filename
+	// Bugzilla 4831 workaround: skip filenames with '+' in them
+	if (AL == '+')
+	{
+	    // Skip until the end of this filename so this function returns the start of the next filename
+	    while (1)
+	    {
 		AL = *ESI++;
-		if(!(FNTBL[AL] & FNTBL_ILLEGAL) || AL == ' ' || AL == '+') {
-			*EDI++ = AL;
-			goto L2;
-		}
-		*EDI = '\0'; // Set terminating NULL to print to stdout
-		//printf("[WARNING] Filename '%s' contained the '+' character, ommiting it from the filename list\n", &ECX->NFN_TEXT[0]);
-		ECX->NFN_TOTAL_LENGTH = 0; // Get rid of the filename
-		return ESI;
+		if (FNTBL[AL] & FNTBL_ILLEGAL && AL != ' ' && AL != '+') 
+		    break;
+		*EDI++ = AL;
+	    }
+	    unsigned len = EDI - &ECX->NFN_TEXT[0];
+	    //printf("[WARNING] Filename '%.*s' contained the '+' character, ommiting it from the filename list\n", len, &ECX->NFN_TEXT[0]);
+	    ECX->NFN_TOTAL_LENGTH = 0; // Get rid of the filename
+	    return ESI;
 
 	}
 
