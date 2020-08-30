@@ -20,6 +20,8 @@ First=????????";
 #define ESP (EBP + 8 + 5)
 #define FIRST (sizeof(registers_msg) - 9)
 
+int _loutall_con(unsigned nbytes, char *ptr);
+
 EXCEPTION_DISPOSITION XCNOTIFY(
             EXCEPTION_RECORD *exception_record,
             void *EstablisherFrame,
@@ -64,7 +66,14 @@ EXCEPTION_DISPOSITION XCNOTIFY(
 	    preg[EDI + 8] = ' ';
 	}
     }
+#if 1
+    _loutall_con(strlen(context_msg), context_msg);
+    _loutall_con(1, "\n");
+    _loutall_con(strlen(preg), preg);
+    _loutall_con(1, "\n");
+#else
     MessageBox(0, preg, context_msg, MB_SETFOREGROUND | MB_ICONHAND);
+#endif
     ExitProcess(1);
 }
 
