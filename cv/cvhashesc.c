@@ -55,39 +55,39 @@ struct CV_HASH_HDR_STRUCT CV_HASH_HEADER = { 10,12,0,0,0 };
 
 void _init_cv_symbol_hashes()
 {
-        // INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
+    // INITIALIZE STUFF USED FOR GLOBAL SYMBOL HASH TABLES
 
-        CV_HASH_COUNT = 0;
-        CV_PAGE_BYTES = 0;
+    CV_HASH_COUNT = 0;
+    CV_PAGE_BYTES = 0;
 
-        FIRST_CVH = 0;
-        LAST_CVH = 0;
+    FIRST_CVH = 0;
+    LAST_CVH = 0;
 
-        CVG_SYMBOL_OFFSET = 0;
+    CVG_SYMBOL_OFFSET = 0;
 
-        (*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
+    (*CV_DWORD_ALIGN)();          // make sure of DWORD alignment
 
-        unsigned EAX = BYTES_SO_FAR;
-        unsigned ECX = FINAL_HIGH_WATER;
-        CV_SECTION_OFFSET = EAX;
-        CV_SECTION_HDR_ADDRESS = ECX;
-        EAX += sizeof(struct CV_HASH_HDR_STRUCT);
-        ECX += sizeof(struct CV_HASH_HDR_STRUCT);
+    unsigned EAX = BYTES_SO_FAR;
+    unsigned ECX = FINAL_HIGH_WATER;
+    CV_SECTION_OFFSET = EAX;
+    CV_SECTION_HDR_ADDRESS = ECX;
+    EAX += sizeof(struct CV_HASH_HDR_STRUCT);
+    ECX += sizeof(struct CV_HASH_HDR_STRUCT);
 
-        BYTES_SO_FAR = EAX;
-        FINAL_HIGH_WATER = ECX;
+    BYTES_SO_FAR = EAX;
+    FINAL_HIGH_WATER = ECX;
 
-        CV_SYMBOL_BASE_ADDR = ECX;
+    CV_SYMBOL_BASE_ADDR = ECX;
 
-        unsigned *p = _get_new_log_blk();       // allocate PAGE_SIZE (16K) block
-        CVG_PUT_BLK = p;
-        CVG_PUT_PTR = p;
+    unsigned *p = _get_new_log_blk();       // allocate PAGE_SIZE (16K) block
+    CVG_PUT_BLK = p;
+    CVG_PUT_PTR = p;
 
-        /* Set limit to 512 bytes from the end. This assumes that no symbols will
-         * be larger than 512 bytes, which turns out to be false.
-         * This has been the cause of some overflow bugs, so we add more checking.
-         */
-        CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
+    /* Set limit to 512 bytes from the end. This assumes that no symbols will
+     * be larger than 512 bytes, which turns out to be false.
+     * This has been the cause of some overflow bugs, so we add more checking.
+     */
+    CVG_PUT_LIMIT = p + (PAGE_SIZE - 512) / sizeof(*p);
 }
 
 void _store_cv_symbol_info()
@@ -112,7 +112,7 @@ void _store_cv_symbol_info()
     cvh->_NEXT_HASH = 0;
 }
 
-unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
+unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *symbol /* EAX */)
 {
     // EAX IS CV_TEMP_RECORD
     //
@@ -121,93 +121,89 @@ unsigned _output_cv_symbol_align(struct CV_SYMBOL_STRUCT *ESI /* EAX */)
     // RETURN EAX IS OFFSET OF THIS SYMBOL
     //
 
-    //printf("\nESI = %p, length = %x\n", ESI, ESI->_LENGTH);
+    //printf("\nsymbol = %p, length = %x\n", symbol, symbol->_LENGTH);
 
-    unsigned EDX = ESI->_LENGTH;
+    const unsigned originLength = symbol->_LENGTH;
 
-    unsigned char *p = (unsigned char *)ESI + EDX;
-    p[2] = 0;
-    p[3] = 0;
-    p[4] = 0;
+    memset((unsigned char *)symbol + originLength + 2, 0, 3);
 
-    EDX += (2 - EDX) & 3;              // # OF ZEROS TO ADD AT THE END
+    const unsigned newLength = originLength + ((2 - originLength) & 3); // # OF ZEROS TO ADD AT THE END
 
-    ESI->_LENGTH = EDX;
-    unsigned ECX = 2 + EDX;
+    symbol->_LENGTH = newLength;
+    const unsigned count = 2 + newLength;
+
+    const unsigned _16K = 0x4000;
 
     //
     // DO 4K ALIGNMENT CALCULATION
     //
     if (DOING_4K_ALIGN)         // STATICSYM doesn't matter
     {
-        EDX = 0x1000;                   // 4K
+        const unsigned _4K = 0x1000;                   // 4K
 
-        unsigned EAX = CV_PAGE_BYTES + ECX;
-        if (EDX < EAX)
-            goto L2;
-        EDX -= EAX;
-        if (!EDX)
-            goto L28;
+        const unsigned pageBytes = CV_PAGE_BYTES + count;
         // MUST LEAVE 0 OR AT LEAST 8 BYTES
-        if (EDX > 8)
-            goto L29;
-L2:
-        /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
-         * a page boundary.
-         * The format is:
-         *      word length
-         *      word S_ALIGN
-         *      ... pad bytes ...
-         */
-
-        unsigned nbytes = 0x1000 - 2;       // 4K-2
-        nbytes -= CV_PAGE_BYTES;            // # OF BYTES TO FILL
-        EDX = S_ALIGN * 0x10000;            // S_ALIGN*64K
-        EDX |= nbytes;
-        nbytes -= 2;
-
-        unsigned *EDI = CVG_PUT_PTR;
-
-        // Fix for Bugzilla 2436 where it would seg fault on the memset()
-        if ((char *)EDI - (char *)CVG_PUT_BLK + nbytes + 4 > 0x4000)
+        if (pageBytes == _4K)
         {
-            _flush_cvg_temp();
-            EDI = CVG_PUT_PTR;
+            CV_PAGE_BYTES = 0;
         }
+        else if (pageBytes < _4K - 8)
+        {
+            CV_PAGE_BYTES = pageBytes;
+        }
+        else
+        {
+            /* Insert S_ALIGN symbol to ensure that the next symbol will not cross
+             * a page boundary.
+             * The format is:
+             *      word length
+             *      word S_ALIGN
+             *      ... pad bytes ...
+             */
 
-        *EDI++ = EDX;                       // write length, S_ALIGN
+            const unsigned _64K = 0x10000;
+            const unsigned nbytes = _4K - 2 - CV_PAGE_BYTES - 2; // 4K - 2 - # OF BYTES TO FILL - 2
+            const unsigned n = (S_ALIGN * _64K) | (nbytes + 2);
 
-        memset(EDI, 0, nbytes);             // pad bytes
-        EDI = (unsigned *)((char *)EDI + nbytes);
+            unsigned *putPtr = CVG_PUT_PTR;
 
-        CVG_PUT_PTR = EDI;
-        if (EDI >= CVG_PUT_LIMIT)
-            _flush_cvg_temp();
+            // Fix for Bugzilla 2436 where it would seg fault on the memset()
+            if ((char *)putPtr - (char *)CVG_PUT_BLK + nbytes + 4 > _16K)
+            {
+                _flush_cvg_temp();
+                putPtr = CVG_PUT_PTR;
+            }
 
-        EDX = ECX;
-L28:
-        EAX = EDX;
-L29:
-        CV_PAGE_BYTES = EAX;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+            *putPtr++ = n;                       // write length, S_ALIGN
+
+            memset(putPtr, 0, nbytes);             // pad bytes
+            putPtr = (unsigned *)((char *)putPtr + nbytes);
+
+            CVG_PUT_PTR = putPtr;
+            if (putPtr >= CVG_PUT_LIMIT)
+                _flush_cvg_temp();
+
+            CV_PAGE_BYTES = count;       // # OF BYTES IN PAGE AFTER THIS SYMBOL GOES OUT
+        }
     }
 
     //
     // STORE IN BUFFER
     //
 
-    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + ECX > 0x4000)
+    if (((char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK) + count > _16K)
         _flush_cvg_temp();
 
-    unsigned EAX = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
-    EAX += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
+    unsigned offset = FINAL_HIGH_WATER - CV_SYMBOL_BASE_ADDR;
+    offset += (char *)CVG_PUT_PTR - (char *)CVG_PUT_BLK;
 
-    memcpy(CVG_PUT_PTR, ESI, ECX);
+    memcpy(CVG_PUT_PTR, symbol, count);
 
-    CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + ECX);
+    CVG_PUT_PTR = (unsigned *)((char *)CVG_PUT_PTR + count);
 
     if (CVG_PUT_PTR >= CVG_PUT_LIMIT)
         _flush_cvg_temp();
-    return EAX;
+    return offset;
 }
 
 void _flush_cvg_temp()
@@ -248,7 +244,7 @@ void _do_symbol_hash()
 {
     if (!CV_HASH_COUNT)
     {   CV_HASH_HEADER._CVHH_CBSYMHASH = 0;
-        return;
+    return;
     }
 
     unsigned final_high_water_save = FINAL_HIGH_WATER;
@@ -491,9 +487,9 @@ L17:
     }
 
     {
-    unsigned ECX = (char *)ESI - (char *)CVG_PUT_BLK;
-    if (ECX)
-        _move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
+        unsigned ECX = (char *)ESI - (char *)CVG_PUT_BLK;
+        if (ECX)
+            _move_eax_to_final_high_water(CVG_PUT_BLK, ECX);
     }
 
     // NOW OUTPUT OFFSET COUNTS
